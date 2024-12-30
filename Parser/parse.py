@@ -19,7 +19,7 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     pvshape_dict = dict(zip(pvshape['time'], pvshape['PV']))
     loadshape = {t: loadshape_dict[t] for t in Tset}
     pvshape = {t: pvshape_dict[t] for t in Tset}
-    costshape = {t + 1: price[t] for t in range(24)}
+    costshape = {t : price[t-1] for t in Tset}
 
     ## parsing bus_data
     bus_lookup = bus.set_index('id')

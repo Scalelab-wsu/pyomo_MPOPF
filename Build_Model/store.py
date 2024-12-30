@@ -1,5 +1,5 @@
 from pyomo.environ import *
-
+import numpy as np
 
 def store_results(model):
     modelVals = {}
@@ -28,7 +28,7 @@ def store_results(model):
     for t in model.Tset:
         for j in model.Nset:
             for ph in model.phases:
-                modelVals['v'][(t, j, ph)] = value(model.v[t, j, ph])
+                modelVals['v'][(t, j, ph)] = np.sqrt(value(model.v[t, j, ph]))
 
     for t in model.Tset:
         for j in model.Dset:

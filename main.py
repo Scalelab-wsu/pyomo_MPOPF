@@ -4,6 +4,7 @@ from Build_Model.Constraints import build_pyomo_model
 from Build_Model.Objective import substation_power_minimize,pyomo_solve,power_flow,loss_minimize,cost_minimize
 from Build_Model.store import store_results
 from Plot.Plotting import *
+from OpendssValidate import *
 import pandas as pd
 import os
 import numpy as np
@@ -27,14 +28,18 @@ price = [
 data = parse_all_data(bus_data, branch_data, gen_data, bat_data, loadshape_data,pvshape_data,price)
 # %%
 model = build_pyomo_model(data)
+model = pyomo_solve(model,cost_minimize)
+modelvals = store_results(model)
 
 # %%
 # model.pprint()
-model = pyomo_solve(model,cost_minimize)
-modelvals = store_results(model)
-plot_substation_power(modelvals)
-plot_battery_soc(modelvals)
-plot_reactive_power_flows(modelvals)
-plot_der_reactive_power(modelvals)
-plot_battery_charging_discharging_combined(modelvals)
-plot_active_power_flows(modelvals)
+# plot_substation_power(modelvals)
+# plot_battery_soc(modelvals)
+# plot_reactive_power_flows(modelvals)
+# plot_der_reactive_power(modelvals)
+# plot_battery_charging_discharging_combined(modelvals)
+# plot_active_power_flows(modelvals)
+# plot_voltage(modelvals)
+
+OpendssVals = run_opendss_validation(data, modelvals)
+print("Everything ran successfully")

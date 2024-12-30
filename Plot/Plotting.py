@@ -352,3 +352,35 @@ def plot_battery_soc(modelVals):
     save_plot(fig, "battery_soc.html")
     fig.show()
 
+def plot_voltage(modelVals):
+    """
+    Plot voltage for each node as a line plot. Each node is represented by a unique color,
+    and the legend allows toggling individual nodes on/off.
+    """
+    data = []
+    for (time, node, phase), value in modelVals["v"].items():
+        data.append({
+            "time": time,
+            "node": str(node),  # Convert to string for discrete legend
+            "phase": str(phase),
+            "value": value
+        })
+
+    # Create a line plot with Plotly Express
+    fig = px.line(
+        data,
+        x="time",
+        y="value",
+        color="node",        # Each node gets a distinct line/color
+        facet_col="phase",   # Separate columns for each phase
+        title="Voltage for Nodes",
+        labels={"value": "Voltage (p.u.)", "time": "Time"},
+        height=400,
+        color_discrete_sequence=px.colors.qualitative.Set1  # Use vibrant colors
+    )
+
+
+    # Show the plot
+    save_plot(fig, "voltage_plot.html")
+    fig.show()
+
