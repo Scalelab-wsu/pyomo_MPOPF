@@ -29,11 +29,17 @@ def pyomo_solve(model, obj_func, **kwargs):
 
     model.obj = Objective(rule=obj_func, sense=minimize)
     opt = SolverFactory('gurobi')
-    # opt = SolverFactory('scip', executable=r"C:\Program Files\SCIPOptSuite 9.2.0\bin\scip.exe")
+    # opt.options['logfile'] = 'solver_log.txt'
+    # opt.options['IISMethod'] = 2
+    opt = SolverFactory('scip', executable=r"C:\Program Files\SCIPOptSuite 9.2.0\bin\scip.exe")
     results = opt.solve(model, tee=True)
     if results.solver.status == "ok" and results.solver.termination_condition == "optimal":
         print("Solver completed successfully.")
     else:
         print(f"Solver failed: {results.solver.termination_condition}")
+
+        # Save IIS to file
+        model.write("model.ilp", format="lp")
+
 
     return model

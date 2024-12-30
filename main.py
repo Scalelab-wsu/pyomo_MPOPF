@@ -6,6 +6,7 @@ from Build_Model.store import store_results
 from Plot.Plotting import *
 import pandas as pd
 import os
+import numpy as np
 
 wd = os.getcwd()
 print(wd)
@@ -29,7 +30,11 @@ model = build_pyomo_model(data)
 
 # %%
 # model.pprint()
-model = pyomo_solve(model,loss_minimize)
-model.write('model.lp', io_options={'symbolic_solver_labels': True})
+model = pyomo_solve(model,cost_minimize)
 # modelvals = store_results(model)
-
+# plot_substation_power(modelvals)
+# plot_battery_soc(modelvals)
+# plot_reactive_power_flows(modelvals)
+# plot_der_reactive_power(modelvals)
+# plot_battery_charging_discharging_combined(modelvals)
+# plot_active_power_flows(modelvals)

@@ -14,9 +14,17 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     Tset = np.arange(1, T + 1)
     phases = ['a', 'b', 'c']
 
+    ## parsing profiles_data
+    loadshape_dict = dict(zip(loadshape['time'], loadshape['M']))
+    pvshape_dict = dict(zip(pvshape['time'], pvshape['PV']))
+    loadshape = {t: loadshape_dict[t] for t in Tset}
+    pvshape = {t: pvshape_dict[t] for t in Tset}
+    costshape = {t + 1: price[t] for t in range(24)}
+
     ## parsing bus_data
     bus_lookup = bus.set_index('id')
-    p_L = {(i, ph): bus_lookup.at[i, f"pl_{ph}"] for i in bus_set for ph in phases}
+    # p_L = {(i, ph): bus_lookup.at[i, f"pl_{ph}"] for i in bus_set for ph in phases}
+    p_L = {(t, i, ph): bus_lookup.at[i, f"pl_{ph}"] * loadshape[t] for t in Tset for i in bus_set for ph in phases}
     q_L = {(i, ph): bus_lookup.at[i, f"ql_{ph}"] for i in bus_set for ph in phases}
     v_min = {i: bus_lookup.at[i, "v_min"] for i in bus_set}
     v_max = {i: bus_lookup.at[i, "v_max"] for i in bus_set}
@@ -44,7 +52,9 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
 
     ## parsing gen_data
     gen_lookup = gen.set_index('id')
-    p_D = {(i, ph): gen_lookup.at[i, f"p{ph}"] for i in gen_set for ph in phases}
+    # p_D = {(i, ph): gen_lookup.at[i, f"p{ph}"] for i in gen_set for ph in phases}
+    p_D = {(t, i, ph): gen_lookup.at[i, f"p{ph}"] * pvshape[t] for t in Tset for i in gen_set for ph in phases}
+
     s_D = {(i, ph): gen_lookup.at[i, f"s{ph}_max"] for i in gen_set for ph in phases}
 
 
@@ -58,13 +68,6 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     bmax = {(i, ph): bat_lookup.at[i, f"bmax_{ph}"] for i in bat_set for ph in phases}
     b0 = {(i, ph): bmin[(i, ph)]  for i in bat_set for ph in phases}
 
-
-    ## parsing profiles_data
-    loadshape_dict = dict(zip(loadshape['time'], loadshape['M']))
-    pvshape_dict = dict(zip(pvshape['time'], pvshape['PV']))
-    loadshape= {t: loadshape_dict[t] for t in Tset}
-    pvshape = {t: pvshape_dict[t] for t in Tset}
-    costshape = {t+1: price[t] for t in range(24)}
 
     data = {
         "Nset": bus_set,
