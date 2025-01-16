@@ -6,6 +6,7 @@ def store_results(model):
 
     # Initialize containers for each variable
     modelVals['P_subs'] = {}
+    modelVals['Q_subs'] = {}
     modelVals['P'] = {}
     modelVals['Q'] = {}
     modelVals['v'] = {}
@@ -18,6 +19,10 @@ def store_results(model):
     for t in model.Tset:
         for ph in model.phases:
             modelVals['P_subs'][(t, ph)] = value(model.P_subs[t, ph])
+
+    for t in model.Tset:
+        for ph in model.phases:
+            modelVals['Q_subs'][(t, ph)] = value(model.Q_subs[t, ph])
 
     for t in model.Tset:
         for (i, j) in model.Lset:

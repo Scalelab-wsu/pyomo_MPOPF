@@ -269,8 +269,8 @@ def run_opendss_validation(data, modelVals):
             # By default, first 2*num_ph entries are the sending-end, the next 2*num_ph are receiving-end.
             for ph_idx in range(num_ph):
                 # Real power
-                p_line = powers[2 * ph_idx]
-                q_line = powers[2 * ph_idx + 1]
+                p_line = powers[2 * ph_idx]*1000/P_base
+                q_line = powers[2 * ph_idx + 1]*1000/P_base
 
                 # Identify which actual phases are used. This can be tricky if the line is 2-phase or 1-phase.
                 # We'll assume the phases are in ascending order (1->2->3).
@@ -327,7 +327,7 @@ def run_opendss_validation(data, modelVals):
                 if len(pv_powers) >= 2:
                     # Real power = pv_powers[0], Reactive = pv_powers[1]
                     # We'll store Q
-                    openDssVals['q_D'][(t, j, ph)] = pv_powers[1]
+                    openDssVals['q_D'][(t, j, ph)] = pv_powers[1]*1000/P_base
                 else:
                     openDssVals['q_D'][(t, j, ph)] = 0.0
 
@@ -347,7 +347,7 @@ def run_opendss_validation(data, modelVals):
                 dss.Circuit.SetActiveElement(batt_name)
                 powers = dss.CktElement.Powers()  # [P1, Q1, P2, Q2, ...], typically 1-phase => first pair
                 # P in kW: powers[0]. If +ve => battery injecting => discharging, if -ve => charging
-                p_batt = powers[0]
+                p_batt = powers[0]*1000/P_base
 
                 # Split it:
                 if p_batt >= 0:

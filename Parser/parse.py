@@ -25,14 +25,14 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     bus_lookup = bus.set_index('id')
     # p_L = {(i, ph): bus_lookup.at[i, f"pl_{ph}"] for i in bus_set for ph in phases}
     p_L = {(t, i, ph): bus_lookup.at[i, f"pl_{ph}"] * loadshape[t] for t in Tset for i in bus_set for ph in phases}
-    q_L = {(i, ph): bus_lookup.at[i, f"ql_{ph}"] for i in bus_set for ph in phases}
+    q_L = {(t, i, ph): bus_lookup.at[i, f"ql_{ph}"] for t in Tset for i in bus_set for ph in phases}
     v_min = {i: bus_lookup.at[i, "v_min"] for i in bus_set}
     v_max = {i: bus_lookup.at[i, "v_max"] for i in bus_set}
-    v_swing = {(i,ph): bus_lookup.at[i, f"v_{ph}"] for i in substationBus for ph in phases}
+    v_swing = {(t,i,ph): bus_lookup.at[i, f"v_{ph}"] for t in Tset for i in substationBus for ph in phases}
 
     ## parsing branch_data
-    row = np.array(np.r_[branch.fb, branch.tb], dtype=int)
-    col = np.array(np.r_[branch.tb, branch.fb], dtype=int)
+    row = np.array(np.r_[branch.fb, branch.tb])
+    col = np.array(np.r_[branch.tb, branch.fb])
     r = {
         "aa": csr_matrix((np.r_[branch.raa, branch.raa], (row, col))),
         "ab": csr_matrix((np.r_[branch.rab, branch.rab], (row, col))),
