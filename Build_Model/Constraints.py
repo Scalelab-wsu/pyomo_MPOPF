@@ -128,6 +128,16 @@ def build_pyomo_model(data):
 
     model.battery_dynamics = Constraint(model.Tset, model.Bset, model.phases, rule=battery_dynamics_rule)
 
+    # final soc= initial soc rule
+    def final_soc_rule(model, t, j, ph):
+        b0 = data['b0'][j,ph]
+        if t == max(data['Tset']):
+            return model.B[t, j, ph] == b0
+        else:
+            return Constraint.Skip
+
+    model.final_soc = Constraint(model.Tset, model.Bset, model.phases, rule=final_soc_rule)
+
     # Battery charge/discharge power limits
     def battery_limits_rule(model, t, j, ph):
         bmin = data['bmin'][j,ph]

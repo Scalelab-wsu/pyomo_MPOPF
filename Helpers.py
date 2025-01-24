@@ -55,3 +55,24 @@ for t in time_steps:
 # Display the result
 for t, df in result.items():
     print(f"t = {t}:\n{df}\n")
+
+# def update_area_values(area_info,data_by_area,p_global,q_global,v_global):
+#     for area in area_info.keys():
+#         for idx, conn_area in enumerate(area_info[area]['down_areas']):
+#             local_node_id = area_info[area]['down_local_node_id'][idx]
+#             for t in data_by_area[area]['Tset']:
+#                 for ph in "abc":
+#                     data_by_area[area]['p_L'][t,local_node_id,ph] = p_global[f"{conn_area}_{area}_p"][t-1]["abc".index(ph)]
+#                     data_by_area[area]['q_L'][t,local_node_id,ph] = q_global[f"{conn_area}_{area}_q"][t-1]["abc".index(ph)]
+#                     data_by_area[conn_area]['v_swing'][t,local_node_id, ph] = v_global[f"{conn_area}_{area}_v"][t-1]["abc".index(ph)]
+#                     # data_by_area[area]['v_swing'][t,local_node_id, ph] = v_global[f"{conn_area}_{area}_v"][t - 1]["abc".index(ph)]
+#
+#         for idx, conn_area in enumerate(area_info[area]['up_area']):
+#             local_node_id = area_info[area]['up_local_node_id'][idx]
+#             for t in data_by_area[area]['Tset']:
+#                 for ph in "abc":
+#                     data_by_area[area]['p_L'][t, local_node_id, ph] = p_global[f"{conn_area}_{area}_p"][t - 1]["abc".index(ph)]
+#                     data_by_area[area]['q_L'][t, local_node_id, ph] = q_global[f"{conn_area}_{area}_q"][t - 1]["abc".index(ph)]
+#                     data_by_area[area]['v_swing'][t,local_node_id, ph] = v_global[f"{conn_area}_{area}_v"][t - 1]["abc".index(ph)]
+#
+#     return data_by_area

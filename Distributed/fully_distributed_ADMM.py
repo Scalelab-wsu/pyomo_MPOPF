@@ -369,7 +369,7 @@ if __name__ == "__main__":
     tic = perf_counter()
     wd = os.getcwd()
     # Adjust your own file paths:
-    filepath = os.path.join(wd, "..", "raw data", "IEEE_123_other")
+    filepath = os.path.join(wd, "..", "rawData", "IEEE_123_other")
 
     # 1) Import CSV files (same as before)
     bus_data = pd.read_csv(os.path.join(filepath, "bus_data.csv"))

@@ -1,7 +1,7 @@
 import opendssdirect as dss
 import pandas as pd
 import numpy as np
-from pyomo.dataportal.parse_datacmds import reserved
+
 
 
 def run_opendss_validation(data, modelVals):
@@ -122,7 +122,7 @@ def run_opendss_validation(data, modelVals):
         dss.Text.Command("New Circuit.myCircuit "
                          f"basekv=4.16 bus1={substation_bus}.1.2.3 pu=1.05 phases=3 "
                          "MVAsc3=20000 MVASC1=21000 R1=0 X1=0.0001 R0=0 X0=0.0001")
-        # dss.Text.Command(f"New Vsource.Source phases=3 bus1={substation_bus}.1.2.3 basekv=4.16 pu=1.05")
+        dss.Text.Command(f"New Vsource.Src phases=3 bus1={substation_bus}.1.2.3 basekv=4.16 pu=1.05")
 
         # -----------------------------------------------------
         # 4a) Add lines
@@ -150,7 +150,7 @@ def run_opendss_validation(data, modelVals):
             for ph in data['phases']:
                 # p_L is time dependent, q_L might be time dependent or not
                 p_kw = data['p_L'][(t, i, ph)] * P_base/1000 # real (kW)
-                q_kvar = data['q_L'][(i, ph)] * P_base/1000   # reactive (kVar) - if it’s not scaled by time, adapt as needed
+                q_kvar = data['q_L'][(t,i, ph)] * P_base/1000   # reactive (kVar) - if it’s not scaled by time, adapt as needed
 
                 if abs(p_kw) > 1e-9 or abs(q_kvar) > 1e-9:
                     phase_int = phase_to_idx[ph]
@@ -196,7 +196,7 @@ def run_opendss_validation(data, modelVals):
                 eff_discharge = data['eta_d'][(i, ph)] * 100
                 kwhrated = data['p_B'][(i,ph)] * P_base/1000
                 kwrated = data['p_B'][(i,ph)] * P_base/1000
-                stored = 62.5
+                stored = 60
                 reserved = 30
 
 
@@ -219,38 +219,20 @@ def run_opendss_validation(data, modelVals):
         # -----------------------------------------------------
         dss.Text.Command("Set voltagebases=[4.16]")
         dss.Text.Command("calcv")
+        dss.Text.Command("Set mode = Daily")
+        dss.Text.Command("Set stepsize = 1h")
+        dss.Text.Command("Set number = 1")
         dss.Text.Command("solve")
+
 
         # ~~~~~~~~~~~~~~
         # Substation power by phase => openDssVals['P_subs'][(t, ph)]
         # ~~~~~~~~~~~~~~
-        # # We can get the total power by phase from the substation bus or from the circuit total.
-        # # By default, dss.Circuit.TotalPower() returns total P, Q of the entire system (summed across phases).
-        # # For per-phase substation flows, we'd parse the "Vsource" or slack bus element.
-        # # We'll do it from the circuit element "Transformer" or from "Line" if you have a line from the substation,
-        # # or from the element "Source" if your substation is a voltage source object.
-        # #
-        # # For simplicity, let's do an approach:
-        # #   1) name the substation source: "Vsource.sub"
-        # #   2) set that as a 3-phase Vsource at substation_bus
-        # #   3) read the powers from that element
-        #
-        # # Now we get the per-phase powers from dss.CktElement.Powers()
-        # # It's a list of [P1, Q1, P2, Q2, P3, Q3, (receiving-end P1, Q1, ... if any)]
-        # vs_powers = dss.CktElement.Powers()
-        # # vs_powers[0], vs_powers[1] => Phase A real, reactive
-        # # vs_powers[2], vs_powers[3] => Phase B real, reactive
-        # # vs_powers[4], vs_powers[5] => Phase C real, reactive
-        # # The sign is negative if the source is injecting into the system.
-        # for idx, ph in enumerate(['a', 'b', 'c']):
-        #     p_phase = vs_powers[2 * idx]  # kW (phase idx)
-        #     # Store it with the same sign convention as modelVals => typically we used +ve for injection
-        #     # modelVals used 'P_subs'[(t, ph)] = value(model.P_subs[t, ph])
-        #     # We'll store the *injection* as positive => so we do negative of the sign from the source
-        #     openDssVals['P_subs'][(t, ph)] = -p_phase
-
-        vs_powers = dss.Circuit.TotalPower()[0]
-        openDssVals['P_subs'][t] = -vs_powers
+        dss.Circuit.SetActiveElement("Vsource.src")
+        vs_powers = dss.CktElement.Powers()
+        for idx, ph in enumerate(['a', 'b', 'c']):
+            p_phase = -vs_powers[2 * idx]  # Negate to represent injection
+            openDssVals['P_subs'][(t, ph)] = p_phase
 
         # ~~~~~~~~~~~~~~
         # Collect line flows: P, Q => openDssVals['P'] and openDssVals['Q']

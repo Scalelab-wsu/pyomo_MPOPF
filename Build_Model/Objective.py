@@ -18,8 +18,8 @@ def cost_minimize(model, **kwargs):
     cost = model.cost
 
     # Compute total substation power for each time period t
-    # Psubs = {t: sum(model.P_subs[t, ph] for ph in model.phases) for t in model.Tset}
-    Psubs = {t: sum(model.P[t, (i, j), ph] for (i,j) in model.Lset if i in model.substationBus for ph in model.phases) for t in model.Tset}
+    Psubs = {t: sum(model.P_subs[t, ph] for ph in model.phases) for t in model.Tset}
+    # Psubs = {t: sum(model.P[t, (i, j), ph] for (i,j) in model.Lset if i in model.substationBus for ph in model.phases) for t in model.Tset}
 
     # Return the total cost across all time periods
     return sum(Psubs[t] * cost[t] for t in model.Tset)

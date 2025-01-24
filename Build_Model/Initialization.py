@@ -13,7 +13,7 @@ from time import perf_counter
 
 wd = os.getcwd()
 print(wd)
-filepath = os.path.join(wd,"..", "raw data", "IEEE_123_other")
+filepath = os.path.join(wd,"..", "rawData", "IEEE_123_other")
 
 
 ###########################

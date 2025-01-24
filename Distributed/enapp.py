@@ -10,7 +10,7 @@ def process_area(data_areas,area_name):
     data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
     model = build_pyomo_model(data_areas)
 
-    model = pyomo_solve(model,loss_minimize)
+    model = pyomo_solve(model,cost_minimize)
     solutions = store_results(model)
     return area_name, solutions
 
@@ -127,6 +127,7 @@ def solve_EnAPP(data, data_by_area, area_info, max_iterations):
     shared_vars = initialize_shared_dual(area_info, data)
 
     convergence = {}
+    objective = {}
     area_folders = area_info.keys()
     pool = mp.Pool(processes=len(area_folders))
 
@@ -162,12 +163,15 @@ def solve_EnAPP(data, data_by_area, area_info, max_iterations):
         # Print statement for debugging
         tol = np.max([np.max(sublist) for sublist in max_diff.values()])
         convergence[i] = tol
-        # print(f"iteration = {i}, tolerance={tol}, objective value: {sum([area_results[area]['objective_value'] for area in area_folders])}")
-        print(f"iteration = {i}, tolerance={tol}, objective value: {area_results['area1']['objective_value']}")
-        if tol < 1e-6 :
+        ## for loss_min
+        objective[i] = [sum([area_results[area]['objective_value'] for area in area_folders])]
+        ## for cost_min
+        objective[i] = [area_results['area1']['objective_value']]
+
+        print(f"iteration = {i}, tolerance={tol}, objective value: {objective[i]}")
+        if tol < 1e-5 :
             print(f"Converged after {i} iterations")
-            # print(f"total objective value for DOPF:{sum([area_results[area]['objective_value'] for area in area_folders])}")
-            print(f"total objective value for DOPF:{area_results['area1']['objective_value']}")
+            print(f"total objective value for DOPF:{objective[i]}")
             break
 
     pool.close()
@@ -177,4 +181,4 @@ def solve_EnAPP(data, data_by_area, area_info, max_iterations):
 
     dopfVals = merge_solutions(dopf)
 
-    return dopfVals
+    return dopfVals,objective,convergence

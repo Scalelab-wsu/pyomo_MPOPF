@@ -66,7 +66,7 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     eta_d = {(i, ph): bat_lookup.at[i, f"nd_{ph}"] for i in bat_set for ph in phases}
     bmin = {(i, ph): bat_lookup.at[i, f"bmin_{ph}"] for i in bat_set for ph in phases}
     bmax = {(i, ph): bat_lookup.at[i, f"bmax_{ph}"] for i in bat_set for ph in phases}
-    b0 = {(i, ph): bmin[(i, ph)]  for i in bat_set for ph in phases}
+    b0 = {(i, ph): (bmin[(i, ph)] + bmax[(i,ph)])/2 for i in bat_set for ph in phases}
 
 
     data = {

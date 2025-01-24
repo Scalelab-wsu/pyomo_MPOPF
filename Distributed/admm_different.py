@@ -10,6 +10,8 @@ from pyomo.environ import value
 def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho):
     data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
     model = build_pyomo_model(data_areas)
+    if area_name != 'area1':
+        model.substation_voltage_magnitude.deactivate()
 
     model = pyomo_solve(
         model,
@@ -53,18 +55,18 @@ def augmented_obj_function(model, **kwargs):
                 dual_q = dual_vars[f"lambda_{area_name}_{up_area}_q"][-1]
                 dual_v = dual_vars[f"lambda_{area_name}_{up_area}_v"][-1]
 
-                x_p = [model.P[tt, (i, k), ph] for (i, k) in model.Lset if i == local_node_id]
-                x_q = [model.Q[tt, (i, k), ph] for (i, k) in model.Lset if i == local_node_id]
+                x_p = model.P_subs[tt,ph]
+                x_q = model.Q_subs[tt,ph]
                 x_v = [model.v[tt, i, ph] for i in model.Nset if i == local_node_id]
 
                 f += (
                         dual_p[t][ph_idx] * (x_p - shared_p[t][ph_idx]) +
                         dual_q[t][ph_idx] * (x_q - shared_q[t][ph_idx]) +
-                        dual_v[t][ph_idx] * (x_v - shared_v[t][ph_idx] ** 2) +
+                        dual_v[t][ph_idx] * (x_v - shared_v[t][ph_idx]**2) +
                         (rho / 2) * (
                                 (x_p - shared_p[t][ph_idx]) ** 2 +
                                 (x_q - shared_q[t][ph_idx]) ** 2 +
-                                (x_v - shared_v[t][ph_idx] ** 2) ** 2
+                                (x_v - shared_v[t][ph_idx]**2) ** 2
                         )
                 )
 
@@ -86,11 +88,11 @@ def augmented_obj_function(model, **kwargs):
                 f += (
                         dual_p[t][ph_idx] * (x_p - shared_p[t][ph_idx]) +
                         dual_q[t][ph_idx] * (x_q - shared_q[t][ph_idx]) +
-                        dual_v[t][ph_idx] * (x_v - shared_v[t][ph_idx] ** 2) +
+                        dual_v[t][ph_idx] * (x_v - shared_v[t][ph_idx]**2) +
                         (rho / 2) * (
                                 (x_p - shared_p[t][ph_idx]) ** 2 +
                                 (x_q - shared_q[t][ph_idx]) ** 2 +
-                                (x_v - shared_v[t][ph_idx] ** 2) ** 2
+                                (x_v - shared_v[t][ph_idx]**2) **2
                         )
                 )
     # Update the objective function with dual and penalty expressions
@@ -175,16 +177,6 @@ def update_area_values(area_info,data_by_area,p_global,q_global,v_global):
                 for ph in "abc":
                     data_by_area[area]['p_L'][t,local_node_id,ph] = p_global[f"{conn_area}_{area}_p"][t-1]["abc".index(ph)]
                     data_by_area[area]['q_L'][t,local_node_id,ph] = q_global[f"{conn_area}_{area}_q"][t-1]["abc".index(ph)]
-                    data_by_area[conn_area]['v_swing'][t,local_node_id, ph] = v_global[f"{conn_area}_{area}_v"][t-1]["abc".index(ph)]
-                    # data_by_area[area]['v_swing'][t,local_node_id, ph] = v_global[f"{conn_area}_{area}_v"][t - 1]["abc".index(ph)]
-
-        for idx, conn_area in enumerate(area_info[area]['up_area']):
-            local_node_id = area_info[area]['up_local_node_id'][idx]
-            for t in data_by_area[area]['Tset']:
-                for ph in "abc":
-                    data_by_area[area]['p_L'][t, local_node_id, ph] = p_global[f"{conn_area}_{area}_p"][t - 1]["abc".index(ph)]
-                    data_by_area[area]['q_L'][t, local_node_id, ph] = q_global[f"{conn_area}_{area}_q"][t - 1]["abc".index(ph)]
-                    data_by_area[area]['v_swing'][t,local_node_id, ph] = v_global[f"{conn_area}_{area}_v"][t - 1]["abc".index(ph)]
 
     return data_by_area
 
@@ -275,6 +267,7 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
 
     convergence = {}
     objective = {}
+    aug_objective = {}
     area_folders = area_info.keys()
     pool = mp.Pool(processes=len(area_folders))
 
@@ -286,11 +279,13 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
 
         p_global, q_global, v_global = compute_globals(area_info, p_local, q_local, v_local)
 
-        data_by_area = update_area_values(area_info, data_by_area, p_global, q_global, v_global)
+        data_by_area = update_area_values(area_info,data_by_area,p_global,q_global,v_global)
 
         lagrange_update = update_lagrange(area_info, dual_vars, p_local, q_local, v_local, p_global, q_global, v_global,rho)
 
         shared_vars, dual_vars = share_global_dual(area_info, shared_vars, dual_vars, lagrange_update, p_global, q_global, v_global)
+        shared_vars = shared_vars
+        dual_vars = dual_vars
 
         ## Convergence Check
         max_diff = {}
@@ -323,12 +318,17 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
         # Print statement for debugging
         tol = np.max([np.max(sublist) for sublist in max_diff.values()])
         convergence[i] = tol
-        # print(f"iteration = {i}, tolerance={tol}, objective value: {sum([area_results[area]['objective_value'] for area in area_folders])},original obj:{sum(area_results[area]['original_objective'] for area in area_folders)}, augmented obj = {sum(area_results[area]['augmented_objective'] for area in area_folders)}")
-        print(f"iteration = {i}, tolerance={tol}, objective value: {area_results['area1']['objective_value']},original obj:{area_results['area1']['original_objective']}, augmented obj = {area_results['area1']['augmented_objective']}")
+        ## for loss_min
+        objective[i] = [sum([area_results[area]['objective_value'] for area in area_folders])]
+        aug_objective[i] = [sum(area_results[area]['augmented_objective'] for area in area_folders)]
+        ## for cost_min
+        objective[i] = [area_results['area1']['objective_value']]
+        aug_objective[i] = [area_results['area1']['augmented_objective']]
+
+        print(f"iteration = {i}, tolerance={tol}, objective value: {objective[i]},original obj:{objective[i]}, augmented obj = {aug_objective[i]}")
         if tol < 1e-5:
             print(f"Converged after {i} iterations")
-            # print(f"total objective value for DOPF:{sum([area_results[area]['objective_value'] for area in area_folders])}")
-            print(f"total objective value for DOPF:{area_results['area1']['objective_value']}")
+            print(f"total objective value for DOPF:{objective[i]}")
             break
 
     pool.close()
@@ -338,4 +338,4 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
 
     dopfVals = merge_solutions(dopf)
 
-    return dopfVals
+    return dopfVals,objective,aug_objective,convergence
