@@ -16,14 +16,13 @@ def build_pyomo_model(data):
     ## initializing model parameters
     model.r = data['r']
     model.x = data['x']
-    default = 100e3
     model.cost = data['costshape']
 
     # Variables
-    model.P_subs = Var(model.Tset, model.phases, domain=NonNegativeReals,bounds=(0,default))
-    model.Q_subs = Var(model.Tset, model.phases, domain=NonNegativeReals, bounds=(0, default))
-    model.P = Var(model.Tset, model.Lset, model.phases,bounds=(-default,default))
-    model.Q = Var(model.Tset, model.Lset, model.phases,bounds=(-default,default))
+    model.P_subs = Var(model.Tset, model.phases, domain=NonNegativeReals)
+    model.Q_subs = Var(model.Tset, model.phases, domain=NonNegativeReals)
+    model.P = Var(model.Tset, model.Lset, model.phases)
+    model.Q = Var(model.Tset, model.Lset, model.phases)
     model.v = Var(model.Tset, model.Nset, model.phases, domain=NonNegativeReals)
     model.q_D = Var(model.Tset, model.Dset, model.phases)
     model.P_c = Var(model.Tset, model.Bset, model.phases, domain=NonNegativeReals)
