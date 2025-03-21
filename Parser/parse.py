@@ -8,8 +8,10 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     bus_set = sorted(set(bus['id']))  # Directly convert column to set
     gen_set = sorted(set(gen['id']))
     bat_set = sorted(set(bat['id']))
+    branch = branch.loc[branch.status != 'OPEN']
     branch_set = sorted(set(zip(branch['fb'], branch['tb'])))
-    substationBus = list(set(branch['fb']) - set(branch['tb']))
+    # substationBus = list(set(branch['fb']) - set(branch['tb']))
+    substationBus = [bus.loc[bus.bus_type == "SWING", "id"].values[0]]
     T = len(loadshape)
     Tset = np.arange(1, T + 1)
     phases = ['a', 'b', 'c']
@@ -31,6 +33,7 @@ def parse_all_data(bus, branch, gen, bat, loadshape, pvshape, price):
     v_swing = {(t,i,ph): bus_lookup.at[i, f"v_{ph}"] for t in Tset for i in substationBus for ph in phases}
 
     ## parsing branch_data
+
     row = np.array(np.r_[branch.fb, branch.tb])
     col = np.array(np.r_[branch.tb, branch.fb])
     r = {
