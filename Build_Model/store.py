@@ -10,6 +10,7 @@ def store_results(model):
     modelVals['P'] = {}
     modelVals['Q'] = {}
     modelVals['v'] = {}
+    modelVals['p_D'] = {}
     modelVals['q_D'] = {}
     modelVals['P_c'] = {}
     modelVals['P_d'] = {}
@@ -33,11 +34,12 @@ def store_results(model):
     for t in model.Tset:
         for j in model.Nset:
             for ph in model.phases:
-                modelVals['v'][(t, j, ph)] = np.sqrt(value(model.v[t, j, ph]))
+                modelVals['v'][(t, j, ph)] = value(model.v[t, j, ph])
 
     for t in model.Tset:
         for j in model.Dset:
             for ph in model.phases:
+                modelVals['p_D'][(t, j, ph)] = value(model.p_D[t, j, ph])
                 modelVals['q_D'][(t, j, ph)] = value(model.q_D[t, j, ph])
 
     for t in model.Tset:
