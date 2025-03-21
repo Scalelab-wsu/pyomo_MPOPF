@@ -123,7 +123,7 @@ def create_loads_dss(data,script_name):
             for ph in data['phases']:
                 # p_L is time dependent, q_L might be time dependent or not
                 p_kw = data['p_L'][t_one,i,ph] * (P_base/1000) # real (kW)
-                q_kvar = data['p_L'][t_one,i,ph] * (P_base/1000)# reactive (kVar) - if it’s not scaled by time, adapt as needed
+                q_kvar = data['q_L'][t_one,i,ph] * (P_base/1000)# reactive (kVar) - if it’s not scaled by time, adapt as needed
 
                 phase_int = phase_to_idx[ph]
                 if p_kw != 0 or q_kvar != 0:
