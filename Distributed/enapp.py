@@ -6,11 +6,11 @@ import multiprocessing as mp
 from collections import defaultdict,ChainMap
 
 
-def process_area(data_areas,area_name):
+def process_area(data_areas,area_name,obj_fcn):
     data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
     model = build_pyomo_model(data_areas)
 
-    model = pyomo_solve(model,cost_minimize)
+    model = pyomo_solve(model,obj_fcn)
     solutions = store_results(model)
     return area_name, solutions
 
@@ -19,57 +19,69 @@ def initialize_shared_dual(area_info, data):
 
     # Initialize shared variables dynamically
     for area in area_info.keys():
-        for idx, conn_area in enumerate(area_info[area]['down_areas']):
-            shared_vars[f"{area}_{conn_area}_v"] = [np.ones((data['T'], 3))]
-        for idx, conn_area in enumerate(area_info[area]['up_area']):
+        for conn_area in area_info[area]['up_area']:
             shared_vars[f"{area}_{conn_area}_p"] = [np.zeros((data['T'], 3))]
             shared_vars[f"{area}_{conn_area}_q"] = [np.zeros((data['T'], 3))]
-
+        for conn_area in area_info[area]['down_areas']:
+            shared_vars[f"{area}_{conn_area}_v"] = [np.ones((data['T'], 3))]
     return shared_vars
 
-def compute_locals(area_info,area_results):
-    p_local = {}
-    q_local = {}
-    v_local = {}
-
-    # Extract local variables
+## computing local by alpha sharing
+def compute_locals(area_info, area_results,shared_vars,alpha):
+    p_local, q_local, v_local = {}, {}, {}
     for area in area_info.keys():
         area_p = area_results[area]['P']
         area_q = area_results[area]['Q']
         area_v = area_results[area]['v']
+
+        # Upstream connections
         for idx, conn_area in enumerate(area_info[area]['up_area']):
-            local_node_id = area_info[area]['up_local_node_id'][idx]
-            p_local[f"{area}_{conn_area}_p"] = np.vstack([area_p[key] for key in area_p.keys() if key[1][0] == local_node_id]).reshape((-1, 3))
-            q_local[f"{area}_{conn_area}_q"] = np.vstack([area_q[key] for key in area_q.keys() if key[1][0] == local_node_id]).reshape((-1, 3))
-
+            local_node = area_info[area]['up_local_node_id'][idx]
+            p_key = f"{area}_{conn_area}_p"
+            q_key = f"{area}_{conn_area}_q"
+            p_local[p_key] = np.vstack([area_p[key] for key in area_p
+                                        if key[1][0] == local_node]).reshape((-1, 3))
+            q_local[q_key] = np.vstack([area_q[key] for key in area_q
+                                        if key[1][0] == local_node]).reshape((-1, 3))
+            ## alpha sharing
+            p_local[p_key] = (1 - alpha)*p_local[p_key] + alpha * shared_vars[p_key][-1]
+            q_local[q_key] = (1 - alpha) * q_local[q_key] + alpha * shared_vars[q_key][-1]
+        # Downstream connections
         for idx, conn_area in enumerate(area_info[area]['down_areas']):
-            local_node_id = area_info[area]['down_local_node_id'][idx]
-            v_local[f"{area}_{conn_area}_v"] = np.vstack([area_v[key] for key in area_v.keys() if key[1] == local_node_id]).reshape((-1, 3))
-
+            local_node = area_info[area]['down_local_node_id'][idx]
+            v_key = f"{area}_{conn_area}_v"
+            v_local[v_key] = np.vstack([area_v[key] for key in area_v
+                                        if key[1] == local_node]).reshape((-1, 3))
+            ## alpha sharing
+            v_local[v_key] = (1 - alpha) * v_local[v_key] + alpha * shared_vars[v_key][-1]
     return p_local, q_local, v_local
 
 def update_area_values(area_info,data_by_area,p_local,q_local,v_local):
     for area in area_info.keys():
+        # Update downstream loads
         for idx, conn_area in enumerate(area_info[area]['down_areas']):
-            local_node_id = area_info[area]['down_local_node_id'][idx]
+            local_node = area_info[area]['down_local_node_id'][idx]
             for t in data_by_area[area]['Tset']:
-                for ph in "abc":
-                    data_by_area[area]['p_L'][t,local_node_id,ph] = p_local[f"{conn_area}_{area}_p"][t-1]["abc".index(ph)]
-                    data_by_area[area]['q_L'][t,local_node_id,ph] = q_local[f"{conn_area}_{area}_q"][t-1]["abc".index(ph)]
+                for ph_idx, ph in enumerate("abc"):
+                    data_by_area[area]['p_L'][t, local_node, ph] = \
+                        p_local[f"{conn_area}_{area}_p"][t - 1, ph_idx]
+                    data_by_area[area]['q_L'][t, local_node, ph] = \
+                        q_local[f"{conn_area}_{area}_q"][t - 1, ph_idx]
 
+        # Update upstream voltages
         for idx, conn_area in enumerate(area_info[area]['up_area']):
-            local_node_id = area_info[area]['up_local_node_id'][idx]
+            local_node = area_info[area]['up_local_node_id'][idx]
             for t in data_by_area[area]['Tset']:
-                for ph in "abc":
-                    data_by_area[area]['v_swing'][t,local_node_id, ph] = v_local[f"{conn_area}_{area}_v"][t - 1]["abc".index(ph)]
-
+                for ph_idx, ph in enumerate("abc"):
+                    data_by_area[area]['v_swing'][t, local_node, ph] = \
+                        v_local[f"{conn_area}_{area}_v"][t - 1, ph_idx]
     return data_by_area
 
 def share_local(area_info,shared_vars,p_local,q_local,v_local):
     for area in area_info.keys():
-        for idx, conn_area in enumerate(area_info[area]['down_areas']):
+        for conn_area in area_info[area]['down_areas']:
             shared_vars[f"{area}_{conn_area}_v"].append(v_local[f"{area}_{conn_area}_v"])
-        for idx, conn_area in enumerate(area_info[area]['up_area']):
+        for conn_area in area_info[area]['up_area']:
             shared_vars[f"{area}_{conn_area}_p"].append(p_local[f"{area}_{conn_area}_p"])
             shared_vars[f"{area}_{conn_area}_q"].append(q_local[f"{area}_{conn_area}_q"])
 
@@ -123,19 +135,33 @@ def merge_solutions(dopf):
 
     return dopfVals
 
-def solve_EnAPP(data, data_by_area, area_info, max_iterations):
+def exclude_dummies(dopfVals):
+    filtered_dictionaries = {}
+    for vars in dopfVals.keys():
+        filtered_dictionaries[vars] = {}  # Initialize an empty dictionary for each `vars`
+        for key, value in dopfVals[vars].items():
+            key1 = key[1]  # Get the second element of the key
+            # Check if key[1] is a tuple and contains any strings
+            if isinstance(key1, tuple) and any(isinstance(sub, str) for sub in key1):
+                continue  # Skip this entry if any string is found in the tuple
+            # Check if key[1] is a string directly
+            if isinstance(key1, str):
+                continue  # Skip this entry if key[1] is a string
+            # Otherwise, add it to the new filtered dictionary
+            filtered_dictionaries[vars][key] = value
+    return filtered_dictionaries
+def solve_EnAPP(data, data_by_area, area_info, obj_fcn, max_iterations=50,alpha = 0):
     shared_vars = initialize_shared_dual(area_info, data)
-
     convergence = {}
     objective = {}
     area_folders = area_info.keys()
     pool = mp.Pool(processes=len(area_folders))
 
     for i in range(max_iterations):
-        results = pool.starmap(process_area,[(data_by_area[area], area) for area in area_folders])
+        results = pool.starmap(process_area,[(data_by_area[area], area, obj_fcn) for area in area_folders])
         area_results = {area_name: solutions for area_name, solutions in results}
 
-        p_local, q_local, v_local = compute_locals(area_info, area_results)
+        p_local, q_local, v_local = compute_locals(area_info, area_results,shared_vars,alpha)
 
         data_by_area = update_area_values(area_info, data_by_area, p_local, q_local, v_local)
 
@@ -163,16 +189,17 @@ def solve_EnAPP(data, data_by_area, area_info, max_iterations):
         # Print statement for debugging
         tol = np.max([np.max(sublist) for sublist in max_diff.values()])
         convergence[i] = tol
-        ## for loss_min
-        objective[i] = [sum([area_results[area]['objective_value'] for area in area_folders])]
-        ## for cost_min
-        objective[i] = [area_results['area1']['objective_value']]
+        if obj_fcn == loss_minimize:
+            objective[i] = [sum([area_results[area]['objective_value'] for area in area_folders])]
+        if obj_fcn == cost_minimize:
+            objective[i] = [area_results['area1']['objective_value']]
 
         print(f"iteration = {i}, tolerance={tol}, objective value: {objective[i]}")
         if tol < 1e-5 :
             print(f"Converged after {i} iterations")
             print(f"total objective value for DOPF:{objective[i]}")
             break
+        alpha = alpha/2
 
     pool.close()
     pool.join()
@@ -180,5 +207,6 @@ def solve_EnAPP(data, data_by_area, area_info, max_iterations):
     dopf = arrange_solution_by_areas(area_info, area_results)
 
     dopfVals = merge_solutions(dopf)
+    dopfVals = exclude_dummies(dopfVals)
 
     return dopfVals,objective,convergence

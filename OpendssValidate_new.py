@@ -1,11 +1,121 @@
-
+import numpy as np
 import opendssdirect as dss
 import os
+
+def get_total_battery_power_opendss():
+    vald_battery_real_power_t_kW = 0.0
+    vald_battery_real_power_transaction_magnitude_t_kW = 0.0
+
+    battery_names = dss.Storages.AllNames()
+    for battery_name in battery_names:
+        dss.Circuit.SetActiveElement(f"Storage.{battery_name}")
+        battery_powers = dss.CktElement.Powers()
+        real_power = -battery_powers[0]  # Negate to match injection convention
+
+        vald_battery_real_power_t_kW += real_power
+        vald_battery_real_power_transaction_magnitude_t_kW += abs(real_power)
+    batteryPowersDict_t = {
+        'vald_battery_real_power_t_kW': vald_battery_real_power_t_kW,
+        'vald_battery_real_power_transaction_magnitude_t_kW': vald_battery_real_power_transaction_magnitude_t_kW,
+    }
+
+    return batteryPowersDict_t
+
+def get_load_powers_opendss_powerflow():
+    total_load_t_kW = 0.0
+    total_load_t_kVAr = 0.0
+
+    load_names = dss.Loads.AllNames()
+    for load_name in load_names:
+        dss.Circuit.SetActiveElement(f"Load.{load_name}")
+        load_powers = dss.CktElement.Powers()
+        total_load_t_kW += load_powers[0]
+        total_load_t_kVAr += load_powers[1]
+
+    loadPowersDict_t = {
+        'total_load_t_kW': total_load_t_kW,
+        'total_load_t_kVAr': total_load_t_kVAr
+    }
+
+    return loadPowersDict_t
+
+def get_pv_powers_opendss_powerflow():
+    total_pv_t_kW = 0.0
+    total_pv_t_kVAr = 0.0
+
+    pv_names = dss.PVsystems.AllNames()
+    for pv_name in pv_names:
+        dss.Circuit.SetActiveElement(f"PVSystem.{pv_name}")
+        pv_powers = dss.CktElement.Powers()
+        total_pv_t_kW -= pv_powers[0]
+        total_pv_t_kVAr -= pv_powers[1]
+
+    pvPowersDict_t = {
+        'total_pv_t_kW': total_pv_t_kW,
+        'total_pv_t_kVAr': total_pv_t_kVAr
+    }
+
+    return pvPowersDict_t
+
+def edit_loads(data,t,P_base):
+    load_id = dss.Loads.First()
+    while load_id > 0:
+        load_name = dss.Loads.Name()
+        # Split the string by underscores
+        parts = load_name.split('_')
+
+        # Extract the desired values
+        i = int(parts[1])  # '3'
+        ph = parts[2]  # 'a'
+
+        p_kw = data['p_L'][(t, i, ph)] * (P_base / 1000)
+        q_kvar = data['q_L'][(t, i, ph)] * (P_base / 1000)
+
+        ## setting P and Q for Loads
+        dss.Text.Command(f"Edit Load.{load_name} kw={p_kw} kvar={q_kvar}")
+        # print(f"Time Step {t}: Setting load {load_name} with kw: {p_kw} and kvar: {q_kvar}")
+
+        load_id = dss.Loads.Next()
+
+
+def set_pv_controls(data, modelVals,t, P_base):
+    pv_id = dss.PVsystems.First()
+    while pv_id > 0:
+        pv_name = dss.PVsystems.Name()
+        # Split the string by underscores
+        parts = pv_name.split('_')
+
+        # Extract the desired values
+        i = int(parts[1])  # '3'
+        ph = parts[2]  # 'a'
+
+        p_pv = data['p_D'][(t, i, ph)] * (P_base / 1000)  # kW
+        q_pv = modelVals['q_D'][(t, i, ph)] * (P_base / 1000)  # kVar
+
+        dss.Text.Command(f"Edit PVSystem.{pv_name} Pmpp={p_pv} kvar={q_pv}")
+        # print(f"Time Step {t}: Setting PV {pv_name} with kw: {p_pv} and kvar : {q_pv}")
+
+        pv_id = dss.PVsystems.Next()
+
+def set_battery_controls(data, modelVals,t, P_base):
+    storage_id = dss.Storages.First()
+    while storage_id > 0:
+        storage_name = dss.Storages.Name()
+        parts = storage_name.split('_')
+        i = int(parts[1])
+        ph = parts[2]
+        p_dis = modelVals['P_d'][(t, i, ph)] * (P_base / 1000)
+        p_chg = modelVals['P_c'][(t, i, ph)] * (P_base / 1000)
+        Pnet_batt = (p_dis - p_chg)
+        dss.Text.Command(f"Edit Storage.{storage_name} kw={Pnet_batt}")
+        # print(f"Time Step {t}: Setting Battery {storage_name} with kw: {Pnet_batt}")
+
+        storage_id = dss.Storages.Next()
 
 def run_opendss_validation(data, modelVals):
     # Save the OpenDSS script in the same directory as this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    script_path = os.path.join(script_dir,"rawData","IEEE_123_other","dss_scripts","Master.dss")
+    script_path = os.path.join(script_dir, "..","rawData","IEEE_123_other","dss_scripts","Master.dss")
 
     # ---------------------------------------------------------
     # 1) Initialize a results dictionary in the same format as modelVals
@@ -30,47 +140,27 @@ def run_opendss_validation(data, modelVals):
     dss.Text.Command("clear")
     # Redirect OpenDSS to use the generated script
     dss.Text.Command(f"Redirect \"{script_path}\"")
-
+    total_load_kw = 0
+    total_load_kvar=0
+    total_pv_kw=0
     for t in data['Tset']:
-        for i in data['Nset']:
-            for ph in data['phases']:
-                p_kw = data['p_L'][(t, i, ph)] * (P_base / 1000) # kW
-                q_kvar = data['q_L'][(t,i,ph)] * (P_base / 1000)# kvar
-                load_name = f"load_{i}_{ph}"
-                dss.Text.Command(
-                    f"Edit Load.{load_name} kw={p_kw} kvar={q_kvar} kvar={q_kvar}"
-                )
-                # print(f"Time Step {t}: Setting load {load_name} with kw: {p_kw}")
-
-        for i in data['Dset']:
-            for ph in data['phases']:
-                pv_name = f"PV_{i}_{ph}"
-                p_pv = data['p_D'][(t, i, ph)] * (P_base / 1000)  # kW
-                q_pv = modelVals['q_D'][(t, i, ph)] * (P_base / 1000)  # kVar
-
-                dss.Text.Command(
-                    f"Edit PVSystem.{pv_name} "
-                    f"Pmpp={p_pv} kvar={q_pv}"
-                )
-                # print(f"Time Step {t}: Setting PV {pv_name} with kw: {p_pv} and kvar : {q_pv}")
-
-        for i in data['Bset']:
-            for ph in data['phases']:
-                p_dis = modelVals['P_d'][(t, i, ph)] * P_base / 1000
-                p_chg = modelVals['P_c'][(t, i, ph)] * P_base / 1000
-                Pnet_batt = (p_dis - p_chg)
-                batt_name = f"Batt_{i}_{ph}"  # in kW already
-                dss.Text.Command(
-                    f"Edit Storage.{batt_name} kw={Pnet_batt}"
-                )
-                # print(f"Time Step {t}: Setting Battery {batt_name} with kw: {Pnet_batt}")
+        edit_loads(data,t,P_base)
+        set_pv_controls(data,modelVals,t, P_base)
+        set_battery_controls(data,modelVals,t, P_base)
         dss.Text.Command("solve")
-        print("Solution Converged:", dss.Solution.Converged())
+
+        total_load_t = get_load_powers_opendss_powerflow()
+        pv_power_t = get_pv_powers_opendss_powerflow()
+        battery_power_t = get_total_battery_power_opendss()
+        total_load_kw += total_load_t['total_load_t_kW']
+        total_load_kvar += total_load_t['total_load_t_kVAr']
+        total_pv_kw += pv_power_t['total_pv_t_kW']
+
 
         dss.Circuit.SetActiveElement("Vsource.src")
         vs_powers = dss.CktElement.Powers()
         for idx, ph in enumerate(['a', 'b', 'c']):
-            p_phase = -vs_powers[2 * idx]  # Negate to represent injection
+            p_phase = -vs_powers[2 * idx]  * (1000/P_base) # Negate to represent injection
             openDssVals['P_subs'][(t, ph)] = p_phase
 
         # ~~~~~~~~~~~~~~
@@ -145,7 +235,7 @@ def run_opendss_validation(data, modelVals):
                 if len(pv_powers) >= 2:
                     # Real power = pv_powers[0], Reactive = pv_powers[1]
                     # We'll store Q
-                    openDssVals['q_D'][(t, j, ph)] = -pv_powers[1]*1000/P_base ## Negate to match injection convention
+                    openDssVals['q_D'][(t, j, ph)] = pv_powers[1]*(1000/P_base)
                 else:
                     openDssVals['q_D'][(t, j, ph)] = 0.0
 
@@ -165,7 +255,7 @@ def run_opendss_validation(data, modelVals):
                 dss.Circuit.SetActiveElement(batt_name)
                 powers = dss.CktElement.Powers()  # [P1, Q1, P2, Q2, ...], typically 1-phase => first pair
                 # P in kW: powers[0]. If +ve => battery injecting => discharging, if -ve => charging
-                p_batt = -powers[0]*(1000/P_base) ## Negate to match injection convention
+                p_batt = powers[0]*(1000/P_base)
 
                 # Split it:
                 if p_batt >= 0:
@@ -187,4 +277,25 @@ def run_opendss_validation(data, modelVals):
     # 5) Return the results dictionary
     # ---------------------------------------------------------
     return openDssVals
+
+def all_time_highest_discrepancy(opendss,optimization):
+    P_vals_opendss = opendss['P']
+    P_vals_optimization = optimization['P']
+    Q_vals_opendss = opendss['Q']
+    Q_vals_optimization = optimization['Q']
+    V_vals_opendss = opendss['v']
+    V_vals_optimization = optimization['v']
+    B_vals_opendss = opendss['B']
+    B_vals_optimization = optimization['B']
+
+    # Overall maximum difference for each dictionary
+    overall_max_p = max(np.max(np.abs(P_vals_opendss[key] - P_vals_optimization[key])) for key in P_vals_opendss)
+    overall_max_q = max(np.max(np.abs(Q_vals_opendss[key] - Q_vals_optimization[key])) for key in Q_vals_opendss)
+    overall_max_v = max(np.max(np.abs(V_vals_opendss[key] - V_vals_optimization[key])) for key in V_vals_opendss)
+    overall_max_b = max(np.max(np.abs(B_vals_opendss[key] - B_vals_optimization[key])) for key in B_vals_opendss)
+
+    print("Overall maximum difference for p arrays:", overall_max_p)
+    print("Overall maximum difference for q arrays:", overall_max_q)
+    print("Overall maximum difference for v arrays:", overall_max_v)
+    print("Overall maximum difference for b arrays:", overall_max_b)
 

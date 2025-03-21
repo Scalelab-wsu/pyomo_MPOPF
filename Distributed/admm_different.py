@@ -7,7 +7,7 @@ from collections import defaultdict,ChainMap
 from pyomo.environ import value
 
 
-def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho):
+def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj_fcn):
     data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
     model = build_pyomo_model(data_areas)
     if area_name != 'area1':
@@ -20,12 +20,13 @@ def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho):
         area_info=area_info,
         shared_vars=shared_vars,
         dual_vars=dual_vars,
-        rho=rho
+        rho=rho,
+        obj_fcn=obj_fcn,
     )
     solutions = store_results(model)
     original_objective_value = value(model.original_obj)  # Convert Pyomo expression to numerical value
 
-    augmented_objective_value = value(model.obj)  # Assuming 'obj' is the name of the objective
+    augmented_objective_value = value(model.augmented_obj)  # Assuming 'obj' is the name of the objective
 
     solutions['original_objective'] = original_objective_value
     solutions['augmented_objective'] = augmented_objective_value
@@ -37,8 +38,9 @@ def augmented_obj_function(model, **kwargs):
     shared_vars = model.shared_vars
     dual_vars = model.dual_vars
     rho = model.rho
+    obj_fcn = model.obj_fcn
 
-    original_obj  = cost_minimize(model)
+    original_obj  = obj_fcn(model)
 
     f = original_obj
 
@@ -99,6 +101,7 @@ def augmented_obj_function(model, **kwargs):
     augmented_obj = f
 
     model.original_obj = original_obj
+    model.augmented_obj = augmented_obj
 
     return augmented_obj
 
@@ -260,9 +263,23 @@ def merge_solutions(dopf):
     dopfVals["q_D"] = dict(ChainMap(*[dopf['q_D'][area] for area in dopf['q_D']]))
 
     return dopfVals
+def exclude_dummies(dopfVals):
+    filtered_dictionaries = {}
+    for vars in dopfVals.keys():
+        filtered_dictionaries[vars] = {}  # Initialize an empty dictionary for each `vars`
+        for key, value in dopfVals[vars].items():
+            key1 = key[1]  # Get the second element of the key
+            # Check if key[1] is a tuple and contains any strings
+            if isinstance(key1, tuple) and any(isinstance(sub, str) for sub in key1):
+                continue  # Skip this entry if any string is found in the tuple
+            # Check if key[1] is a string directly
+            if isinstance(key1, str):
+                continue  # Skip this entry if key[1] is a string
+            # Otherwise, add it to the new filtered dictionary
+            filtered_dictionaries[vars][key] = value
+    return filtered_dictionaries
 
-
-def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
+def solve_ADMM(data, data_by_area, area_info,obj_fcn, rho, max_iterations):
     shared_vars, dual_vars = initialize_shared_dual(area_info, data)
 
     convergence = {}
@@ -272,7 +289,7 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
     pool = mp.Pool(processes=len(area_folders))
 
     for i in range(max_iterations):
-        results = pool.starmap(process_area,[(data_by_area[area], area, area_info, shared_vars, dual_vars, rho) for area in area_folders])
+        results = pool.starmap(process_area,[(data_by_area[area], area, area_info, shared_vars, dual_vars, rho, obj_fcn) for area in area_folders])
         area_results = {area_name: solutions for area_name, solutions in results}
 
         p_local, q_local, v_local = compute_locals(area_info, area_results)
@@ -318,15 +335,15 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
         # Print statement for debugging
         tol = np.max([np.max(sublist) for sublist in max_diff.values()])
         convergence[i] = tol
-        ## for loss_min
-        objective[i] = [sum([area_results[area]['objective_value'] for area in area_folders])]
-        aug_objective[i] = [sum(area_results[area]['augmented_objective'] for area in area_folders)]
-        ## for cost_min
-        objective[i] = [area_results['area1']['objective_value']]
-        aug_objective[i] = [area_results['area1']['augmented_objective']]
+        if obj_fcn == loss_minimize:
+            objective[i] = [sum([area_results[area]['objective_value'] for area in area_folders])]
+            aug_objective[i] = [sum(area_results[area]['augmented_objective'] for area in area_folders)]
+        if obj_fcn == cost_minimize:
+            objective[i] = [area_results['area1']['objective_value']]
+            aug_objective[i] = [area_results['area1']['augmented_objective']]
 
         print(f"iteration = {i}, tolerance={tol}, objective value: {objective[i]},original obj:{objective[i]}, augmented obj = {aug_objective[i]}")
-        if tol < 1e-5:
+        if tol < 1e-8:
             print(f"Converged after {i} iterations")
             print(f"total objective value for DOPF:{objective[i]}")
             break
@@ -337,5 +354,6 @@ def solve_ADMM(data, data_by_area, area_info, rho, max_iterations):
     dopf = arrange_solution_by_areas(area_info, area_results)
 
     dopfVals = merge_solutions(dopf)
+    dopfVals = exclude_dummies(dopfVals)
 
     return dopfVals,objective,aug_objective,convergence
