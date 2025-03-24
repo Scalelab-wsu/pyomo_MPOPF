@@ -1,24 +1,42 @@
-
-## Plots to take any number of dictionaries as arguments and plot accordingly
 import plotly.express as px
+import plotly.graph_objects as go
 import os
+import pandas as pd
+import networkx as nx
 import matplotlib.pyplot as plt
+import itertools
+
+
+def generate_dynamic_maps(scenarios):
+    # Define a list of distinctive colors and marker symbols
+    distinct_colors = ["red", "blue", "green", "black", "orange", "purple", "brown", "cyan"]
+    marker_symbols = ["x", "circle", "triangle-down", "diamond", "cross", "circle", "triangle-down"]
+
+    # For line dash, we want all lines solid.
+    line_dash_map_dynamic = {scenario: "solid" for scenario in scenarios}
+    color_map_dynamic = {scenario: color for scenario, color in zip(scenarios, itertools.cycle(distinct_colors))}
+    symbol_map_dynamic = {scenario: symbol for scenario, symbol in zip(scenarios, itertools.cycle(marker_symbols))}
+
+    return color_map_dynamic, symbol_map_dynamic, line_dash_map_dynamic
+
 
 ###############################################################################
 # Helper Functions
 ###############################################################################
-
-def save_plot(fig, filename):
+def save_plot(fig, filename, width=700, height=400):
     """
     Save the figure (HTML) to the same directory as this script.
     """
+    fig.update_layout(
+        width=width,  # px width for the figure
+        height=height,  # px height for the figure
+        # margin=dict(l=0.1, r=0.1, t=0.1, b=0.1)
+    )
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, filename)
-    fig.write_html(filepath)
+    fig.write_image(filepath,format='pdf',scale=4)
 
-import os
-
-def save_png(fig, filename):
+def save_png(fig, filename, width=3.5, height=2.5, dpi=400):
     """
     Save the figure (PNG or other formats) to the same directory as this script.
 
@@ -26,51 +44,37 @@ def save_png(fig, filename):
     fig: Matplotlib figure to save.
     filename: Filename to save the figure.
     """
+    fig.set_size_inches(width, height)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, filename)
-    fig.savefig(filepath, dpi=300, format='png')
-
-
-def _auto_scenario_labels(num):
-    """Generate scenario labels: 'Scenario 1', 'Scenario 2', etc."""
-    return [f"Scenario {i+1}" for i in range(num)]
-
+    fig.savefig(filepath, dpi=dpi,format='pdf',bbox_inches='tight')
 
 ###############################################################################
 # 1) plot_substation_power
 ###############################################################################
 def plot_substation_power(**modelVals_list):
-    """
-    Usage:
-      plot_substation_power(modelvals)
-      plot_substation_power(modelvals, OpendssVals, ...)
-    Expects each dictionary to have:
-      modelVals["P_subs"] : dict with (time, phase) -> value
-    """
     data = []
-    for mv, sc_label in zip(modelVals_list, labels):
+
+    # Gather data
+    for scenario_name, mv in modelVals_list.items():
+        scenario_label = scenario_name.replace("Vals", "")
         for (time, phase), val in mv["P_subs"].items():
             data.append({
                 "time": time,
                 "phase": f"phase={phase}",
-                "scenario": sc_label,
+                "scenario": scenario_label,
                 "value": val
             })
 
-    if len(modelVals_list) == 1:
-        fig = px.bar(
-            data, x="time", y="value",
-            color="phase", facet_col="phase",
-            title="Substation Power"
-        )
-        fig.update_traces(marker_line_width=0, marker_line_color='black')
-    else:
-        fig = px.bar(
-            data, x="time", y="value",
-            color="phase", pattern_shape="scenario",
-            title="Substation Power (All Scenarios)",
-            barmode="group"
-        )
+    fig = px.bar(
+        pd.DataFrame(data),
+        x="time", y="value",
+        color="scenario", pattern_shape="scenario" if len(modelVals_list) > 1 else None,
+        facet_col="phase",
+        title="Substation Power" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
+        barmode="group"
+    )
+    fig.update_traces(marker_line_width=0, marker_line_color='black')
     fig.update_traces(marker_pattern_fillmode='overlay')
     save_plot(fig, "P_subs.html")
     fig.show()
@@ -89,10 +93,13 @@ def plot_battery_soc(**modelVals_list):
     """
 
     data = []
-    for mv, sc_label in zip(modelVals_list, labels):
+
+    # Gather data
+    for scenario_name, mv in modelVals_list.items():
+        scenario_label = scenario_name.replace("Vals", "")
         for (time, node, phase), val in mv["B"].items():
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "node": node,
                 "phase": phase,
                 "scenario": scenario_label,
@@ -100,13 +107,14 @@ def plot_battery_soc(**modelVals_list):
             })
     df = pd.DataFrame(data)
     # Extract integer node number from the string
-    df["node_num"] = df["node"].astype(int)
+    df["node"] = df["node"].astype(int)
     # Sort by numeric node number
-    df = df.sort_values(by="node_num")
+    df = df.sort_values(by=["time", "node","phase","scenario"])
+
     fig = px.bar(
         df,
         x="time", y="value",
-        color="node_num", facet_col="phase", pattern_shape="scenario" if len(modelVals_list) > 1 else None,
+        color="scenario", facet_col="phase", pattern_shape="node" if len(modelVals_list) > 1 else None,
         title="Battery State of Charge" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
         barmode="group"
     )
@@ -138,7 +146,7 @@ def plot_reactive_power_flows(**modelVals_list):
             time, (fb, tb), phase = key
             val = mv['Q'][key]
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "branch": f"{fb}->{tb}",
                 "phase": phase,
                 "scenario": scenario_label,
@@ -148,7 +156,7 @@ def plot_reactive_power_flows(**modelVals_list):
     df[["fb", "tb"]] = df["branch"].str.split("->", expand=True)
     df["fb"] = df["fb"].astype(int)
     df["tb"] = df["tb"].astype(int)
-    df = df.sort_values(["tb"]).reset_index(drop=True)
+    df = df.sort_values(by=["time", "tb","phase","scenario"]).reset_index(drop=True)
     df["branch_label"] = df.apply(lambda row: f"{row['fb']}->{row['tb']}", axis=1)
     branch_order = df["branch_label"].unique().tolist()
     scenarios = sorted(df["scenario"].unique())
@@ -194,7 +202,7 @@ def plot_der_reactive_power(**modelVals_list):
         scenario_label = scenario_name.replace("Vals", "")
         for (time, node, phase), val in mv["q_D"].items():
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "node": node,
                 "phase": phase,
                 "scenario": scenario_label,
@@ -202,14 +210,14 @@ def plot_der_reactive_power(**modelVals_list):
             })
     df = pd.DataFrame(data)
     # Extract integer node number from the string
-    df["node_num"] = df["node"].astype(int)
+    df["node"] = df["node"].astype(int)
     # Sort by numeric node number
-    df = df.sort_values(by="node_num")
+    df = df.sort_values(by=["time", "node","phase","scenario"])
 
     fig = px.bar(
         df,
         x="time", y="value",
-        color="node_num", facet_col="phase", pattern_shape="scenario" if len(modelVals_list) > 1 else None,
+        color="scenario", facet_col="phase", pattern_shape="node" if len(modelVals_list) > 1 else None,
         title="DER Reactive Power" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
         barmode="group"
     )
@@ -240,7 +248,7 @@ def plot_battery_charging_discharging_combined(**modelVals_list):
         scenario_label = scenario_name.replace("Vals", "")
         for (time, node, phase), val in mv["P_c"].items():
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "node": node,
                 "phase": phase,
                 "scenario": scenario_label,
@@ -249,7 +257,7 @@ def plot_battery_charging_discharging_combined(**modelVals_list):
             })
         for (time, node, phase), val in mv["P_d"].items():
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "node": node,
                 "phase": phase,
                 "scenario": scenario_label,
@@ -258,16 +266,17 @@ def plot_battery_charging_discharging_combined(**modelVals_list):
             })
     df = pd.DataFrame(data)
     # Extract integer node number from the string
-    df["node_num"] = df["node"].astype(int)
+    df["node"] = df["node"].astype(int)
     # Sort by numeric node number
-    df = df.sort_values(by="node_num")
+    # If time is already numeric:
+    df = df.sort_values(by=["time", "node","phase","scenario"])
 
     fig = px.bar(
         df,
         x="time", y="value",
-        color="node_num",
+        color="scenario",
         facet_col="phase",
-        pattern_shape="scenario" if len(modelVals_list) > 1 else None,
+        pattern_shape="node" if len(modelVals_list) > 1 else None,
         title="Battery Charging & Discharging" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
         barmode="group"
     )
@@ -299,7 +308,7 @@ def plot_active_power_flows(**modelVals_list):
             time, (fb, tb), phase = key
             val = mv['P'][key]
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "branch": f"{fb}->{tb}",
                 "phase": phase,
                 "scenario": scenario_label,
@@ -309,7 +318,7 @@ def plot_active_power_flows(**modelVals_list):
     df[["fb", "tb"]] = df["branch"].str.split("->", expand=True)
     df["fb"] = df["fb"].astype(int)
     df["tb"] = df["tb"].astype(int)
-    df = df.sort_values(["tb"]).reset_index(drop=True)
+    df = df.sort_values(by=["time", "tb","phase","scenario"]).reset_index(drop=True)
     df["branch_label"] = df.apply(lambda row: f"{row['fb']}->{row['tb']}", axis=1)
     branch_order = df["branch_label"].unique().tolist()
     scenarios = sorted(df["scenario"].unique())
@@ -354,7 +363,7 @@ def plot_voltage(**modelVals_list):
             time, node, phase = key
             val = mv["v"][key]
             data.append({
-                "time": f"t={time}",
+                "time": time,
                 "node": node,  # e.g. "node=13"
                 "phase": phase,
                 "scenario": scenario_label,
@@ -363,9 +372,10 @@ def plot_voltage(**modelVals_list):
 
     df = pd.DataFrame(data)
     # Extract integer node number from the string
-    df["node_num"] = df["node"].astype(int)
+    df["node"] = df["node"].astype(int)
     # Sort by numeric node number
-    df = df.sort_values(by="node_num")
+    # If time is already numeric:
+    df = df.sort_values(by=["time", "node","phase","scenario"])
 
     scenarios = sorted(df["scenario"].unique())
     color_map_dynamic, symbol_map_dynamic, line_dash_map_dynamic = generate_dynamic_maps(scenarios)
@@ -376,20 +386,48 @@ def plot_voltage(**modelVals_list):
         x="time",     # use the numeric column on the x-axis
         y="value",
         color="scenario",
-        line_dash="node_num" if len(modelVals_list) > 1 else None,
+        line_dash="node",
         symbol="scenario" if len(modelVals_list) > 1 else None,
         color_discrete_map=color_map_dynamic,
         symbol_map=symbol_map_dynamic,
-        line_dash_map=line_dash_map_dynamic,  # Use custom marker symbols
-        facet_col="phase",
-        title="Voltage for Nodes" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
+        # line_dash_map=line_dash_map_dynamic,  # Use custom marker symbols
+        labels={"value": "Voltage (pu)"},
+        category_orders={"phase": ["a", "b", "c"],"scenario":["copf","admm","enapp"]},
+        facet_row="phase",
+        # title="Voltage for Nodes" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
         markers = True
     )
+    fig.update_layout(
+        template="plotly_white",
+        margin={"l": 10, "r": 20, "t": 25, "b": 10},
+        xaxis_title="nodes",
+        yaxis_title="Voltage (pu)" ,
+        font_color="black",
+        legend_xref = "paper",
+        legend_title_text="",
+        legend_orientation="h",
+        legend_borderwidth=1,
+        yaxis_matches="y",
+        legend_x=0.95,
+        legend_y=-0.2,
+        # yaxis_title_standoff = 0.0,
+    )
+    fig.update_layout(
+        legend=dict(
+            x=0,  # Horizontal position of legend within the plot (0=left, 1=right)
+            y=0.8,  # Vertical position (0=bottom, 1=top)
+            xanchor="left",
+            yanchor="top",
+            bgcolor="rgba(255,255,255,0.5)",  # A semi-transparent legend box
+        )
+    )
+    fig.update_layout(font=dict(size=12, family="Times New Roman"))
+
     fig.update_traces(
         marker=dict(size=4),
         line=dict(width=1)# bigger marker # thicker line
     )
-    save_plot(fig, "voltage_plot.html")
+    save_plot(fig, "voltage_plot.pdf")
     fig.show()
 
 def plot_convergence(*args):
