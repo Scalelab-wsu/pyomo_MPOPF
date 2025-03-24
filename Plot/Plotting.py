@@ -405,17 +405,17 @@ def plot_voltage(**modelVals_list):
         font_color="black",
         legend_xref = "paper",
         legend_title_text="",
-        legend_orientation="h",
+        legend_orientation="v",
         legend_borderwidth=1,
         yaxis_matches="y",
-        legend_x=0.95,
-        legend_y=-0.2,
+        # legend_x=0.95,
+        # legend_y=-0.2,
         # yaxis_title_standoff = 0.0,
     )
     fig.update_layout(
         legend=dict(
-            x=0,  # Horizontal position of legend within the plot (0=left, 1=right)
-            y=0.8,  # Vertical position (0=bottom, 1=top)
+            x=1.02,  # Horizontal position of legend within the plot (0=left, 1=right)
+            y=1,  # Vertical position (0=bottom, 1=top)
             xanchor="left",
             yanchor="top",
             bgcolor="rgba(255,255,255,0.5)",  # A semi-transparent legend box
