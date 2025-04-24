@@ -13,7 +13,7 @@ from Distributed.admm_fast import solve_ADMM
 from Distributed.enapp_fast import solve_EnAPP
 from OpenDss.OpendssValidate_new import run_opendss_validation,all_time_highest_discrepancy
 # from OpendssValidate import run_opendss_validation
-from Plot.time_series_plot import *
+from Plot.Plotting import *
 system_name = 'IEEE_123_other'
 area_info = eval(f'{system_name}' + '_area_info')
 obj = loss_minimize_with_scd
@@ -47,9 +47,9 @@ data = parse_all_data(bus_data, branch_data,gen=gen_data,bat=bat_data,loadshape=
 # create_opendss_scripts(data)
 # %%
 if __name__ == "__main__":
-    centralized = False
+    centralized = True
     ADMM = False
-    enAPP = True
+    enAPP = False
 
     if centralized:
         print(f"Solving centralized problem for {system_name} and objective function {obj}...")
@@ -99,18 +99,18 @@ if __name__ == "__main__":
         print("EnAPP ran successfully")
         print(f"EnAPP Solver Time: {enapp_time:.2f} seconds")
     # %%
-    opendssVals = run_opendss_validation(data,enappVals)
+    # opendssVals = run_opendss_validation(data,enappVals)
     # # admm_opendssVals = run_opendss_validation(data, admmVals)
     # enapp_opendssVals = run_opendss_validation(data, enappVals)
 
-    all_time_highest_discrepancy(opendssVals,enappVals)
-    # plot_substation_power(copfVals=copfVals,copf_opendssVals=copf_opendssVals)
-    # plot_battery_soc(copfVals=copfVals,enappVals=enappVals,admmVals=admmVals)
-    # plot_reactive_power_flows(copfVals=copfVals,copf_opendssVals=copf_opendssVals)
-    # plot_der_reactive_power(copfVals=copfVals,copf_opendssVals=copf_opendssVals)
-    # plot_battery_charging_discharging_combined(copfVals=copfVals,enappVals=enappVals,admmVals=admmVals)
-    # plot_active_power_flows(copfVals=copfVals,copf_opendssVals=copf_opendssVals)
-    # plot_voltage(admmVals = admmVals,opendssVals=opendssVals)
+    # all_time_highest_discrepancy(opendssVals,enappVals)
+    plot_substation_power(copfVals=copfVals,enappVals=enappVals)
+    plot_battery_soc(copfVals=copfVals,enappVals=enappVals)
+    plot_reactive_power_flows(copfVals=copfVals,enappVals=enappVals)
+    plot_der_reactive_power(copfVals=copfVals,enappVals=enappVals)
+    plot_battery_charging_discharging_combined(copfVals=copfVals,enappVals=enappVals)
+    plot_active_power_flows(copfVals=copfVals,enappVals=enappVals)
+    plot_voltage(copfVals = copfVals,enappVals=enappVals)
     # #
     # plot_convergence(admm = admm_conv)
     # plot_objective(admm=admm_aug_obj)
@@ -142,11 +142,11 @@ if __name__ == "__main__":
     # plot_convergence(enapp_conv= enapp_conv,admm_conv=admm_conv)
     # plot_objective(enapp_obj=enapp_obj,admm_aug_obj=admm_aug_obj,copf_obj = copfVals['objective_value'])
 
-    # Calculating Metrics to include in paper
-    print("OPENDSS...")
-    print(f"Total substation Real Power Flows: {sum(opendssVals['P_subs'].values())}")
-    print(f"Total substation Reactive Power Flows: {sum(opendssVals['Q_subs'].values())}")
-    print(f"Total reactive power from PV : {sum(opendssVals['q_D'].values())}")
-    print(f"Total battery Charging Power : {sum(opendssVals['P_c'].values())}")
-    print(f"Total battery Discharging Power : {sum(opendssVals['P_d'].values())}")
+    # # Calculating Metrics to include in paper
+    # print("OPENDSS...")
+    # print(f"Total substation Real Power Flows: {sum(opendssVals['P_subs'].values())}")
+    # print(f"Total substation Reactive Power Flows: {sum(opendssVals['Q_subs'].values())}")
+    # print(f"Total reactive power from PV : {sum(opendssVals['q_D'].values())}")
+    # print(f"Total battery Charging Power : {sum(opendssVals['P_c'].values())}")
+    # print(f"Total battery Discharging Power : {sum(opendssVals['P_d'].values())}")
 
