@@ -6,8 +6,12 @@ Redirect BranchData.dss
 Redirect Loads.dss
 Redirect PVSystem.dss
 Redirect Storage.dss
+!PV systems were added just to check set_pv_controls() for aggregated models, Can ignore this for future uses
+!New PVSystem.PV_50_a phases=1 bus1=50.1 kv=2.4 irradiance = 1 kva=12.0 Pmpp=10.0 Vmaxpu=1.05 Vminpu=0.95 %cutin=0.001 %cutout=0.001
+!New PVSystem.PV_50 bus1=50 phases=3 kv=4.16 irradiance = 1 kva=305.22 Pmpp=254.35 Vmaxpu=1.05 Vminpu=0.95 %cutin=0.001 %cutout=0.001
+!New PVSystem.PV_50_a bus1=50.1 phases=1 kv=2.4 irradiance = 1 kva=101.74 Pmpp=84.78 Vmaxpu=1.05 Vminpu=0.95 %cutin=0.001 %cutout=0.001
+!New PVSystem.PV_50_b bus1=50.2 phases=1 kv=2.4 irradiance = 1 kva=101.74 Pmpp=84.78 Vmaxpu=1.05 Vminpu=0.95 %cutin=0.001 %cutout=0.001
+!New PVSystem.PV_50_c bus1=50.3 phases=1 kv=2.4 irradiance = 1 kva=101.74 Pmpp=84.78 Vmaxpu=1.05 Vminpu=0.95 %cutin=0.001 %cutout=0.001
 Set voltageBases=[4.16]
 Calcvoltagebases 
-Set mode = Daily
-Set stepsize = 1h
-Set number = 1
+
