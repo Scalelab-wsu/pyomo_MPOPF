@@ -276,154 +276,6 @@ def get_total_nameplate_pv_powers():
         pv_id = dss.PVsystems.Next()
     return p_kw
 
-## new to include aggregated controls to full model
-from pathlib import Path
-import pickle
-import pandas as pd
-agg_plans_p = Path("agg_plans_exclusive23.pkl")  # exact filename here
-
-def load_pickle(fname):
-    with open(fname, 'rb') as f:
-        obj = pickle.load(f)
-    print(f"Loaded {fname}")
-    return obj
-
-agg_plans = load_pickle(agg_plans_p)
-agg_df_1 = pd.DataFrame(agg_plans['Feeder1'])
-agg_df_2 = pd.DataFrame(agg_plans['Feeder2'])
-agg_df_3 = pd.DataFrame(agg_plans['Feeder3'])
-import pandas as pd
-
-def stack_aggregated_loads(df, row_name="aggregated_loads_df", node_col="agg_node"):
-    """Collect nested DFs from the given row into one tall DF with a node label."""
-    if row_name not in df.index:
-        raise KeyError(f"{row_name!r} not found in index")
-    pieces = []
-    for node, sub in df.loc[row_name].items():        # each column = a node
-        if isinstance(sub, pd.DataFrame) and not sub.empty:
-            tmp = sub.copy()
-            tmp.insert(0, node_col, node)
-            pieces.append(tmp)
-    return pd.concat(pieces, ignore_index=True) if pieces else pd.DataFrame()
-
-# Build per-feeder DataFrames (yours)
-agg_df_1 = pd.DataFrame(agg_plans['Feeder1'])
-agg_df_2 = pd.DataFrame(agg_plans['Feeder2'])
-agg_df_3 = pd.DataFrame(agg_plans['Feeder3'])
-
-# Stack all three with feeder labels
-flat_all = []
-for feeder_name, df in {"Feeder1": agg_df_1, "Feeder2": agg_df_2, "Feeder3": agg_df_3}.items():
-    flat = stack_aggregated_loads(df, row_name="aggregated_loads_df", node_col="agg_node")
-    if not flat.empty:
-        flat.insert(0, "feeder", feeder_name)
-        flat_all.append(flat)
-
-flat_all_df = pd.concat(flat_all, ignore_index=True)
-
-# Preview & save
-# print(flat_all_df.head(10).to_string(index=False))
-flat_all_df.to_csv("aggregated_loads_all_feeders.csv", index=False)
-flat_all_df = flat_all_df.sort_values(by='kW',ignore_index=True,ascending=False)
-assets_df = flat_all_df[flat_all_df.kW > 15].copy()
-# assets_df['PhaseTokens'] = assets_df['PhaseTokens'].apply(lambda x: int(x[0]))
-
-def agg_to_full_control_latest(df,modelVals,t,P_base):
-
-    # -------- helpers --------
-    def parse_phase(bus_full):
-        s = str(bus_full)
-        suf = s.split('.')[-1] if '.' in s else ''
-        return {'1': 'a', '2': 'b', '3': 'c', 'A': 'a', 'B': 'b', 'C': 'c'}.get(suf, None)
-
-    def bus_base(bus_full):
-        s = str(bus_full)
-        return s.split('.')[0] if '.' in s else s
-
-    df.loc[:,'ph']       = df['Bus1_Full'].map(parse_phase)
-    df.loc[:,'bus_base'] = df['Bus1_Full'].map(bus_base)
-
-    g = df.groupby(['agg_node', 'ph'], dropna=False)
-    df.loc[:,'sum_kw']   = g['kW'].transform('sum')
-    df.loc[:,'sum_kvar'] = g['kvar'].transform('sum')
-    df.loc[:,'count']    = g['kW'].transform('size')
-
-    # Shares: P uses kW, Q uses kvar. If sum is zero → equal split within (agg_node, ph)
-    df.loc[:,'share_P'] = df['kW'] / df['sum_kw']
-    df.loc[:,'share_Q'] = df['kvar'] / df['sum_kvar']
-
-    # -------- build agg control dicts at time t --------
-    # Expected keys: (t, j, ph) where j is an agg_node for aggregated model
-    uP_agg = {}
-    if 'p_D' in modelVals:
-        for (tt, j, ph), v in modelVals['p_D'].items():
-            if tt == t:
-                uP_agg[j, ph] = v
-
-    uQ_agg = {}
-    if 'q_D' in modelVals:
-        for (tt, j, ph), v in modelVals['q_D'].items():
-            if tt == t:
-                uQ_agg[j, ph] = v
-
-    uPd_agg = {}
-    if 'P_d' in modelVals:
-        for (tt, j, ph), v in modelVals['P_d'].items():
-            if tt == t:
-                uPd_agg[j, ph] = v
-
-    uPc_agg = {}
-    if 'P_c' in modelVals:
-        for (tt, j, ph), v in modelVals['P_c'].items():
-            if tt == t:
-                uPc_agg[j, ph] = v
-
-    # Optional per-unit scaling if your controls are in pu and df is in kW/kvar:
-    # if P_base is not None:
-    #     uQ_agg = {k: v * P_base for k, v in uQ_agg.items()}
-    #     uP_agg = {k: v * P_base for k, v in uP_agg.items()}
-
-    # -------- accumulate disaggregated values per (t, bus_base, ph) --------
-    p_bus = {}
-    q_bus = {}
-    pd_bus = {}
-    pc_bus = {}
-
-    # iterate once over the mapping rows
-    for _, r in df.iterrows():
-        key_agg = (r['agg_node'], r['ph'])
-        if key_agg in uP_agg:
-            kb = (t, r['bus_base'], r['ph'])
-            p_bus[kb] = p_bus.get(kb, 0.0) + uP_agg[key_agg] * r['share_P']
-        if key_agg in uQ_agg:
-            kb = (t, r['bus_base'], r['ph'])
-            q_bus[kb] = q_bus.get(kb, 0.0) + uQ_agg[key_agg] * r['share_P']
-        if key_agg in uPd_agg:
-            kb = (t, r['bus_base'], r['ph'])
-            pd_bus[kb] = pd_bus.get(kb, 0.0) + uPd_agg[key_agg] * r['share_P']
-        if key_agg in uPc_agg:
-            kb = (t, r['bus_base'], r['ph'])
-            pc_bus[kb] = pc_bus.get(kb, 0.0) + uPc_agg[key_agg] * r['share_P']
-
-    # -------- replace time-t aggregated entries by the disaggregated ones --------
-    def replace_time_slice(dct, newvals):
-        # delete any entries at time t
-        for k in [k for k in dct.keys() if k[0] == t]:
-            del dct[k]
-        # add the disaggregated entries
-        dct.update(newvals)
-
-    if 'p_D' in modelVals:
-        replace_time_slice(modelVals['p_D'], p_bus)
-    if 'q_D' in modelVals:
-        replace_time_slice(modelVals['q_D'], q_bus)
-    if 'P_d' in modelVals:
-        replace_time_slice(modelVals['P_d'], pd_bus)
-    if 'P_c' in modelVals:
-        replace_time_slice(modelVals['P_c'], pc_bus)
-
-    return modelVals
-
 def initialize_current_angles(data,path, multi=False):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(script_dir, path)
@@ -512,8 +364,6 @@ def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=Fals
     total_bat_real_power_magnitude = 0
     total_p_loss = 0
     total_q_loss = 0
-    print("Before Applying controls to openDSS:")
-    # print(f"Total PV kW : {sum(modelVals['p_D'].values())}kW and Total PV kVar : {sum(modelVals['q_D'].values())} kVar ")
 
     # Handle both linear and non-linear battery models
     if 'P_b' in modelVals:
@@ -522,8 +372,6 @@ def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=Fals
         print(f"Total battery charging kW (P_c): {sum(modelVals['P_c'].values())} kW and Total battery discharging kW (P_d): {sum(modelVals['P_d'].values())} kW ")
     for t in data['Tset']:
         # edit_loads(data,t,P_base)
-        # if disaggregation:
-        #     modelVals = agg_to_full_control_latest(assets_df, modelVals, t, P_base)
         set_pv_controls(data, modelVals, t, P_base)## works ,tried with ieee_123 for all possible cases
         set_battery_controls(data,modelVals,t, P_base)
         # dss.Text.Command(f"Set hour = {t-1}")
