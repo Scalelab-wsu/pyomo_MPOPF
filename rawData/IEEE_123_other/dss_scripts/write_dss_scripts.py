@@ -219,7 +219,7 @@ def create_master_dss(data,script_name):
 
         f.write(f"Redirect BranchData.dss\n")
         f.write(f"Redirect Loads.dss\n")
-        f.write(f"Redirect PVSystem.dss\n")
+        f.write(f"Redirect PVSystems.dss\n")
         f.write(f"Redirect Storage.dss\n")
 
         f.write(f"Set voltageBases=[4.16]\n")
@@ -234,7 +234,7 @@ def create_opendss_scripts(data):
 
     create_branch_dss(data,"BranchData.dss")
     create_loads_dss(data,"Loads.dss")
-    create_pv_dss(data,"PVSystem.dss")
+    create_pv_dss(data,"PVSystems.dss")
     create_battery_dss(data,"Storage.dss")
     create_master_dss(data, "Master.dss")
 
