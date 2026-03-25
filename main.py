@@ -22,7 +22,7 @@ obj = loss_minimize
 # obj = power_flow
 wd = os.getcwd()
 filepath = os.path.join(wd, "rawData", system_name,"csvs")
-dss_path = os.path.join("..", system_name,"dss_scripts","Master.dss")
+dss_path = os.path.join(wd, "rawData", system_name,"dss_scripts","Master.dss")
 bus_data = pd.read_csv(os.path.join(filepath, "bus_data.csv"))
 branch_data = pd.read_csv(os.path.join(filepath, "branch_data.csv"))
 # plot_network(bus_data,branch_data)
@@ -38,10 +38,10 @@ data = parse_all_data_phase_aware(bus_data, branch_data,gen_data,bat_data,loadsh
 # data['v_max'] = { node: 1.5 for node in data['v_max'].keys() }
 # %%
 if __name__ == "__main__":
-    centralized = False
+    centralized = True
     ADMM = False
     enAPP = False
-    DDDP = True
+    DDDP = False
     opendss = True
     multi = True
     non_linear = False
@@ -126,10 +126,10 @@ if __name__ == "__main__":
 
 
     if opendss:
-        dssVals = run_opendss_validation(data, dddpVals, dss_path, multi = multi)
+        dssVals = run_opendss_validation(data, copfVals, dss_path, multi = multi)
         print()
 
-    all_time_highest_discrepancy(dssVals, dddpVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
+    all_time_highest_discrepancy(dssVals, copfVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
 
     # plot_voltage(copfvals=copfVals,dssVals=dssVals)
     # plot_active_power_flows(copfvals=copfVals,dssVals=dssVals)
