@@ -1,0 +1,641 @@
+import numpy as np
+import opendssdirect as dss
+import os
+import math
+def collect_opendss_substationpower(openDssVals,t,P_base):
+    ## for some reason this is not working
+    dss.Circuit.SetActiveElement("Vsource.source")  # Use actual Vsource name
+    vs_powers = dss.CktElement.Powers()
+    for idx in range(dss.CktElement.NumPhases()):
+        ph = ['a', 'b', 'c'][idx]
+        p = -vs_powers[2 * idx]
+        q = -vs_powers[2 * idx + 1]
+        openDssVals['P_subs'][t, ph] = p
+        openDssVals['Q_subs'][t, ph] = q
+
+    return openDssVals
+
+def collect_opendss_lineflows(openDssVals,t,P_base):
+    line_id = dss.Lines.First()
+    while line_id > 0:
+        line_name = dss.Lines.Name()
+        dss.Circuit.SetActiveElement(f"Line.{line_name}")
+        busnames = dss.CktElement.BusNames()
+        line_powers = dss.CktElement.Powers()
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]# e.g., ["1", "2"] for phases a, b
+        fb = busnames[0].split('.')[0]
+        tb = busnames[1].split('.')[0]
+        for index, node in enumerate(nodes):
+            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
+            p = line_powers[2 * index]
+            q = line_powers[2 * index + 1]
+
+            openDssVals['P'][t, fb, tb, ph] = p
+            openDssVals['Q'][t, fb, tb, ph] = q
+
+        line_id = dss.Lines.Next()
+
+    return openDssVals
+
+def collect_opendss_voltages(openDssVals,t): # Activate all buses
+    phase_to_idx = {'a': 1, 'b': 2, 'c': 3}
+    phases = ['a', 'b', 'c']
+    for ph in phases:
+        ph_num = phase_to_idx[ph]
+        node_names = dss.Circuit.AllNodeNamesByPhase(ph_num)
+        vmag_pu = dss.Circuit.AllNodeVmagPUByPhase(ph_num)
+
+        for i_node, node_name in enumerate(node_names):
+            bus_id = node_name.split('.')[0]
+            openDssVals['v'][t, bus_id, ph] = vmag_pu[i_node]
+    return openDssVals
+
+def collect_opendss_linecurrents(openDssVals,t): # Activate all buses
+    line_id = dss.Lines.First()
+    while line_id > 0:
+        line_name = dss.Lines.Name()
+        dss.Circuit.SetActiveElement(f"Line.{line_name}")
+        busnames = dss.CktElement.BusNames()
+        line_currents = dss.CktElement.CurrentsMagAng()
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]# e.g., ["1", "2"] for phases a, b
+        fb = busnames[0].split('.')[0]
+        tb = busnames[1].split('.')[0]
+        for index, node in enumerate(nodes):
+            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
+            I_mag = line_currents[2 * index]
+            I_ang = line_currents[2 * index + 1]
+
+            openDssVals['I_mag'][t, fb, tb, ph] = I_mag
+            openDssVals['I_ang'][t, fb, tb, ph] = I_ang * (math.pi / 180)
+
+        line_id = dss.Lines.Next()
+
+    return openDssVals
+
+def collect_opendss_pvPowers(openDssVals,t, P_base):
+    pv_id = dss.PVsystems.First()
+    while pv_id > 0:
+        pv_name = dss.PVsystems.Name()
+        dss.Circuit.SetActiveElement(f"PVsystem.{pv_name}")
+        bus = dss.CktElement.BusNames()[0].split('.')[0]  # e.g., ["bus123", "1", "2"]
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]# e.g., ["1", "2"] for phases a, b
+        for index, node in enumerate(nodes):
+            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
+            p = -dss.CktElement.Powers()[2*index]
+            q = -dss.CktElement.Powers()[2*index+1]
+            openDssVals['p_D'][t, bus, ph] = p
+            openDssVals['q_D'][t, bus, ph] = q
+        pv_id = dss.PVsystems.Next()
+    return openDssVals
+
+def collect_opendss_batteryresults(data,openDssVals,t, P_base):
+    bat_id = dss.Storages.First()
+    while bat_id > 0:
+        batt_name = dss.Storages.Name()
+        dss.Circuit.SetActiveElement(f"Storage.{batt_name}")
+        bus = dss.CktElement.BusNames()[0].split('.')[0]   # e.g., ["bus45", "3"]
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]
+        for index,node in enumerate(nodes):
+            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
+            p = -dss.CktElement.Powers()[2*index]
+            soc = dss.Storages.puSOC()#*data['b_R'][bus,ph] ## multiplying by rated to match optimization results for comparison
+            if 'P_b' in openDssVals:
+                openDssVals['P_b'][t, bus, ph] = p
+            elif 'P_c' in openDssVals and 'P_d' in openDssVals:
+                if p >= 0:
+                    openDssVals['P_d'][t, bus, ph] = p
+                    openDssVals['P_c'][t, bus, ph] = 0.0
+                else:
+                    openDssVals['P_d'][t, bus, ph] = 0.0
+                    openDssVals['P_c'][t, bus, ph] = -p
+            openDssVals['B'][t, bus, ph] = soc
+        bat_id = dss.Storages.Next()
+    return openDssVals
+
+def get_opendss_total_circuitloss():
+    losses = dss.Circuit.Losses()
+    active_loss = losses[0]
+    reactive_loss = losses[1]
+    lossPowersDict_t = {
+        'real_power_loss_t_kW': active_loss,
+        'reactive_power_loss_t_kW': reactive_loss,
+    }
+    return lossPowersDict_t
+
+
+def get_total_battery_power_opendss():
+    vald_battery_real_power_t_kW = 0.0
+    vald_battery_real_power_transaction_magnitude_t_kW = 0.0
+
+    battery_names = dss.Storages.AllNames()
+    for battery_name in battery_names:
+        dss.Circuit.SetActiveElement(f"Storage.{battery_name}")
+        battery_powers = dss.CktElement.Powers()
+        real_power = -sum(battery_powers[::2])  # Negate to match injection convention
+
+        vald_battery_real_power_t_kW += real_power
+        vald_battery_real_power_transaction_magnitude_t_kW += abs(real_power)
+    batteryPowersDict_t = {
+        'battery_real_power_t_kW': vald_battery_real_power_t_kW,
+        'battery_real_power_transaction_magnitude_t_kW': vald_battery_real_power_transaction_magnitude_t_kW,
+    }
+
+    return batteryPowersDict_t
+
+def get_load_powers_opendss_powerflow():
+    total_load_t_kW = 0.0
+    total_load_t_kVAr = 0.0
+
+    load_names = dss.Loads.AllNames()
+    for load_name in load_names:
+        dss.Circuit.SetActiveElement(f"Load.{load_name}")
+        load_powers = dss.CktElement.Powers()
+        total_load_t_kW += sum(load_powers[::2])
+        total_load_t_kVAr += sum(load_powers[1::2])
+
+    loadPowersDict_t = {
+        'total_load_t_kW': total_load_t_kW,
+        'total_load_t_kVAr': total_load_t_kVAr
+    }
+
+    return loadPowersDict_t
+
+def get_pv_powers_opendss_powerflow():
+    total_pv_t_kW = 0.0
+    total_pv_t_kVAr = 0.0
+
+    pv_names = dss.PVsystems.AllNames()
+    for pv_name in pv_names:
+        dss.Circuit.SetActiveElement(f"PVSystem.{pv_name}")
+        pv_powers = dss.CktElement.Powers()
+        total_pv_t_kW -= sum(pv_powers[::2])
+        total_pv_t_kVAr -= sum(pv_powers[1::2])
+
+    pvPowersDict_t = {
+        'total_pv_t_kW': total_pv_t_kW,
+        'total_pv_t_kVAr': total_pv_t_kVAr
+    }
+
+    return pvPowersDict_t
+
+def edit_loads(data,t,P_base):
+    load_id = dss.Loads.First()
+    phase_map = {1: 'a', 2: 'b', 3: 'c'}
+    while load_id > 0:
+        load_name = dss.Loads.Name()
+        dss.Circuit.SetActiveElement(f"Load.{load_name}")
+        bus = dss.CktElement.BusNames()[0].split('.')[0]  # e.g., ["bus45", "3"]
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]
+        p_kw = 0
+        q_kvar = 0
+        for node in nodes:
+            ph = phase_map[node]
+            p_kw += data['p_L'][t, bus, ph]*P_base / 1e3
+            q_kvar += data['q_L'][t, bus, ph]*P_base / 1e3
+
+            ## setting P and Q for Loads
+            # dss.Text.Command(f"Edit Load.{load_name} kw={p_kw} kvar={q_kvar}")
+            # print(f"Edit Load.{load_name} kw={p_kw} kvar={q_kvar}")
+        dss.Text.Command(f"Edit Load.{load_name} kw={p_kw} kvar={q_kvar}")
+        # print(f"Time Step {t}: hour={dss.Solution.Hour():02d}Edit Load.{load_name} kw={p_kw} kvar={q_kvar}")
+        load_id = dss.Loads.Next()
+
+def set_pv_controls(data, modelVals, t, P_base):
+    pv_id = dss.PVsystems.First()
+    phase_map = {1: 'a', 2: 'b', 3: 'c'}
+    while pv_id > 0:
+        pv_name = dss.PVsystems.Name()
+        dss.Circuit.SetActiveElement(f"PVSystem.{pv_name}")
+        bus = dss.CktElement.BusNames()[0].split('.')[0]
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]
+        p_pv = 0
+        q_pv = 0
+        for node_num in nodes:
+            ph = phase_map[node_num]
+            p_pv += modelVals['p_D'][t, bus, ph]*P_base/1e3
+            q_pv += modelVals['q_D'][t, bus, ph]*P_base/1e3
+            # print(f"Time Step {t}: Setting PV {pv_name} with p_pv={p_pv} and q_pv={q_pv}")
+        dss.Text.Command(f"Edit PVSystem.{pv_name} Pmpp={p_pv} kvar={q_pv}")
+        pv_id = dss.PVsystems.Next()
+
+def set_battery_controls(data, modelVals, t, P_base):
+    phase_map = {1: 'a', 2: 'b', 3: 'c'}
+    storage_id = dss.Storages.First()
+    while storage_id > 0:
+        storage_name = dss.Storages.Name()
+        dss.Circuit.SetActiveElement(f"Storage.{storage_name}")
+        bus = dss.CktElement.BusNames()[0].split('.')[0]
+        node_order = dss.CktElement.NodeOrder()
+        nodes = [x for x in dict.fromkeys(node_order) if x != 0]
+        p_batt = 0
+        if 'P_b' in modelVals:
+            p_batt += modelVals['P_b'][t, bus]*P_base/1e3
+        elif 'P_c' in modelVals and 'P_d' in modelVals:
+            p_batt += modelVals['P_d'][t, bus] - modelVals['P_c'][t, bus]*P_base/1e3
+        # print(f"Time Step {t}: Setting Battery {storage_name} with p_batt={Pnet_batt}")
+        dss.Text.Command(f"Edit Storage.{storage_name} kw={p_batt} kvar = 0")
+        storage_id = dss.Storages.Next()
+
+def observe_load_powers_over_time(t):
+    load_id = dss.Loads.First()
+    while load_id > 0:
+        load_name = dss.Loads.Name()
+        dss.Circuit.SetActiveElement(f"Load.{load_name}")
+        pq = dss.CktElement.Powers()
+        nph = dss.CktElement.NumPhases()
+        total_p = sum(pq[2*i] for i in range(nph))
+        total_q = sum(pq[2*i+1] for i in range(nph))
+        print(f"t={t} hour={dss.Solution.Hour():02d} load={load_name} actualP={total_p:.2f}kW actualQ={total_q:.2f}kvar (ratedP={dss.Loads.kW():.2f},ratedQ={dss.Loads.kvar():.2f})")
+        load_id = dss.Loads.Next()
+
+def get_total_nameplate_load_powers():
+    p_kw = 0
+    q_kvar = 0
+    load_id = dss.Loads.First()
+    while load_id > 0:
+        load_name = dss.Loads.Name()
+        dss.Circuit.SetActiveElement(f"Load.{load_name}")
+        p_kw += dss.Loads.kW()
+        q_kvar += dss.Loads.kvar()
+        load_id = dss.Loads.Next()
+    return p_kw, q_kvar
+
+def get_total_nameplate_pv_powers():
+    p_kw = 0
+    pv_id = dss.PVsystems.First()
+    while pv_id > 0:
+        pv_name = dss.PVsystems.Name()
+        dss.Circuit.SetActiveElement(f"PVSystem.{pv_name}")
+        p_kw += dss.PVsystems.Pmpp()
+        pv_id = dss.PVsystems.Next()
+    return p_kw
+
+## new to include aggregated controls to full model
+from pathlib import Path
+import pickle
+import pandas as pd
+agg_plans_p = Path("agg_plans_exclusive23.pkl")  # exact filename here
+
+def load_pickle(fname):
+    with open(fname, 'rb') as f:
+        obj = pickle.load(f)
+    print(f"Loaded {fname}")
+    return obj
+
+agg_plans = load_pickle(agg_plans_p)
+agg_df_1 = pd.DataFrame(agg_plans['Feeder1'])
+agg_df_2 = pd.DataFrame(agg_plans['Feeder2'])
+agg_df_3 = pd.DataFrame(agg_plans['Feeder3'])
+import pandas as pd
+
+def stack_aggregated_loads(df, row_name="aggregated_loads_df", node_col="agg_node"):
+    """Collect nested DFs from the given row into one tall DF with a node label."""
+    if row_name not in df.index:
+        raise KeyError(f"{row_name!r} not found in index")
+    pieces = []
+    for node, sub in df.loc[row_name].items():        # each column = a node
+        if isinstance(sub, pd.DataFrame) and not sub.empty:
+            tmp = sub.copy()
+            tmp.insert(0, node_col, node)
+            pieces.append(tmp)
+    return pd.concat(pieces, ignore_index=True) if pieces else pd.DataFrame()
+
+# Build per-feeder DataFrames (yours)
+agg_df_1 = pd.DataFrame(agg_plans['Feeder1'])
+agg_df_2 = pd.DataFrame(agg_plans['Feeder2'])
+agg_df_3 = pd.DataFrame(agg_plans['Feeder3'])
+
+# Stack all three with feeder labels
+flat_all = []
+for feeder_name, df in {"Feeder1": agg_df_1, "Feeder2": agg_df_2, "Feeder3": agg_df_3}.items():
+    flat = stack_aggregated_loads(df, row_name="aggregated_loads_df", node_col="agg_node")
+    if not flat.empty:
+        flat.insert(0, "feeder", feeder_name)
+        flat_all.append(flat)
+
+flat_all_df = pd.concat(flat_all, ignore_index=True)
+
+# Preview & save
+# print(flat_all_df.head(10).to_string(index=False))
+flat_all_df.to_csv("aggregated_loads_all_feeders.csv", index=False)
+flat_all_df = flat_all_df.sort_values(by='kW',ignore_index=True,ascending=False)
+assets_df = flat_all_df[flat_all_df.kW > 15].copy()
+# assets_df['PhaseTokens'] = assets_df['PhaseTokens'].apply(lambda x: int(x[0]))
+
+def agg_to_full_control_latest(df,modelVals,t,P_base):
+
+    # -------- helpers --------
+    def parse_phase(bus_full):
+        s = str(bus_full)
+        suf = s.split('.')[-1] if '.' in s else ''
+        return {'1': 'a', '2': 'b', '3': 'c', 'A': 'a', 'B': 'b', 'C': 'c'}.get(suf, None)
+
+    def bus_base(bus_full):
+        s = str(bus_full)
+        return s.split('.')[0] if '.' in s else s
+
+    df.loc[:,'ph']       = df['Bus1_Full'].map(parse_phase)
+    df.loc[:,'bus_base'] = df['Bus1_Full'].map(bus_base)
+
+    g = df.groupby(['agg_node', 'ph'], dropna=False)
+    df.loc[:,'sum_kw']   = g['kW'].transform('sum')
+    df.loc[:,'sum_kvar'] = g['kvar'].transform('sum')
+    df.loc[:,'count']    = g['kW'].transform('size')
+
+    # Shares: P uses kW, Q uses kvar. If sum is zero → equal split within (agg_node, ph)
+    df.loc[:,'share_P'] = df['kW'] / df['sum_kw']
+    df.loc[:,'share_Q'] = df['kvar'] / df['sum_kvar']
+
+    # -------- build agg control dicts at time t --------
+    # Expected keys: (t, j, ph) where j is an agg_node for aggregated model
+    uP_agg = {}
+    if 'p_D' in modelVals:
+        for (tt, j, ph), v in modelVals['p_D'].items():
+            if tt == t:
+                uP_agg[j, ph] = v
+
+    uQ_agg = {}
+    if 'q_D' in modelVals:
+        for (tt, j, ph), v in modelVals['q_D'].items():
+            if tt == t:
+                uQ_agg[j, ph] = v
+
+    uPd_agg = {}
+    if 'P_d' in modelVals:
+        for (tt, j, ph), v in modelVals['P_d'].items():
+            if tt == t:
+                uPd_agg[j, ph] = v
+
+    uPc_agg = {}
+    if 'P_c' in modelVals:
+        for (tt, j, ph), v in modelVals['P_c'].items():
+            if tt == t:
+                uPc_agg[j, ph] = v
+
+    # Optional per-unit scaling if your controls are in pu and df is in kW/kvar:
+    # if P_base is not None:
+    #     uQ_agg = {k: v * P_base for k, v in uQ_agg.items()}
+    #     uP_agg = {k: v * P_base for k, v in uP_agg.items()}
+
+    # -------- accumulate disaggregated values per (t, bus_base, ph) --------
+    p_bus = {}
+    q_bus = {}
+    pd_bus = {}
+    pc_bus = {}
+
+    # iterate once over the mapping rows
+    for _, r in df.iterrows():
+        key_agg = (r['agg_node'], r['ph'])
+        if key_agg in uP_agg:
+            kb = (t, r['bus_base'], r['ph'])
+            p_bus[kb] = p_bus.get(kb, 0.0) + uP_agg[key_agg] * r['share_P']
+        if key_agg in uQ_agg:
+            kb = (t, r['bus_base'], r['ph'])
+            q_bus[kb] = q_bus.get(kb, 0.0) + uQ_agg[key_agg] * r['share_P']
+        if key_agg in uPd_agg:
+            kb = (t, r['bus_base'], r['ph'])
+            pd_bus[kb] = pd_bus.get(kb, 0.0) + uPd_agg[key_agg] * r['share_P']
+        if key_agg in uPc_agg:
+            kb = (t, r['bus_base'], r['ph'])
+            pc_bus[kb] = pc_bus.get(kb, 0.0) + uPc_agg[key_agg] * r['share_P']
+
+    # -------- replace time-t aggregated entries by the disaggregated ones --------
+    def replace_time_slice(dct, newvals):
+        # delete any entries at time t
+        for k in [k for k in dct.keys() if k[0] == t]:
+            del dct[k]
+        # add the disaggregated entries
+        dct.update(newvals)
+
+    if 'p_D' in modelVals:
+        replace_time_slice(modelVals['p_D'], p_bus)
+    if 'q_D' in modelVals:
+        replace_time_slice(modelVals['q_D'], q_bus)
+    if 'P_d' in modelVals:
+        replace_time_slice(modelVals['P_d'], pd_bus)
+    if 'P_c' in modelVals:
+        replace_time_slice(modelVals['P_c'], pc_bus)
+
+    return modelVals
+
+def initialize_current_angles(data,path, multi=False):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(script_dir, path)
+
+    dss.Text.Command("clear")
+    dss.Text.Command(f"Redirect \"{script_path}\"")
+
+    load_profile = [
+        0.677, 0.6256, 0.6087, 0.5833, 0.58028, 0.6025, 0.657, 0.7477,
+        0.832, 0.88, 0.94, 0.989, 0.985, 0.98, 0.9898, 0.999,
+        1, 0.958, 0.936, 0.913, 0.876, 0.876, 0.828, 0.756
+    ]
+    load_mult = ' '.join(map(str, load_profile))
+    if multi:
+        dss.Text.Command(f'New Loadshape.loadshape npts=24 interval=1 mult=({load_mult})')
+        dss.Text.Command(f"BatchEdit Load..* Daily=loadshape") ## use this as this gives better results
+        dss.Text.Command("Set mode = Daily")
+        dss.Text.Command("Set stepsize = 1h")
+        dss.Text.Command("Set number = 1")
+        dss.Text.Command("Set hour = 0")
+
+    openDssVals = {
+        'I_mag': {},
+        'I_ang': {},
+    }
+
+    for t in data['Tset']:
+        # dss.Text.Command(f"Set hour = {t - 1}")
+        dss.Text.Command("solve")
+        if not dss.Solution.Converged():
+            print(f"Power flow did not converge at time {t}")
+
+        openDssVals = collect_opendss_linecurrents(openDssVals,t)
+
+    return openDssVals
+
+def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=False):
+    # Save the OpenDSS script in the same directory as this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(script_dir, path)
+
+    dss.Text.Command("clear")
+    # Redirect OpenDSS to use the generated script
+    dss.Text.Command(f"Redirect \"{script_path}\"")
+
+    pv_profile = [
+        0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1, 1, 0.99, 0.9, 0.7, 0.4, 0.1, 0, 0, 0, 0, 0
+    ]
+    pv_mult = ' '.join(map(str, pv_profile))
+    # dss.Text.Command(f"New Loadshape.pvshape npts=24 interval = 1 mult =({pv_mult})")
+    load_profile = [
+        0.677, 0.6256, 0.6087, 0.5833, 0.58028, 0.6025, 0.657, 0.7477,
+        0.832, 0.88, 0.94, 0.989, 0.985, 0.98, 0.9898, 0.999,
+        1, 0.958, 0.936, 0.913, 0.876, 0.876, 0.828, 0.756
+    ]
+    load_mult = ' '.join(map(str, load_profile))
+    if multi:
+        dss.Text.Command(f'New Loadshape.loadshape npts=24 interval=1 mult=({load_mult})')
+        dss.Text.Command(f"BatchEdit Load..* Daily=loadshape") ## use this as this gives better results
+        dss.Text.Command("Set mode = Daily")
+        dss.Text.Command("Set stepsize = 1h")
+        dss.Text.Command("Set number = 1")
+        dss.Text.Command("Set hour = 0")
+    P_base = 1e6
+    openDssVals = {
+        'P_subs': {},
+        'Q_subs': {},# (t, ph)
+        'P': {},  # (t, fb, tb, ph)
+        'Q': {},  # (t, fb, tb, ph)
+        'v': {},
+        'p_D': {},# (t, j, ph)
+        'q_D': {},  # (t, j, ph)
+        'B': {}, } # (t, j, ph)
+    if 'P_b' in modelVals:
+        openDssVals['P_b'] = {}
+    elif 'P_c' in modelVals and 'P_d' in modelVals:
+        openDssVals['P_c'] = {}
+        openDssVals['P_d'] = {}
+
+    # dss.Text.Command("BatchEdit PVSystem..* Daily=pvshape") ## doesnot give good results
+    total_load_kw = 0
+    total_load_kvar=0
+    total_pv_kw=0
+    total_pv_kvar = 0
+    total_bat_real_power = 0
+    total_bat_real_power_magnitude = 0
+    total_p_loss = 0
+    total_q_loss = 0
+    print("Before Applying controls to openDSS:")
+    # print(f"Total PV kW : {sum(modelVals['p_D'].values())}kW and Total PV kVar : {sum(modelVals['q_D'].values())} kVar ")
+
+    # Handle both linear and non-linear battery models
+    if 'P_b' in modelVals:
+        print(f"Total battery power kW (P_b): {sum(modelVals['P_b'].values())} kW")
+    elif 'P_c' in modelVals and 'P_d' in modelVals:
+        print(f"Total battery charging kW (P_c): {sum(modelVals['P_c'].values())} kW and Total battery discharging kW (P_d): {sum(modelVals['P_d'].values())} kW ")
+    for t in data['Tset']:
+        # edit_loads(data,t,P_base)
+        # if disaggregation:
+        #     modelVals = agg_to_full_control_latest(assets_df, modelVals, t, P_base)
+        set_pv_controls(data, modelVals, t, P_base)## works ,tried with ieee_123 for all possible cases
+        set_battery_controls(data,modelVals,t, P_base)
+        # dss.Text.Command(f"Set hour = {t-1}")
+        dss.Text.Command("solve")
+        if not dss.Solution.Converged():
+            print(f"Power flow did not converge at time {t}")
+
+        total_load_t = get_load_powers_opendss_powerflow()
+        pv_power_t = get_pv_powers_opendss_powerflow()
+        battery_power_t = get_total_battery_power_opendss()
+        total_loss_t = get_opendss_total_circuitloss()
+        total_load_kw += total_load_t['total_load_t_kW']
+        total_load_kvar += total_load_t['total_load_t_kVAr']
+        total_pv_kw += pv_power_t['total_pv_t_kW']
+        total_pv_kvar += pv_power_t['total_pv_t_kVAr']
+        total_bat_real_power += battery_power_t['battery_real_power_t_kW']
+        total_bat_real_power_magnitude += battery_power_t['battery_real_power_transaction_magnitude_t_kW']
+        total_p_loss +=total_loss_t['real_power_loss_t_kW']
+        total_q_loss += total_loss_t['reactive_power_loss_t_kW']
+
+        openDssVals = collect_opendss_substationpower(openDssVals, t, P_base)
+        openDssVals = collect_opendss_lineflows(openDssVals,t,P_base)
+        openDssVals = collect_opendss_voltages(openDssVals,t)
+        openDssVals = collect_opendss_pvPowers(openDssVals, t, P_base)
+        openDssVals = collect_opendss_batteryresults(data,openDssVals, t, P_base)
+
+    # ---------------------------------------------------------
+    # 5) Return the results dictionary
+    # ---------------------------------------------------------
+    print(f"Printing Results after applying Controls for: {path}")
+    print(f"Total PV kW {sum(modelVals['p_D'].values())} kW and  Total PV kVar : {sum(modelVals['q_D'].values())} kVar ")
+    # print(f"Total battery charging kW : {sum(modelVals['P_c'].values())} kW and Total battery discharging kW : {sum(modelVals['P_d'].values())} kW ")
+    print(f"Total Substation Real Power Flows:{sum(openDssVals['P_subs'].values())} kW")
+    print(f"Total substation Reactive Power Flows: {sum(openDssVals['Q_subs'].values())} kVar")
+    print(f"total load KW : {total_load_kw}")
+    print(f"total load KVAR : {total_load_kvar}")
+    P,Q = get_total_nameplate_load_powers()
+    print(f"total nameplate load power: {P} kW and {Q} kVAR")
+    print(f"total PV KW : {total_pv_kw}, and {sum(openDssVals['p_D'].values())}")
+    print(f"total PV KVAR : {total_pv_kvar}, and {sum(openDssVals['q_D'].values())}, from disaggregation {sum(modelVals['q_D'].values())} kVar")
+    # print(f"total PV KW : {sum(openDssVals['p_D'].values()) * 1e3}")
+    # print(f"Total reactive power from PV Kvar: {sum(openDssVals['q_D'].values()) * 1e3}")
+    # print(f"Total battery real power: {total_bat_real_power}")
+    # print(f"Total battery real power magnitude: {total_bat_real_power_magnitude}")
+
+    # Handle both linear and non-linear battery models for OpenDSS results
+    if 'P_b' in openDssVals:
+        print(f"Total battery power kW (P_b): {sum(openDssVals['P_b'].values())}")
+    elif 'P_c' in openDssVals and 'P_d' in openDssVals:
+        print(f"Total battery charging power kW (P_c): {sum(openDssVals['P_c'].values())}")
+        print(f"Total battery discharging power kW (P_d): {sum(openDssVals['P_d'].values())}")
+        print(f"Total battery net real power kW: {sum(openDssVals['P_d'].values()) - sum(openDssVals['P_c'].values())}, and {total_bat_real_power}")
+
+    # print(f"Total Active Power:{-dss.Circuit.TotalPower()[0] / 1e3} MW")
+    # print(f"Total Reactive Power:{-dss.Circuit.TotalPower()[1] / 1e3} Mvar")
+    print(f"Total Active power loss from openDSS: {total_p_loss/1e3} kW")
+    print(f"Total Reactive power loss from openDSS: {total_q_loss/1e3} kVar")
+    return openDssVals
+
+def all_time_highest_discrepancy(opendss,optimization,multi=False):
+    Psubs_opendss = opendss['P_subs']
+    Qsubs_opendss = opendss['Q_subs']
+    Psubs_optimization = optimization['P_subs']
+    Qsubs_optimization = optimization['Q_subs']
+    P_vals_opendss = opendss['P']
+    P_vals_optimization = optimization['P']
+    Q_vals_opendss = opendss['Q']
+    Q_vals_optimization = optimization['Q']
+    V_vals_opendss = opendss['v']
+    V_vals_optimization = optimization['v']
+
+    # Overall maximum difference for each dictionary
+    overall_max_psubs = max(np.max(np.abs(Psubs_opendss[key] - Psubs_optimization[key])) for key in Psubs_opendss.keys()& Psubs_optimization.keys())
+    overall_max_qsubs = max(np.max(np.abs(Qsubs_opendss[key] - Qsubs_optimization[key])) for key in Qsubs_opendss.keys()& Qsubs_optimization.keys())
+    overall_max_p = max(np.max(np.abs(P_vals_opendss[key] - P_vals_optimization[key])) for key in P_vals_opendss.keys() & P_vals_optimization.keys())
+    overall_max_q = max(np.max(np.abs(Q_vals_opendss[key] - Q_vals_optimization[key])) for key in Q_vals_opendss.keys() & Q_vals_optimization.keys())
+    overall_max_v = max(np.max(np.abs(V_vals_opendss[key] - V_vals_optimization[key])) for key in V_vals_opendss.keys() & V_vals_optimization.keys())
+
+    print(f"Overall maximum difference for psubs arrays: {overall_max_psubs} kW")
+    print(f"Overall maximum difference for qsubs arrays: {overall_max_qsubs} kVar")
+    print(f"Overall maximum difference for p arrays: {overall_max_p} kW")
+    print(f"Overall maximum difference for q arrays: {overall_max_q} kVar")
+    print(f"Overall maximum difference for v arrays: {overall_max_v}")
+
+    if multi:
+        # B_vals_opendss = opendss['B']
+        # B_vals_optimization = optimization['B']
+        p_D_vals_opendss = opendss['p_D']
+        p_D_vals_optimization = optimization['p_D']
+        q_D_vals_opendss = opendss['q_D']
+        q_D_vals_optimization = optimization['q_D']
+        P_c_vals_opendss = opendss['P_c']
+        P_c_vals_optimization = optimization['P_c']
+        P_d_vals_opendss = opendss['P_d']
+        P_d_vals_optimization = optimization['P_d']
+
+        # overall_max_b = max(np.max(np.abs(B_vals_opendss[key] - B_vals_optimization[key])) for key in B_vals_opendss.keys())
+        overall_max_p_D = max(np.max(np.abs(p_D_vals_opendss[key] - p_D_vals_optimization[key])) for key in p_D_vals_opendss.keys())
+        overall_max_q_D = max(np.max(np.abs(q_D_vals_opendss[key] - q_D_vals_optimization[key])) for key in q_D_vals_opendss.keys())
+        overall_max_P_c = max(np.max(np.abs(P_c_vals_opendss[key] - P_c_vals_optimization[key])) for key in P_c_vals_opendss.keys())
+        overall_max_P_d = max(np.max(np.abs(P_d_vals_opendss[key] - P_d_vals_optimization[key])) for key in P_d_vals_opendss.keys())
+
+        # print("Overall maximum difference for b arrays:", overall_max_b)
+        print(f"Overall maximum difference for p_D arrays: {overall_max_p_D} kW")
+        print(f"Overall maximum difference for q_D arrays: {overall_max_q_D} kVar")
+        print(f"Overall maximum difference for P_c arrays: {overall_max_P_c} kW")
+        print(f"Overall maximum difference for P_d arrays: {overall_max_P_d} kW")
+
+    total_loss_p = sum(Psubs_opendss[key] - Psubs_optimization[key] for key in Psubs_opendss.keys()& Psubs_optimization.keys())
+    total_loss_q = sum(Qsubs_opendss[key] - Qsubs_optimization[key] for key in Qsubs_opendss.keys()& Qsubs_optimization.keys())
+
+    # print(f"Total P loss: {total_loss_p*1e3} kW")
+    # print(f"Total Q loss: {total_loss_q*1e3} kVar")
+
+

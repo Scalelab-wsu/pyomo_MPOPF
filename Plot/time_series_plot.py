@@ -326,8 +326,8 @@ def plot_voltage(**modelVals_list):
     color_map_dynamic, symbol_map_dynamic, line_dash_map_dynamic = generate_dynamic_maps(scenarios)
 
     fig = px.line(
-        # df,
-        df[df["time"] == "t=16"], ## employ this for just one time plotting to remove mess
+        df,
+        # df[df["time"] == "t=16"], ## employ this for just one time plotting to remove mess
         x="nodes",     # use the numeric column on the x-axis
         y="value",
         color="scenario",
@@ -441,6 +441,25 @@ def plot_objective(**objectives):
     # ax.grid(True, which="both", linestyle="--", linewidth=0.5)
 
     save_png(fig, "objective.pdf")
+    plt.show()
+
+def plot_input_profiles(**profiles_dict):
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for name, profiles in profiles_dict.items():
+        xvalues = list(profiles.keys())
+        con = list(profiles.values())
+        ax.plot(xvalues, con, label=name)
+    ax.legend(loc='lower center',
+              bbox_to_anchor=(0.5, 0.95),
+              ncol=len(profiles_dict),
+              fontsize=12,
+              frameon=False)
+    ax.set_xlabel('Time (h)')
+    ax.set_ylabel('Multipliers')
+    # ax.set_title('Convergence vs No. of Iterations')
+
+    save_png(fig, "input_profiles.pdf")
     plt.show()
 
 
@@ -576,10 +595,6 @@ def plot_objective(**objectives):
 #     # Show the plot
 #     fig.show()
 
-## New network plotting to separate areas based on colors
-import pandas as pd
-import networkx as nx
-import plotly.graph_objects as go
 
 def plot_network(bus, branch, gen, bat, data_areas=None):
     """

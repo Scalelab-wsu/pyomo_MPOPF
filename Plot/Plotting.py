@@ -471,3 +471,19 @@ def plot_objective(*args):
     # Show the plot
     plt.show()
 
+def plot_input_profiles(**profiles_dict):
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for name, profiles in profiles_dict.items():
+        xvalues = list(profiles.keys())
+        con = list(profiles.values())
+        ax.plot(xvalues, con, label=name)
+    ax.legend(loc='upper left')
+    ax.set_xlabel('Time (h)')
+    ax.set_ylabel('Multipliers')
+    # ax.set_title('Convergence vs No. of Iterations')
+    ax.legend()
+
+    save_png(fig, "input_profiles.pdf")
+    plt.show()
+
