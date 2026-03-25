@@ -21,7 +21,7 @@ obj = loss_minimize
 # obj = voltage_deviation_minimize
 # obj = power_flow
 wd = os.getcwd()
-filepath = os.path.join(wd, system_name,"csvs")
+filepath = os.path.join(wd, "rawData", system_name,"csvs")
 dss_path = os.path.join("..", system_name,"dss_scripts","Master.dss")
 bus_data = pd.read_csv(os.path.join(filepath, "bus_data.csv"))
 branch_data = pd.read_csv(os.path.join(filepath, "branch_data.csv"))
@@ -38,9 +38,9 @@ data = parse_all_data_phase_aware(bus_data, branch_data,gen_data,bat_data,loadsh
 # data['v_max'] = { node: 1.5 for node in data['v_max'].keys() }
 # %%
 if __name__ == "__main__":
-    centralized = False
+    centralized = True
     ADMM = False
-    enAPP = False
+    enAPP = True
     DDDP = True
     opendss = True
     multi = True
