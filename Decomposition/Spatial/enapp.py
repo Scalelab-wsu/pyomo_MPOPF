@@ -10,7 +10,7 @@ def init_worker():
     global _model_cache
     _model_cache = {}
 
-def process_area(data_areas, area_name, obj_fcn, solver,prev_solution=None, non_linear=False, p_control=False, integer=False):
+def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solution=None, non_linear=False, p_control=False, integer=False):
     global _model_cache
     # Cache models by (area, formulation) so toggling flags builds the right model
     cache_key = (area_name, bool(non_linear), bool(p_control), bool(integer))
@@ -37,7 +37,7 @@ def process_area(data_areas, area_name, obj_fcn, solver,prev_solution=None, non_
     #         for index, value in var_values.items():
     #             var[index].value = value  # Set initial values
 
-    model = pyomo_solve(model,obj_fcn,solver=solver)
+    model = pyomo_solve(model,obj_fcn,solver=solver,alpha_scd=alpha_scd)
     solutions = store_results(model)
     return area_name, solutions
 
@@ -168,7 +168,7 @@ def exclude_dummies(dopfVals):
             filtered[var] = dct
     return filtered
 
-def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, max_iterations=50, alpha=0, non_linear=False, p_control=False, integer=False):
+def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3,max_iterations=50, alpha=0, non_linear=False, p_control=False, integer=False):
     shared_vars = initialize_shared(area_info, data)
     convergence = {}
     objective = {}
@@ -180,7 +180,7 @@ def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, max_iterations
             results = pool.starmap(
                 process_area,
                 [
-                    (data_by_area[area], area, obj_fcn,solver, None, non_linear, p_control, integer)
+                    (data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear, p_control, integer)
                     for area in areas
                 ],
             )

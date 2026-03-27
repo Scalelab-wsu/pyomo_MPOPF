@@ -61,14 +61,14 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
         model.p_D = Param(model.Tset, model.gen_phase_set, initialize=lambda m, t, j, ph: data['p_D'][(t, j, ph)])
         model.q_D = Var(model.Tset, model.gen_phase_set)
 
-    model.P_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals,initialize=0)
-    model.Q_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals,initialize=0)
-    model.P = Var(model.Tset, model.branch_phase_set,initialize=0)
-    model.Q = Var(model.Tset, model.branch_phase_set,initialize=0)
-    model.v = Var(model.Tset, model.bus_phase_set, domain=NonNegativeReals,initialize=1)
-    model.B = Var(model.Tset, model.Bset, domain=NonNegativeReals,initialize=0)
-    model.P_c = Var(model.Tset, model.Bset, domain=NonNegativeReals,initialize=0)
-    model.P_d = Var(model.Tset, model.Bset, domain=NonNegativeReals,initialize=0)
+    model.P_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals)
+    model.Q_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals)
+    model.P = Var(model.Tset, model.branch_phase_set)
+    model.Q = Var(model.Tset, model.branch_phase_set)
+    model.v = Var(model.Tset, model.bus_phase_set, domain=NonNegativeReals)
+    model.B = Var(model.Tset, model.Bset, domain=NonNegativeReals)
+    model.P_c = Var(model.Tset, model.Bset, domain=NonNegativeReals)
+    model.P_d = Var(model.Tset, model.Bset, domain=NonNegativeReals)
 
     if non_linear:
         # Current angle parameter

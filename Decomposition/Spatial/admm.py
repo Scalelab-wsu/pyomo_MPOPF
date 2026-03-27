@@ -12,7 +12,7 @@ def init_worker():
     global _model_cache
     _model_cache = {}
 
-def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj_fcn,solver,prev_solution = None, non_linear=False, p_control=False, integer=False):
+def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj_fcn,solver,alpha_scd=1e-3,prev_solution = None, non_linear=False, p_control=False, integer=False):
     global _model_cache
     # Cache models by (area, formulation) so toggling flags builds the right model
     cache_key = (area_name, bool(non_linear), bool(p_control), bool(integer))
@@ -43,6 +43,7 @@ def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj
         model,
         augmented_obj_function,
         solver=solver,
+        alpha_scd=alpha_scd,
         area_name=area_name,
         area_info=area_info,
         shared_vars=shared_vars,
@@ -312,7 +313,7 @@ def exclude_dummies(dopfVals):
             filtered[var] = dct
     return filtered
 
-def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,solver,rho, max_iterations,non_linear=False, p_control=False, integer=False):
+def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,solver,alpha_scd,rho, max_iterations,non_linear=False, p_control=False, integer=False):
     shared_vars, dual_vars = initialize_shared_dual(area_info, data)
     mu = 10
     tau = 2
@@ -324,7 +325,7 @@ def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,solver,rho, max_iteratio
         for iter in range(max_iterations):
             # Solve all areas in parallel
             results = pool.starmap(process_area,
-                                   [(data_by_area[area], area, area_info, shared_vars, dual_vars, rho, obj_fcn,solver,None, non_linear, p_control, integer)
+                                   [(data_by_area[area], area, area_info, shared_vars, dual_vars, rho, obj_fcn,solver,alpha_scd,None, non_linear, p_control, integer)
                                     for area in areas])
             area_results = {a: s for a, s in results}
 

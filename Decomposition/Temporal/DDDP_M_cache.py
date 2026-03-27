@@ -29,7 +29,7 @@ def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, 
 # =========================================================
 # SDDP solve_stage with cuts
 # =========================================================
-def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver='gurobi',non_linear=False, p_control=False, integer=False):
+def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,non_linear=False, p_control=False, integer=False):
     m = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer)
     t = stage_idx
 
@@ -45,7 +45,7 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver='gurobi'
 
     # Solve with non-persistent solver
     opt = SolverFactory(solver)
-    opt.options['NonConvex'] = 2
+    # opt.options['NonConvex'] = 2
     # opt.options['OutputFlag'] = 0
     opt.solve(m, tee=False)
 
@@ -54,6 +54,7 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver='gurobi'
     Q = value(m.obj)
     S_obj = value(m.stage_cost)
     B_end = {j: value(m.B[t, j]) for j in m.Bset}
+    print(f"Stage {stage_idx} solved with Q={Q:.4f}")
     return Q, beta, B_end, S_obj
 
 

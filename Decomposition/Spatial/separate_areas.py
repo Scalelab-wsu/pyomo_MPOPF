@@ -123,13 +123,13 @@ def build_area_data(full_data, area_name, sg_local, dummy_r,dummy_x, dummy_edge_
     }
     eta_c_area = {
         key: full_data["eta_c"][key]
-        for key in full_data["eta_c"]
-        if key[0] in Bset_area
+        for key in full_data["eta_c"].keys()
+        if key in Bset_area
     }
     eta_d_area = {
         key: full_data["eta_d"][key]
-        for key in full_data["eta_d"]
-        if key[0] in Bset_area
+        for key in full_data["eta_d"].keys()
+        if key in Bset_area
     }
     bmin_area = {
         key: full_data["bmin"][key]

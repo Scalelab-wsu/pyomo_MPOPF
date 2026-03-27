@@ -21,11 +21,11 @@ def voltage_deviation_minimize_with_scd(model, **kwargs):
 
     # Add SCD penalty only for linear model (to prevent simultaneous charge/discharge)
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-        alpha = getattr(model, "alpha", 1e-3)
-        scd_terms = sum((1 - model.eta_c[j, ph]) * model.P_c[t, j, ph] +
-                       (((1 / model.eta_d[j, ph]) - 1) if model.eta_d[j, ph] != 0 else 1.0) * model.P_d[t, j, ph]
-                       for t in model.Tset for j, ph in model.bat_phase_set)
-        return deviation + alpha * scd_terms
+        alpha_scd = getattr(model, "alpha_scd", 1e-3)
+        scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
+                        (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
+                        for t in model.Tset for j in model.Bset)
+        return deviation + alpha_scd * scd_terms
 
     return deviation
 
@@ -36,11 +36,11 @@ def substation_power_minimize(model):
 def power_flow_with_scd(model, **kwargs):
     # SCD penalty only for linear model (to prevent simultaneous charge/discharge)
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-        alpha = getattr(model, "alpha", 1e-3)
-        scd_terms = sum((1 - model.eta_c[j, ph]) * model.P_c[t, j, ph] +
-                       (((1 / model.eta_d[j, ph]) - 1) if model.eta_d[j, ph] != 0 else 1.0) * model.P_d[t, j, ph]
-                       for t in model.Tset for j, ph in model.bat_phase_set)
-        return alpha * scd_terms
+        alpha_scd = getattr(model, "alpha_scd", 1e-3)
+        scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
+                        (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
+                        for t in model.Tset for j in model.Bset)
+        return alpha_scd * scd_terms
 
     return 0
 
@@ -63,11 +63,11 @@ def loss_minimize_with_scd(model, **kwargs):
 
     # SCD penalty only for linear model (to prevent simultaneous charge/discharge)
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-        alpha = getattr(model, "alpha", 1e-3)
-        scd_terms = sum((1 - model.eta_c[j, ph]) * model.P_c[t, j, ph] +
-                       (((1 / model.eta_d[j, ph]) - 1) if model.eta_d[j, ph] != 0 else 1.0) * model.P_d[t, j, ph]
-                       for t in model.Tset for j, ph in model.bat_phase_set)
-        return total_loss + alpha * scd_terms
+        alpha_scd = getattr(model, "alpha_scd", 1e-3)
+        scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
+                       (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
+                       for t in model.Tset for j in model.Bset)
+        return total_loss + alpha_scd * scd_terms
 
     return total_loss
 
@@ -86,11 +86,11 @@ def cost_minimize_with_scd(model, **kwargs):
 
     # SCD penalty only for linear model (to prevent simultaneous charge/discharge)
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-        alpha = getattr(model, "alpha", 1e-3)
-        scd_terms = sum((1 - model.eta_c[j, ph]) * model.P_c[t, j, ph] +
-                       (((1 / model.eta_d[j, ph]) - 1) if model.eta_d[j, ph] != 0 else 1.0) * model.P_d[t, j, ph]
-                       for t in model.Tset for j, ph in model.bat_phase_set)
-        return total_cost + alpha * scd_terms
+        alpha_scd = getattr(model, "alpha_scd", 1e-3)
+        scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
+                        (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
+                        for t in model.Tset for j in model.Bset)
+        return total_cost + alpha_scd * scd_terms
 
     return total_cost
 

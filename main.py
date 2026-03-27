@@ -2,7 +2,8 @@ from Plot.Plotting import *
 # from Plotter_extras import *
 from OpenDss.OpenDssValidate import run_opendss_validation,all_time_highest_discrepancy,initialize_current_angles
 from Parser.parse_phase_aware import parse_all_data_phase_aware
-from Build_Model.Objective import pyomo_solve, cost_minimize, loss_minimize, power_flow, cost_minimize_with_scd
+from Build_Model.Objective import pyomo_solve, cost_minimize, loss_minimize, power_flow, cost_minimize_with_scd, \
+    loss_minimize_with_scd
 from Centralized.copf import solve_copf
 from Decomposition.Spatial.enapp import solve_EnAPP
 from Decomposition.Spatial.admm import solve_ADMM
@@ -16,7 +17,7 @@ from Helpers import *
 system_name = 'IEEE_123_other'
 # system_name = 'IEEE_9500'
 area_info = eval(f'{system_name}' + '_area_info')
-obj = loss_minimize
+obj = loss_minimize_with_scd
 # obj = cost_minimize_with_scd
 # obj = voltage_deviation_minimize
 # obj = power_flow
@@ -38,16 +39,17 @@ data = parse_all_data_phase_aware(bus_data, branch_data,gen_data,bat_data,loadsh
 # data['v_max'] = { node: 1.5 for node in data['v_max'].keys() }
 # %%
 if __name__ == "__main__":
-    centralized = False
-    ADMM = False
-    enAPP = False
+    centralized = True
+    ADMM = True
+    enAPP = True
     DDDP = True
     opendss = True
     multi = True
-    non_linear = True
+    non_linear = False
     p_control = False
     integer = False
     solver = 'ipopt' if non_linear else 'gurobi'
+    alpha_scd=1e-3
     if multi:
         data = data
     else:
@@ -60,7 +62,7 @@ if __name__ == "__main__":
     if centralized:
         print(f"Solving centralized problem for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        copfVals = solve_copf(data, obj, solver=solver,non_linear=non_linear, p_control=p_control, integer=integer)
+        copfVals = solve_copf(data, obj, solver=solver,alpha_scd=alpha_scd,non_linear=non_linear, p_control=p_control, integer=integer)
         end_time = time.time()  # End timing
         centralized_time = end_time - start_time
 
@@ -88,7 +90,7 @@ if __name__ == "__main__":
         data_area = split_data_into_areas(data, area_info)
         print(f"Solving ADMM for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        admmVals,admm_obj,admm_aug_obj,admm_conv = solve_ADMM(data, data_area, area_info, obj, solver=solver,rho=5, max_iterations=500,non_linear=non_linear,p_control=p_control,integer=integer)
+        admmVals,admm_obj,admm_aug_obj,admm_conv = solve_ADMM(data, data_area, area_info, obj, solver=solver,alpha_scd=alpha_scd,rho=5, max_iterations=500,non_linear=non_linear,p_control=p_control,integer=integer)
         end_time = time.time()  # End timing
         admm_time = end_time - start_time
         print(f"Total substation Real Power Flows: {sum(admmVals['P_subs'].values())}")
@@ -103,7 +105,7 @@ if __name__ == "__main__":
         data_area = split_data_into_areas(data, area_info)
         print(f"Solving EnAPP for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        enappVals,enapp_obj,enapp_conv = solve_EnAPP(data,data_area,area_info,obj, solver=solver,max_iterations=50,alpha=0,non_linear=non_linear,p_control=p_control,integer=integer)
+        enappVals,enapp_obj,enapp_conv = solve_EnAPP(data,data_area,area_info,obj, solver=solver,alpha_scd=alpha_scd,max_iterations=50,alpha=0,non_linear=non_linear,p_control=p_control,integer=integer)
         end_time = time.time()  # End timing
         enapp_time = end_time - start_time
         print(f"Total substation Real Power Flows: {sum(enappVals['P_subs'].values())}")
@@ -117,7 +119,7 @@ if __name__ == "__main__":
     if DDDP:
         print(f"Solving DDDP for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        LB, cuts,LB_container,UB_container = dddp_solve(data, obj,max_iters=50,tol = 1e-4,non_linear=non_linear,p_control=p_control,integer=integer)
+        LB, cuts,LB_container,UB_container = dddp_solve(data, obj,solver=solver,max_iters=50,tol = 1e-4,non_linear=non_linear,p_control=p_control,integer=integer)
         dddpVals = collect_converged_solution(data, cuts, obj, non_linear=non_linear, p_control=p_control, integer=integer)
         end_time = time.time()
         dddp_time = end_time - start_time
