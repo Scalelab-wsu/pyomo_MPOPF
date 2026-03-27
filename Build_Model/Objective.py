@@ -104,6 +104,7 @@ def pyomo_solve(model, obj_func,**kwargs):
     model.obj = Objective(rule=obj_func, sense=minimize)
     solver = getattr(model, "solver", 'gurobi')
     opt = SolverFactory(solver)
+    # opt.set_options('NonConvex=2')  # Allow non-convex problems
     # opt.options['tol'] = 1e-6  # Set tolerance
     # opt.options['max_iter'] = 10000  # Set max iterations
     # opt.options['print_level'] = 5  # Set print level

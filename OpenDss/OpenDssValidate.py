@@ -8,8 +8,8 @@ def collect_opendss_substationpower(openDssVals,t,P_base):
     vs_powers = dss.CktElement.Powers()
     for idx in range(dss.CktElement.NumPhases()):
         ph = ['a', 'b', 'c'][idx]
-        p = -vs_powers[2 * idx]
-        q = -vs_powers[2 * idx + 1]
+        p = -vs_powers[2 * idx] * 1000 / P_base
+        q = -vs_powers[2 * idx + 1] * 1000 / P_base
         openDssVals['P_subs'][t, ph] = p
         openDssVals['Q_subs'][t, ph] = q
 
@@ -28,8 +28,8 @@ def collect_opendss_lineflows(openDssVals,t,P_base):
         tb = busnames[1].split('.')[0]
         for index, node in enumerate(nodes):
             ph = {1: 'a', 2: 'b', 3: 'c'}[node]
-            p = line_powers[2 * index]
-            q = line_powers[2 * index + 1]
+            p = line_powers[2 * index]* 1000 / P_base
+            q = line_powers[2 * index + 1]* 1000 / P_base
 
             openDssVals['P'][t, fb, tb, ph] = p
             openDssVals['Q'][t, fb, tb, ph] = q
@@ -84,8 +84,8 @@ def collect_opendss_pvPowers(openDssVals,t, P_base):
         nodes = [x for x in dict.fromkeys(node_order) if x != 0]# e.g., ["1", "2"] for phases a, b
         for index, node in enumerate(nodes):
             ph = {1: 'a', 2: 'b', 3: 'c'}[node]
-            p = -dss.CktElement.Powers()[2*index]
-            q = -dss.CktElement.Powers()[2*index+1]
+            p = -dss.CktElement.Powers()[2*index]* 1000 / P_base
+            q = -dss.CktElement.Powers()[2*index+1]* 1000 / P_base
             openDssVals['p_D'][t, bus, ph] = p
             openDssVals['q_D'][t, bus, ph] = q
         pv_id = dss.PVsystems.Next()
@@ -99,20 +99,18 @@ def collect_opendss_batteryresults(data,openDssVals,t, P_base):
         bus = dss.CktElement.BusNames()[0].split('.')[0]   # e.g., ["bus45", "3"]
         node_order = dss.CktElement.NodeOrder()
         nodes = [x for x in dict.fromkeys(node_order) if x != 0]
-        for index,node in enumerate(nodes):
-            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
-            p = -dss.CktElement.Powers()[2*index]
-            soc = dss.Storages.puSOC()#*data['b_R'][bus,ph] ## multiplying by rated to match optimization results for comparison
-            if 'P_b' in openDssVals:
-                openDssVals['P_b'][t, bus, ph] = p
-            elif 'P_c' in openDssVals and 'P_d' in openDssVals:
-                if p >= 0:
-                    openDssVals['P_d'][t, bus, ph] = p
-                    openDssVals['P_c'][t, bus, ph] = 0.0
-                else:
-                    openDssVals['P_d'][t, bus, ph] = 0.0
-                    openDssVals['P_c'][t, bus, ph] = -p
-            openDssVals['B'][t, bus, ph] = soc
+        p = -dss.CktElement.Powers()[0]* 1000 / P_base
+        soc = dss.Storages.puSOC()#*data['b_R'][bus,ph] ## multiplying by rated to match optimization results for comparison
+        if 'P_b' in openDssVals:
+            openDssVals['P_b'][t, bus] = p
+        elif 'P_c' in openDssVals and 'P_d' in openDssVals:
+            if p >= 0:
+                openDssVals['P_d'][t, bus] = p
+                openDssVals['P_c'][t, bus] = 0.0
+            else:
+                openDssVals['P_d'][t, bus] = 0.0
+                openDssVals['P_c'][t, bus] = -p
+        openDssVals['B'][t, bus] = soc
         bat_id = dss.Storages.Next()
     return openDssVals
 
@@ -232,12 +230,13 @@ def set_battery_controls(data, modelVals, t, P_base):
         dss.Circuit.SetActiveElement(f"Storage.{storage_name}")
         bus = dss.CktElement.BusNames()[0].split('.')[0]
         node_order = dss.CktElement.NodeOrder()
-        nodes = [x for x in dict.fromkeys(node_order) if x != 0]
         p_batt = 0
         if 'P_b' in modelVals:
             p_batt += modelVals['P_b'][t, bus]*P_base/1e3
         elif 'P_c' in modelVals and 'P_d' in modelVals:
-            p_batt += modelVals['P_d'][t, bus] - modelVals['P_c'][t, bus]*P_base/1e3
+            p_dis = modelVals['P_d'][t, bus]*P_base/1e3
+            p_ch = modelVals['P_c'][t, bus]*P_base/1e3
+            p_batt += p_dis - p_ch
         # print(f"Time Step {t}: Setting Battery {storage_name} with p_batt={Pnet_batt}")
         dss.Text.Command(f"Edit Storage.{storage_name} kw={p_batt} kvar = 0")
         storage_id = dss.Storages.Next()
@@ -312,20 +311,14 @@ def initialize_current_angles(data,path, multi=False):
 
     return openDssVals
 
-def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=False):
-    # Save the OpenDSS script in the same directory as this script
+def run_opendss_validation(data, modelVals, path,multi=False):
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(script_dir, path)
 
     dss.Text.Command("clear")
-    # Redirect OpenDSS to use the generated script
     dss.Text.Command(f"Redirect \"{script_path}\"")
 
-    pv_profile = [
-        0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1, 1, 0.99, 0.9, 0.7, 0.4, 0.1, 0, 0, 0, 0, 0
-    ]
-    pv_mult = ' '.join(map(str, pv_profile))
-    # dss.Text.Command(f"New Loadshape.pvshape npts=24 interval = 1 mult =({pv_mult})")
     load_profile = [
         0.677, 0.6256, 0.6087, 0.5833, 0.58028, 0.6025, 0.657, 0.7477,
         0.832, 0.88, 0.94, 0.989, 0.985, 0.98, 0.9898, 0.999,
@@ -365,11 +358,6 @@ def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=Fals
     total_p_loss = 0
     total_q_loss = 0
 
-    # Handle both linear and non-linear battery models
-    if 'P_b' in modelVals:
-        print(f"Total battery power kW (P_b): {sum(modelVals['P_b'].values())} kW")
-    elif 'P_c' in modelVals and 'P_d' in modelVals:
-        print(f"Total battery charging kW (P_c): {sum(modelVals['P_c'].values())} kW and Total battery discharging kW (P_d): {sum(modelVals['P_d'].values())} kW ")
     for t in data['Tset']:
         # edit_loads(data,t,P_base)
         set_pv_controls(data, modelVals, t, P_base)## works ,tried with ieee_123 for all possible cases
@@ -401,9 +389,6 @@ def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=Fals
     # ---------------------------------------------------------
     # 5) Return the results dictionary
     # ---------------------------------------------------------
-    print(f"Printing Results after applying Controls for: {path}")
-    print(f"Total PV kW {sum(modelVals['p_D'].values())} kW and  Total PV kVar : {sum(modelVals['q_D'].values())} kVar ")
-    # print(f"Total battery charging kW : {sum(modelVals['P_c'].values())} kW and Total battery discharging kW : {sum(modelVals['P_d'].values())} kW ")
     print(f"Total Substation Real Power Flows:{sum(openDssVals['P_subs'].values())} kW")
     print(f"Total substation Reactive Power Flows: {sum(openDssVals['Q_subs'].values())} kVar")
     print(f"total load KW : {total_load_kw}")
@@ -411,19 +396,19 @@ def run_opendss_validation(data, modelVals, path,multi=False,disaggregation=Fals
     P,Q = get_total_nameplate_load_powers()
     print(f"total nameplate load power: {P} kW and {Q} kVAR")
     print(f"total PV KW : {total_pv_kw}, and {sum(openDssVals['p_D'].values())}")
-    print(f"total PV KVAR : {total_pv_kvar}, and {sum(openDssVals['q_D'].values())}, from disaggregation {sum(modelVals['q_D'].values())} kVar")
-    # print(f"total PV KW : {sum(openDssVals['p_D'].values()) * 1e3}")
-    # print(f"Total reactive power from PV Kvar: {sum(openDssVals['q_D'].values()) * 1e3}")
-    # print(f"Total battery real power: {total_bat_real_power}")
-    # print(f"Total battery real power magnitude: {total_bat_real_power_magnitude}")
+    print(f"total PV KVAR : {total_pv_kvar}, and {sum(openDssVals['q_D'].values())}")
+    print(f"total PV KW : {sum(openDssVals['p_D'].values()) * 1e3}")
+    print(f"Total reactive power from PV Kvar: {sum(openDssVals['q_D'].values()) * 1e3}")
+    print(f"Total battery real power: {total_bat_real_power}")
+    print(f"Total battery real power magnitude: {total_bat_real_power_magnitude}")
 
     # Handle both linear and non-linear battery models for OpenDSS results
     if 'P_b' in openDssVals:
-        print(f"Total battery power kW (P_b): {sum(openDssVals['P_b'].values())}")
+        print(f"Total battery power kW (P_b): {sum(openDssVals['P_b'].values())*1e3}")
     elif 'P_c' in openDssVals and 'P_d' in openDssVals:
-        print(f"Total battery charging power kW (P_c): {sum(openDssVals['P_c'].values())}")
-        print(f"Total battery discharging power kW (P_d): {sum(openDssVals['P_d'].values())}")
-        print(f"Total battery net real power kW: {sum(openDssVals['P_d'].values()) - sum(openDssVals['P_c'].values())}, and {total_bat_real_power}")
+        print(f"Total battery charging power kW (P_c): {sum(openDssVals['P_c'].values())*1e3}")
+        print(f"Total battery discharging power kW (P_d): {sum(openDssVals['P_d'].values())*1e3}")
+        print(f"Total battery net real power kW: {(sum(openDssVals['P_d'].values()) - sum(openDssVals['P_c'].values()))*1e3}, and {total_bat_real_power}")
 
     # print(f"Total Active Power:{-dss.Circuit.TotalPower()[0] / 1e3} MW")
     # print(f"Total Reactive Power:{-dss.Circuit.TotalPower()[1] / 1e3} Mvar")
@@ -448,12 +433,12 @@ def all_time_highest_discrepancy(opendss,optimization,multi=False):
     overall_max_qsubs = max(np.max(np.abs(Qsubs_opendss[key] - Qsubs_optimization[key])) for key in Qsubs_opendss.keys()& Qsubs_optimization.keys())
     overall_max_p = max(np.max(np.abs(P_vals_opendss[key] - P_vals_optimization[key])) for key in P_vals_opendss.keys() & P_vals_optimization.keys())
     overall_max_q = max(np.max(np.abs(Q_vals_opendss[key] - Q_vals_optimization[key])) for key in Q_vals_opendss.keys() & Q_vals_optimization.keys())
-    overall_max_v = max(np.max(np.abs(V_vals_opendss[key] - V_vals_optimization[key])) for key in V_vals_opendss.keys() & V_vals_optimization.keys())
+    overall_max_v = max(np.max(np.abs(V_vals_opendss[key] - np.sqrt(V_vals_optimization[key]))) for key in V_vals_opendss.keys() & V_vals_optimization.keys())
 
-    print(f"Overall maximum difference for psubs arrays: {overall_max_psubs} kW")
-    print(f"Overall maximum difference for qsubs arrays: {overall_max_qsubs} kVar")
-    print(f"Overall maximum difference for p arrays: {overall_max_p} kW")
-    print(f"Overall maximum difference for q arrays: {overall_max_q} kVar")
+    print(f"Overall maximum difference for psubs arrays: {overall_max_psubs*1e3} kW")
+    print(f"Overall maximum difference for qsubs arrays: {overall_max_qsubs*1e3} kVar")
+    print(f"Overall maximum difference for p arrays: {overall_max_p*1e3} kW")
+    print(f"Overall maximum difference for q arrays: {overall_max_q*1e3} kVar")
     print(f"Overall maximum difference for v arrays: {overall_max_v}")
 
     if multi:

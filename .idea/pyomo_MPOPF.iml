@@ -2,7 +2,7 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.11 virtualenv at C:\Users\anup.parajuli\OneDrive - Washington State University (email.wsu.edu)\Documents\pyomo_MPOPF\.venv" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.11 (pyomo_MPOPF)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

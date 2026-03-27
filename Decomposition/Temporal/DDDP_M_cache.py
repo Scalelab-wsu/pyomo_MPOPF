@@ -29,7 +29,7 @@ def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, 
 # =========================================================
 # SDDP solve_stage with cuts
 # =========================================================
-def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, non_linear=False, p_control=False, integer=False):
+def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver='gurobi',non_linear=False, p_control=False, integer=False):
     m = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer)
     t = stage_idx
 
@@ -44,8 +44,9 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, non_linear=Fals
             m.cuts.add(m.theta >= alpha + sum(beta[j] * m.B[t, j] for j in m.Bset))
 
     # Solve with non-persistent solver
-    opt = SolverFactory('gurobi')
-    opt.options['OutputFlag'] = 0
+    opt = SolverFactory(solver)
+    opt.options['NonConvex'] = 2
+    # opt.options['OutputFlag'] = 0
     opt.solve(m, tee=False)
 
     # Extract results
@@ -56,7 +57,7 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, non_linear=Fals
     return Q, beta, B_end, S_obj
 
 
-def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False):
+def dddp_solve(data, obj, solver='gurobi',max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False):
     global MODEL_CACHE
     MODEL_CACHE.clear()
 
@@ -91,6 +92,7 @@ def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control
                 stage_idx, prev_B, cuts.get(f'cuts_{stage_idx}', []),
                 data,
                 obj,
+                solver=solver,
                 non_linear=non_linear, p_control=p_control, integer=integer,
             )
             stage_results[stage_idx] = {"Q": Q, "beta": beta, "B_end": B_end, "stage_obj": stage_obj}
@@ -107,6 +109,7 @@ def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control
                 cuts.get(f'cuts_{stage_idx}', []),
                 data,
                 obj,
+                solver=solver,
                 non_linear=non_linear, p_control=p_control, integer=integer,
             )
 

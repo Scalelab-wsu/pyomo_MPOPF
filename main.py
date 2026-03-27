@@ -1,4 +1,4 @@
-# from Plotter import *
+from Plot.Plotting import *
 # from Plotter_extras import *
 from OpenDss.OpenDssValidate import run_opendss_validation,all_time_highest_discrepancy,initialize_current_angles
 from Parser.parse_phase_aware import parse_all_data_phase_aware
@@ -38,13 +38,13 @@ data = parse_all_data_phase_aware(bus_data, branch_data,gen_data,bat_data,loadsh
 # data['v_max'] = { node: 1.5 for node in data['v_max'].keys() }
 # %%
 if __name__ == "__main__":
-    centralized = True
+    centralized = False
     ADMM = False
     enAPP = False
-    DDDP = False
+    DDDP = True
     opendss = True
     multi = True
-    non_linear = False
+    non_linear = True
     p_control = False
     integer = False
     solver = 'ipopt' if non_linear else 'gurobi'
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     if centralized:
         print(f"Solving centralized problem for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        copfVals = solve_copf(data, obj, non_linear=non_linear, p_control=p_control, integer=integer)
+        copfVals = solve_copf(data, obj, solver=solver,non_linear=non_linear, p_control=p_control, integer=integer)
         end_time = time.time()  # End timing
         centralized_time = end_time - start_time
 
@@ -70,15 +70,15 @@ if __name__ == "__main__":
         print(f"total load KW : {sum(data['p_L'].values()) * 1e3}")
         print(f"total load Kvar : {sum(data['q_L'].values()) * 1e3}")
         print(f"total PV KW : {sum(data['p_D'].values())*1e3}")
-        print(f"Total reactive power from PV Kvar: {sum(copfVals['q_D'].values())}")
+        print(f"Total reactive power from PV Kvar: {sum(copfVals['q_D'].values())*1e3}")
         # Battery printing - handle both linear and non-linear models
         if 'P_b' in copfVals:
             print(f"Total battery power kW (P_b): {sum(copfVals['P_b'].values())}")
         elif 'P_c' in copfVals and 'P_d' in copfVals:
             check_simultaneous_charging_discharging(copfVals)
-            print(f"Total battery Charging Power kW (P_c): {sum(copfVals['P_c'].values())}")
-            print(f"Total battery disCharging Power kW (P_d): {sum(copfVals['P_d'].values())}")
-            print(f"Total battery net real power kW: {sum(copfVals['P_d'].values()) - sum(copfVals['P_c'].values())}")
+            print(f"Total battery Charging Power kW (P_c): {sum(copfVals['P_c'].values())*1e3}")
+            print(f"Total battery disCharging Power kW (P_d): {sum(copfVals['P_d'].values())*1e3}")
+            print(f"Total battery net real power kW: {(sum(copfVals['P_d'].values()) - sum(copfVals['P_c'].values()))*1e3}")
 
         print(f"Centralized Objective Value: {copfVals['objective_value']}")
         print(f"Centralized Solver Time: {centralized_time:.2f} seconds")
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         data_area = split_data_into_areas(data, area_info)
         print(f"Solving ADMM for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        admmVals,admm_obj,admm_aug_obj,admm_conv = solve_ADMM(data, data_area, area_info, obj, rho=5, max_iterations=500,non_linear=non_linear,p_control=p_control,integer=integer)
+        admmVals,admm_obj,admm_aug_obj,admm_conv = solve_ADMM(data, data_area, area_info, obj, solver=solver,rho=5, max_iterations=500,non_linear=non_linear,p_control=p_control,integer=integer)
         end_time = time.time()  # End timing
         admm_time = end_time - start_time
         print(f"Total substation Real Power Flows: {sum(admmVals['P_subs'].values())}")
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         data_area = split_data_into_areas(data, area_info)
         print(f"Solving EnAPP for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        enappVals,enapp_obj,enapp_conv = solve_EnAPP(data,data_area,area_info,obj, max_iterations=50,alpha=0,non_linear=non_linear,p_control=p_control,integer=integer)
+        enappVals,enapp_obj,enapp_conv = solve_EnAPP(data,data_area,area_info,obj, solver=solver,max_iterations=50,alpha=0,non_linear=non_linear,p_control=p_control,integer=integer)
         end_time = time.time()  # End timing
         enapp_time = end_time - start_time
         print(f"Total substation Real Power Flows: {sum(enappVals['P_subs'].values())}")
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     if DDDP:
         print(f"Solving DDDP for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        LB, cuts,LB_container,UB_container = dddp_solve(data, obj, max_iters=50,tol = 1e-4,non_linear=non_linear,p_control=p_control,integer=integer)
+        LB, cuts,LB_container,UB_container = dddp_solve(data, obj,max_iters=50,tol = 1e-4,non_linear=non_linear,p_control=p_control,integer=integer)
         dddpVals = collect_converged_solution(data, cuts, obj, non_linear=non_linear, p_control=p_control, integer=integer)
         end_time = time.time()
         dddp_time = end_time - start_time
@@ -131,6 +131,20 @@ if __name__ == "__main__":
 
     all_time_highest_discrepancy(dssVals, copfVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
 
-    # plot_voltage(copfvals=copfVals,dssVals=dssVals)
-    # plot_active_power_flows(copfvals=copfVals,dssVals=dssVals)
-    # plot_reactive_power_flows(copfvals=copfVals,dssVals=dssVals)
+    # plot_convergence_comparison(copfVals=copfVals,dddpVals=dddpVals,enappVals=enappVals)
+    conv_args = {}
+    if centralized:
+        conv_args["copfVals"] = {"objective_value": copfVals["objective_value"]}
+    if DDDP:
+        conv_args["dddpVals"] = {"LB": LB_container, "UB": UB_container}
+    if enAPP:
+        conv_args["enappVals"] = {"values": list(enapp_obj.values()) if isinstance(enapp_obj, dict) else enapp_obj}
+    if ADMM:
+        conv_args["admmVals"] = {"values": list(admm_obj.values()) if isinstance(admm_obj, dict) else admm_obj}
+
+    # plot_convergence_comparison(**conv_args)
+
+    # plot_voltage(copfvals=copfVals,enappVals=enappVals,dddpVals=dddpVals)
+    # plot_active_power_flows(copfvals=copfVals,enappVals=enappVals,dddpVals=dddpVals)
+    # plot_reactive_power_flows(copfvals=copfVals,enappVals=enappVals,dddpVals=dddpVals)
+

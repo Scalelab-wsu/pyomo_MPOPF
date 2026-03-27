@@ -487,3 +487,96 @@ def plot_input_profiles(**profiles_dict):
     save_png(fig, "input_profiles.pdf")
     plt.show()
 
+def plot_convergence_comparison(**solution_dict):
+    color_palette = {
+        "copf":  "black",
+        "dddp":  "#d62728",
+        "enapp": "#1f77b4",
+        "admm":  "#2ca02c",
+    }
+    fallback_colors = ["orange", "purple", "brown", "cyan"]
+
+    fig = go.Figure()
+    max_iter = 1
+    copf_trace = None  # sentinel
+
+    for scenario_name, sol in solution_dict.items():
+        label = scenario_name.replace("Vals", "").upper()
+        key   = scenario_name.replace("Vals", "").lower()
+        color = color_palette.get(key, fallback_colors[len(fig.data) % len(fallback_colors)])
+
+        if key == "copf":
+            ef_obj = sol.get("objective_value")
+            if ef_obj is not None:
+                copf_trace = (ef_obj, label, color)  # store, draw after loop
+
+        elif key == "dddp":
+            lb = sol.get("LB", [])
+            ub = sol.get("UB", [])
+            if lb:
+                iters = list(range(1, len(lb) + 1))
+                max_iter = max(max_iter, len(lb))
+                fig.add_trace(go.Scatter(
+                    x=iters, y=lb,
+                    mode="lines+markers",
+                    name=f"{label} – Lower Bound",
+                    line=dict(color=color, width=2),
+                    marker=dict(size=6, symbol="square")
+                ))
+            if ub:
+                iters = list(range(1, len(ub) + 1))
+                max_iter = max(max_iter, len(ub))
+                fig.add_trace(go.Scatter(
+                    x=iters, y=ub,
+                    mode="lines+markers",
+                    name=f"{label} – Upper Bound",
+                    line=dict(color=color, width=2, dash="dash"),
+                    marker=dict(size=6, symbol="square-open")
+                ))
+
+        else:
+            values = sol.get("values", [])
+            if isinstance(values, dict):
+                values = list(values.values())
+            if values:
+                iters = list(range(1, len(values) + 1))
+                max_iter = max(max_iter, len(values))
+                fig.add_trace(go.Scatter(
+                    x=iters, y=values,
+                    mode="lines+markers",
+                    name=label,
+                    line=dict(color=color, width=2),
+                    marker=dict(size=6, symbol="circle")
+                ))
+
+    # Draw COPF horizontal line now that max_iter is known
+    if copf_trace is not None:
+        ef_obj, label, color = copf_trace
+        fig.add_trace(go.Scatter(
+            x=[1, max_iter], y=[ef_obj, ef_obj],
+            mode="lines",
+            name=f"{label} (Exact)",
+            line=dict(color=color, width=3, dash="dot")
+        ))
+
+    fig.update_layout(
+        title=dict(
+            text="<b>Convergence Comparison</b>",
+            x=0.5, xanchor="center",
+            font=dict(size=18, family="Times New Roman")
+        ),
+        xaxis=dict(title="<b>Iteration</b>", showgrid=True, gridcolor="lightgray"),
+        yaxis=dict(title="<b>Objective Value</b>", showgrid=True, gridcolor="lightgray"),
+        plot_bgcolor="white",
+        font=dict(size=13, family="Times New Roman", color="black"),
+        legend=dict(
+            x=1.02, y=1, xanchor="left", yanchor="top",
+            bgcolor="rgba(255,255,255,0.8)",
+            bordercolor="black", borderwidth=1
+        ),
+        hovermode="x unified",
+        height=500, width=800
+    )
+
+    save_plot(fig, "convergence_comparison.pdf")
+    fig.show()
