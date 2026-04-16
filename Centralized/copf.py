@@ -110,6 +110,10 @@ def apply_trust_region(model, solver, lin_pvc, lin_cmc, rho=0.10, floor=1e-3):
 # ---------------------------------------------------------------------------
 
 def _compute_gaps(model):
+    '''e_pvc is error of power voltage current (pvc) constraint
+    e_cmc is error of current magnitude constraint (cmc)
+    lin_pvc is initial linearization point for pvc constraint
+    lin_cmc is linearization point for cmc constraint'''
     e_pvc,   e_cmc   = {}, {}
     lin_pvc, lin_cmc = {}, {}
     max_gap = 0.0
@@ -242,9 +246,9 @@ def _solve_isocp(prev_sol, data, obj, stage_idx, non_linear, isocp, p_control,
     # socp_model.write("debug_model_socp.lp", io_options={'symbolic_solver_labels': True})
     socp_persistent_solver.solve(socp_model, tee=False, save_results=False, warmstart=True)
     print(f"socp_model solved before iteration begins")
-    prev_sol = store_results(socp_model)
+    prev_sol = store_results(socp_model) ## storing the solution
 
-    e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(socp_model)
+    e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(socp_model) ## Computing the socp gap
     if abs(max_gap) < inner_tol:
         print("  Initial SOCP relaxation already exact ✓")
         return prev_sol
@@ -253,8 +257,8 @@ def _solve_isocp(prev_sol, data, obj, stage_idx, non_linear, isocp, p_control,
     dir_cmc = {}
 
     for k in range(max_inner):
-        n_pos_pvc = sum(1 for v in e_pvc.values() if abs(v) > 0.0)
-        n_pos_cmc = sum(1 for v in e_cmc.values() if abs(v) > 0.0)
+        n_pos_pvc = sum(1 for v in e_pvc.values() if abs(v) > 0.0) ## Finding no. of pvc directional constraints to be added
+        n_pos_cmc = sum(1 for v in e_cmc.values() if abs(v) > 0.0) ## Finding no. of cmc directional constraints to be added
         print(f"  [ISOCP] adding cuts — PVC: {n_pos_pvc}, CMC: {n_pos_cmc}")
         socp_model,socp_persistent_solver,dir_pvc = _add_linear_directional_constraints_pvc(socp_model, socp_persistent_solver, dir_pvc, e_pvc, lin_pvc, gamma)
         socp_model,socp_persistent_solver, dir_cmc = _add_linear_directional_constraints_cmc(socp_model, socp_persistent_solver, dir_cmc, e_cmc, lin_cmc, gamma)
