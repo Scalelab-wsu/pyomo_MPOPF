@@ -1,0 +1,34 @@
+Clear 
+!new Circuit._3HT_SRC phases=3 bus1=_392-5165_SN basekv=13.2 pu=1.00000 Model=Ideal angle=0.00000 model=Ideal r0=0.03491 x0=1.04683 r1=0.04169 x1=1.10628
+new Circuit._3HT_SRC phases=3 bus1=_392-5165_SN basekv=13.2 pu=1.00000 Model=Ideal angle=0.00000 model=Ideal R1=0.07228128 X1=1.29356360 R0=0.05022744 X0=1.01202273
+Redirect WireData.dss 
+Redirect CNData.dss 
+Redirect LineSpacing.dss 
+Redirect Triplex_linecode.dss 
+!Redirect Xfmrcode.dss 
+Redirect Xfmrcode_new.dss 
+!Redirect Load.dss 
+Redirect Load_new.dss 
+Redirect Switch_Elements.dss 
+Redirect Switch_Status.dss 
+!Redirect Line.dss 
+Redirect Line_new.dss 
+Redirect Transformer.dss 
+!Redirect RegControl.dss 
+!Redirect Capacitor.dss 
+
+
+!-----Settings-------- 
+Set EarthModel = Carson 
+Set %growth=0.000 
+Set maxiterations =10000 
+Set Maxcontroliter =10000 
+!-----Load Flow------ 
+Set loadmult =1
+set controlmode=OFF
+Set VoltageBases=[0.12 0.207846 0.48 0.831384 4.156922 13.2] 
+calcv 
+
+solve 
+buscoords 3HT12F1_v2_busxy.dss 
+plot circuit 

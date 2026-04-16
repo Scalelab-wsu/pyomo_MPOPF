@@ -1,0 +1,53 @@
+new LineSpacing.PRI_OH_ABC nconds=3 nphases=3 units=m
+~ x=[-0.6096,0.0000,0.6096]
+~ h=[9.1440,10.3632,9.1440]
+new LineSpacing.SEC_OH_ABN nconds=2 nphases=2 units=m
+~ x=[0.0488,0.0000]
+~ h=[5.4864,5.4864]
+new LineSpacing.SEC_OH_BCN nconds=2 nphases=2 units=m
+~ x=[0.0000,-0.0488]
+~ h=[5.4864,5.4864]
+new LineSpacing.SEC_OH_ACN nconds=2 nphases=2 units=m
+~ x=[0.0488,-0.0488]
+~ h=[5.4864,5.4864]
+new LineSpacing.PRI_OH_ACN nconds=2 nphases=2 units=m
+~ x=[-0.6096,0.6096]
+~ h=[9.1440,9.1440]
+new LineSpacing.PRI_UG_ABC nconds=3 nphases=3 units=m
+~ x=[0.0000,-0.6096,0.6096]
+~ h=[10.3632,9.1440,9.1440]
+new LineSpacing.SEC_OH_ABCN nconds=3 nphases=3 units=m
+~ x=[0.0488,0.0000,-0.0488]
+~ h=[5.4864,5.4864,5.4864]
+new LineSpacing.PRI_OH_ABCN nconds=3 nphases=3 units=m
+~ x=[-0.6096,0.0000,0.6096]
+~ h=[9.1440,10.3632,9.1440]
+new LineSpacing.PRI_OH_ABN nconds=2 nphases=2 units=m
+~ x=[-0.6096,0.0000]
+~ h=[9.1440,10.3632]
+new LineSpacing.PRI_OH_BCN nconds=2 nphases=2 units=m
+~ x=[0.0000,0.6096]
+~ h=[10.3632,9.1440]
+new LineSpacing.SEC_OH_s1s2 nconds=2 nphases=2 units=m
+~ x=[0.0488,0.0000]
+~ h=[5.4864,5.4864]
+new LineSpacing.PRI_OH_CN nconds=1 nphases=1 units=m
+~ x=[0.6096]
+~ h=[9.1440]
+new LineSpacing.PRI_OH_AN nconds=1 nphases=1 units=m
+~ x=[-0.6096]
+~ h=[9.1440]
+new LineSpacing.PRI_OH_BN nconds=1 nphases=1 units=m
+~ x=[0.0000]
+~ h=[10.3632]
+new LineSpacing.PRI_UG_B nconds=1 nphases=1 units=m
+~ x=[-0.6096]
+~ h=[9.1440]
+new LineSpacing.PRI_UG_A nconds=1 nphases=1 units=m
+~ x=[0.0000]
+~ h=[10.3632]
+new LineSpacing.PRI_UG_C nconds=1 nphases=1 units=m
+~ x=[0.6096]
+~ h=[9.1440]
+
+

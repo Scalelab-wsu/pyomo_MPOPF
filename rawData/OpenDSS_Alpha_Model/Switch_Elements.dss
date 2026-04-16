@@ -1,0 +1,306 @@
+new Line._390-190458-0 phases=3 bus1=_389-3326461-12_N.1.2.3 bus2=_390-190458_LN.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._720:64642 phases=3 bus1=_720-64642_N.1.2.3 bus2=_391-2374901_N.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._720:64961 phases=3 bus1=_720-64961_N.1.2.3 bus2=_391-2374901_N.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._390-188538-0 phases=3 bus1=_389-150320-5_N.1.2.3 bus2=_390-188538_LN.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._390-8027-0 phases=3 bus1=_389-150151-0_N.1.2.3 bus2=_390-8027_LN.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._390-8029-0 phases=3 bus1=_390-8029_SN.1.2.3 bus2=_390-8029_LN.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._390-197500-0 phases=3 bus1=_389-3110002-0_N.1.2.3 bus2=_390-197500_LN.1.2.3 switch=y // CIM LoadBreakSwitch
+new Line._402-37852-0 phases=3 bus1=_402-37852_SN.1.2.3 bus2=_402-37852_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-37852-0 MonitoredObj=Line._402-37852-0 RatedCurrent=999.00
+new Line._402-2457158-0 phases=3 bus1=_402-2457158_SN.1.2.3 bus2=_402-2457158_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2457158-0 MonitoredObj=Line._402-2457158-0 RatedCurrent=999.00
+new Line._402-1807095-0 phases=3 bus1=_402-1807095_SN.1.2.3 bus2=_402-1807095_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1807095-0 MonitoredObj=Line._402-1807095-0 RatedCurrent=999.00
+new Line._402-36889-0 phases=1 bus1=_402-36889_SN.2 bus2=_402-36889_LN.2 switch=y // CIM Fuse
+new Fuse._402-36889-0 MonitoredObj=Line._402-36889-0 RatedCurrent=999.00
+new Line._402-708672-0 phases=1 bus1=_402-708672_SN.2 bus2=_402-708672_LN.2 switch=y // CIM Fuse
+new Fuse._402-708672-0 MonitoredObj=Line._402-708672-0 RatedCurrent=999.00
+new Line._402-36888-0 phases=3 bus1=_402-36888_SN.1.2.3 bus2=_402-36888_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36888-0 MonitoredObj=Line._402-36888-0 RatedCurrent=999.00
+new Line._402-606216-0 phases=3 bus1=_394-1034905-1_N.1.2.3 bus2=_402-606216_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-606216-0 MonitoredObj=Line._402-606216-0 RatedCurrent=999.00
+new Line._402-2305846-0 phases=3 bus1=_402-2305846_SN.1.2.3 bus2=_402-2305846_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2305846-0 MonitoredObj=Line._402-2305846-0 RatedCurrent=999.00
+new Line._402-36901-0 phases=3 bus1=_402-36901_SN.1.2.3 bus2=_402-36901_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36901-0 MonitoredObj=Line._402-36901-0 RatedCurrent=999.00
+new Line._402-36896-0 phases=3 bus1=_402-36896_SN.1.2.3 bus2=_402-36896_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36896-0 MonitoredObj=Line._402-36896-0 RatedCurrent=999.00
+new Line._402-36895-0 phases=3 bus1=_402-36895_SN.1.2.3 bus2=_402-36895_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36895-0 MonitoredObj=Line._402-36895-0 RatedCurrent=999.00
+new Line._402-1788186-0 phases=3 bus1=_402-1788186_SN.1.2.3 bus2=_402-1788186_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1788186-0 MonitoredObj=Line._402-1788186-0 RatedCurrent=999.00
+new Line._402-722742-0 phases=3 bus1=_402-722742_SN.1.2.3 bus2=_402-722742_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-722742-0 MonitoredObj=Line._402-722742-0 RatedCurrent=999.00
+new Line._402-2389656-0 phases=3 bus1=_402-2389656_SN.1.2.3 bus2=_402-2389656_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2389656-0 MonitoredObj=Line._402-2389656-0 RatedCurrent=999.00
+new Line._402-36567-0 phases=3 bus1=_402-36567_SN.1.2.3 bus2=_402-36567_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36567-0 MonitoredObj=Line._402-36567-0 RatedCurrent=999.00
+new Line._402-1615687-0 phases=3 bus1=_402-1615687_SN.1.2.3 bus2=_402-1615687_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1615687-0 MonitoredObj=Line._402-1615687-0 RatedCurrent=999.00
+new Line._402-2365640-0 phases=3 bus1=_402-2365640_SN.1.2.3 bus2=_402-2365640_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2365640-0 MonitoredObj=Line._402-2365640-0 RatedCurrent=999.00
+new Line._402-36899-0 phases=3 bus1=_402-36899_SN.1.2.3 bus2=_402-36899_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36899-0 MonitoredObj=Line._402-36899-0 RatedCurrent=999.00
+new Line._402-36898-0 phases=2 bus1=_402-36898_SN.1.3 bus2=_402-36898_LN.1.3 switch=y // CIM Fuse
+new Fuse._402-36898-0 MonitoredObj=Line._402-36898-0 RatedCurrent=999.00
+new Line._402-2071494-0 phases=3 bus1=_402-2071494_SN.1.2.3 bus2=_402-2071494_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2071494-0 MonitoredObj=Line._402-2071494-0 RatedCurrent=999.00
+new Line._402-956022-0 phases=3 bus1=_402-956022_SN.1.2.3 bus2=_402-956022_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-956022-0 MonitoredObj=Line._402-956022-0 RatedCurrent=999.00
+new Line._402-1760651-0 phases=3 bus1=_402-1760651_SN.1.2.3 bus2=_402-1760651_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1760651-0 MonitoredObj=Line._402-1760651-0 RatedCurrent=999.00
+new Line._402-2033094-0 phases=1 bus1=_402-2033094_SN.2 bus2=_402-2033094_LN.2 switch=y // CIM Fuse
+new Fuse._402-2033094-0 MonitoredObj=Line._402-2033094-0 RatedCurrent=999.00
+new Line._402-1786262-0 phases=3 bus1=_402-1786262_SN.1.2.3 bus2=_402-1786262_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1786262-0 MonitoredObj=Line._402-1786262-0 RatedCurrent=999.00
+new Line._402-2105415-0 phases=3 bus1=_402-2105415_SN.1.2.3 bus2=_402-2105415_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2105415-0 MonitoredObj=Line._402-2105415-0 RatedCurrent=999.00
+new Line._402-2105095-0 phases=3 bus1=_402-2105095_SN.1.2.3 bus2=_402-2105095_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2105095-0 MonitoredObj=Line._402-2105095-0 RatedCurrent=999.00
+new Line._402-2105414-0 phases=3 bus1=_389-4187489-1_N.1.2.3 bus2=_402-2105414_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-2105414-0 MonitoredObj=Line._402-2105414-0 RatedCurrent=999.00
+new Line._402-1648646-0 phases=3 bus1=_402-1648646_SN.1.2.3 bus2=_402-1648646_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1648646-0 MonitoredObj=Line._402-1648646-0 RatedCurrent=999.00
+new Line._402-1616327-0 phases=3 bus1=_402-1616327_SN.1.2.3 bus2=_402-1616327_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1616327-0 MonitoredObj=Line._402-1616327-0 RatedCurrent=999.00
+new Line._402-36570-0 phases=3 bus1=_402-36570_SN.1.2.3 bus2=_402-36570_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36570-0 MonitoredObj=Line._402-36570-0 RatedCurrent=999.00
+new Line._402-922103-0 phases=3 bus1=_402-922103_SN.1.2.3 bus2=_402-922103_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-922103-0 MonitoredObj=Line._402-922103-0 RatedCurrent=999.00
+new Line._402-36571-0 phases=2 bus1=_402-36571_SN.1.2 bus2=_402-36571_LN.1.2 switch=y // CIM Fuse
+new Fuse._402-36571-0 MonitoredObj=Line._402-36571-0 RatedCurrent=999.00
+new Line._402-39768-0 phases=3 bus1=_389-159681-13_N.1.2.3 bus2=_402-39768_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-39768-0 MonitoredObj=Line._402-39768-0 RatedCurrent=999.00
+new Line._402-126828-0 phases=3 bus1=_402-126828_SN.1.2.3 bus2=_402-126828_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-126828-0 MonitoredObj=Line._402-126828-0 RatedCurrent=999.00
+new Line._402-1786263-0 phases=3 bus1=_402-1786263_SN.1.2.3 bus2=_402-1786263_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-1786263-0 MonitoredObj=Line._402-1786263-0 RatedCurrent=999.00
+new Line._402-36574-0 phases=3 bus1=_402-36574_SN.1.2.3 bus2=_402-36574_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36574-0 MonitoredObj=Line._402-36574-0 RatedCurrent=999.00
+new Line._402-126809-0 phases=1 bus1=_402-126809_SN.3 bus2=_402-126809_LN.3 switch=y // CIM Fuse
+new Fuse._402-126809-0 MonitoredObj=Line._402-126809-0 RatedCurrent=999.00
+new Line._402-36575-0 phases=3 bus1=_402-36575_SN.1.2.3 bus2=_402-36575_LN.1.2.3 switch=y // CIM Fuse
+new Fuse._402-36575-0 MonitoredObj=Line._402-36575-0 RatedCurrent=999.00
+new Line._392-5165-0 phases=3 bus1=_392-5165_SN.1.2.3 bus2=_392-5165_LN.1.2.3 switch=y // CIM Recloser
+new Recloser._392-5165-0 MonitoredObj=Line._392-5165-0 PhaseTrip=20000.0 GroundTrip=10000.0
+new Line._720:64324 phases=3 bus1=_391-2374901_N.1.2.3 bus2=_720-64324_N.1.2.3 switch=y // CIM Recloser
+new Recloser._720:64324 MonitoredObj=Line._720:64324 PhaseTrip=20000.0 GroundTrip=10000.0
+new Line._392-100534-0 phases=3 bus1=_392-100534_SN.1.2.3 bus2=_392-100534_LN.1.2.3 switch=y // CIM Recloser
+new Recloser._392-100534-0 MonitoredObj=Line._392-100534-0 PhaseTrip=20000.0 GroundTrip=10000.0
+new Line._720:64323 phases=3 bus1=_391-2374901_N.1.2.3 bus2=_720-64323_N.1.2.3 switch=y // CIM Recloser
+new Recloser._720:64323 MonitoredObj=Line._720:64323 PhaseTrip=20000.0 GroundTrip=10000.0
+new Line._395-3109885-0_A phases=1 bus1=_391-2602718_N.1 bus2=_395-3109885_LN.1 switch=y // CIM Disconnector
+new Line._395-2483462-0_B phases=1 bus1=_391-2042008_N.2 bus2=_395-2483462_LN.2 switch=y // CIM Disconnector
+new Line._395-2277692-0_A phases=1 bus1=_395-2277692_SN.1 bus2=_391-1850027_N.1 switch=y // CIM Disconnector
+new Line._395-2483454-0_C phases=1 bus1=_395-2483454_SN.3 bus2=_391-2042005_N.3 switch=y // CIM Disconnector
+new Line._395-3109850-0_A phases=1 bus1=_395-3109850_SN.1 bus2=_391-2602718_N.1 switch=y // CIM Disconnector
+new Line._395-2855480-0_A phases=1 bus1=_395-2855480_SN.1 bus2=_391-2374908_N.1 switch=y // CIM Disconnector
+new Line._395-2314497-0_B phases=1 bus1=_391-1885211_N.2 bus2=_395-2314497_LN.2 switch=y // CIM Disconnector
+new Line._395-2858642-0_A phases=1 bus1=_395-2858642_SN.1 bus2=_391-2377503_N.1 switch=y // CIM Disconnector
+new Line._395-57699-0_C phases=1 bus1=_391-33198_N.3 bus2=_395-57699_LN.3 switch=y // CIM Disconnector
+new Line._395-2858640-0_C phases=1 bus1=_391-2377503_N.3 bus2=_395-2858640_LN.3 switch=y // CIM Disconnector
+new Line._395-1522755-0_B phases=1 bus1=_391-809851_N.2 bus2=_395-1522755_LN.2 switch=y // CIM Disconnector
+new Line._395-2483452-0_A phases=1 bus1=_395-2483452_SN.1 bus2=_391-2042005_N.1 switch=y // CIM Disconnector
+new Line._395-2864396-0_A phases=1 bus1=_391-2374908_N.1 bus2=_395-2864396_LN.1 switch=y // CIM Disconnector
+new Line._395-2483460-0_C phases=1 bus1=_395-2483460_SN.3 bus2=_391-2042008_N.3 switch=y // CIM Disconnector
+new Line._395-2525468-0_A phases=1 bus1=_391-2042008_N.1 bus2=_395-2525468_LN.1 switch=y // CIM Disconnector
+new Line._396-7712-0_C phases=1 bus1=_396-7712_SN.3 bus2=_396-7712_LN.3 switch=y // CIM Disconnector
+new Line._395-1566097-0_C phases=1 bus1=_395-1566097_SN.3 bus2=_391-1214037_N.3 switch=y // CIM Disconnector
+new Line._395-3045325-0_B phases=1 bus1=_395-3045325_SN.2 bus2=_391-2545844_N.2 switch=y // CIM Disconnector
+new Line._396-7712-0_B phases=1 bus1=_396-7712_SN.2 bus2=_396-7712_LN.2 switch=y // CIM Disconnector
+new Line._395-57443-0_B phases=1 bus1=_395-57443_SN.2 bus2=_391-33240_N.2 switch=y // CIM Disconnector
+new Line._396-7712-0_A phases=1 bus1=_396-7712_SN.1 bus2=_396-7712_LN.1 switch=y // CIM Disconnector
+new Line._395-2855472-0_B phases=1 bus1=_720-64323_N.2 bus2=_395-2855472_LN.2 switch=y // CIM Disconnector
+new Line._395-57700-0_C phases=1 bus1=_395-57700_SN.3 bus2=_391-33240_N.3 switch=y // CIM Disconnector
+new Line._395-2277694-0_C phases=1 bus1=_395-2277694_SN.3 bus2=_391-1850027_N.3 switch=y // CIM Disconnector
+new Line._395-1695811-0_A phases=1 bus1=_391-809851_N.1 bus2=_395-1695811_LN.1 switch=y // CIM Disconnector
+new Line._395-2485388-0_A phases=1 bus1=_395-2485388_SN.1 bus2=_391-2042966_N.1 switch=y // CIM Disconnector
+new Line._395-2864401-0_C phases=1 bus1=_391-2374908_N.3 bus2=_395-2864401_LN.3 switch=y // CIM Disconnector
+new Line._395-3109887-0_B phases=1 bus1=_391-2602718_N.2 bus2=_395-3109887_LN.2 switch=y // CIM Disconnector
+new Line._395-1522788-0_A phases=1 bus1=_395-1522788_SN.1 bus2=_391-809851_N.1 switch=y // CIM Disconnector
+new Line._395-2314499-0_C phases=1 bus1=_391-1885211_N.3 bus2=_395-2314499_LN.3 switch=y // CIM Disconnector
+new Line._395-2858644-0_C phases=1 bus1=_395-2858644_SN.3 bus2=_391-2377503_N.3 switch=y // CIM Disconnector
+new Line._395-2453703-0_B phases=1 bus1=_395-2453703_SN.2 bus2=_391-2013548_N.2 switch=y // CIM Disconnector
+new Line._395-2858639-0_B phases=1 bus1=_411-2870449-0_N.2 bus2=_391-2374908_N.2 switch=y // CIM Disconnector
+new Line._395-2857728-0_A phases=1 bus1=_395-2857728_SN.1 bus2=_720-64642_N.1 switch=y // CIM Disconnector
+new Line._395-3133232-0_B phases=1 bus1=_395-3133232_SN.2 bus2=_391-2625460_N.2 switch=y // CIM Disconnector
+new Line._396-164547-0_A phases=1 bus1=_396-164547_SN.1 bus2=_396-164547_LN.1 switch=y // CIM Disconnector
+new Line._396-164547-0_B phases=1 bus1=_396-164547_SN.2 bus2=_396-164547_LN.2 switch=y // CIM Disconnector
+new Line._395-1522791-0_A phases=1 bus1=_391-1172438_N.1 bus2=_395-1522791_LN.1 switch=y // CIM Disconnector
+new Line._395-2855474-0_A phases=1 bus1=_720-64324_N.1 bus2=_395-2855474_LN.1 switch=y // CIM Disconnector
+new Line._395-1556526-0_C phases=1 bus1=_395-1556526_SN.3 bus2=_391-1204452_N.3 switch=y // CIM Disconnector
+new Line._395-2485391-0_A phases=1 bus1=_391-2042966_N.1 bus2=_395-2485391_LN.1 switch=y // CIM Disconnector
+new Line._396-164547-0_C phases=1 bus1=_396-164547_SN.3 bus2=_396-164547_LN.3 switch=y // CIM Disconnector
+new Line._395-1135228-0_A phases=1 bus1=_395-1135228_SN.1 bus2=_391-851127_N.1 switch=y // CIM Disconnector
+new Line._395-2453704-0_C phases=1 bus1=_395-2453704_SN.3 bus2=_391-2013548_N.3 switch=y // CIM Disconnector
+new Line._395-2864404-0_C phases=1 bus1=_395-2864404_SN.3 bus2=_391-2383188_N.3 switch=y // CIM Disconnector
+new Line._395-1522794-0_A phases=1 bus1=_395-1522794_SN.1 bus2=_391-1172438_N.1 switch=y // CIM Disconnector
+new Line._395-2525473-0_C phases=1 bus1=_395-2525473_SN.3 bus2=_391-2076644_N.3 switch=y // CIM Disconnector
+new Line._395-2858638-0_B phases=1 bus1=_391-2377503_N.2 bus2=_395-2858638_LN.2 switch=y // CIM Disconnector
+new Line._395-1523388-0_C phases=1 bus1=_395-1523388_SN.3 bus2=_391-1172438_N.3 switch=y // CIM Disconnector
+new Line._396-274612-0_A phases=1 bus1=_396-274612_SN.1 bus2=_396-274612_LN.1 switch=y // CIM Disconnector
+new Line._396-274612-0_C phases=1 bus1=_396-274612_SN.3 bus2=_396-274612_LN.3 switch=y // CIM Disconnector
+new Line._396-274612-0_B phases=1 bus1=_396-274612_SN.2 bus2=_396-274612_LN.2 switch=y // CIM Disconnector
+new Line._395-3133231-0_A phases=1 bus1=_395-3133231_SN.1 bus2=_391-2625460_N.1 switch=y // CIM Disconnector
+new Line._396-225971-0_C phases=1 bus1=_396-225971_SN.3 bus2=_396-225971_LN.3 switch=y // CIM Disconnector
+new Line._396-225971-0_B phases=1 bus1=_396-225971_SN.2 bus2=_396-225971_LN.2 switch=y // CIM Disconnector
+new Line._395-1566092-0_A phases=1 bus1=_391-1172438_N.1 bus2=_395-1566092_LN.1 switch=y // CIM Disconnector
+new Line._395-1566094-0_C phases=1 bus1=_391-1172438_N.3 bus2=_395-1566094_LN.3 switch=y // CIM Disconnector
+new Line._395-2314503-0_B phases=1 bus1=_391-1885211_N.2 bus2=_395-2314503_LN.2 switch=y // CIM Disconnector
+new Line._395-3109897-0_A phases=1 bus1=_395-3109897_SN.1 bus2=_391-2602721_N.1 switch=y // CIM Disconnector
+new Line._395-2485393-0_B phases=1 bus1=_391-2042966_N.2 bus2=_395-2485393_LN.2 switch=y // CIM Disconnector
+new Line._395-2855476-0_C phases=1 bus1=_720-64324_N.3 bus2=_395-2855476_LN.3 switch=y // CIM Disconnector
+new Line._395-3109889-0_C phases=1 bus1=_391-2602718_N.3 bus2=_395-3109889_LN.3 switch=y // CIM Disconnector
+new Line._395-219033-0_B phases=1 bus1=_391-33247_N.2 bus2=_395-219033_LN.2 switch=y // CIM Disconnector
+new Line._395-219603-0_B phases=1 bus1=_395-219603_SN.2 bus2=_391-146420_N.2 switch=y // CIM Disconnector
+new Line._395-2314506-0_C phases=1 bus1=_395-2314506_SN.3 bus2=_391-33189_N.3 switch=y // CIM Disconnector
+new Line._395-57413-0_C phases=1 bus1=_395-57413_SN.3 bus2=_391-33252_N.3 switch=y // CIM Disconnector
+new Line._395-2858636-0_A phases=1 bus1=_391-2377503_N.1 bus2=_395-2858636_LN.1 switch=y // CIM Disconnector
+new Line._395-1556524-0_A phases=1 bus1=_395-1556524_SN.1 bus2=_391-1204452_N.1 switch=y // CIM Disconnector
+new Line._395-2858645-0_A phases=1 bus1=_394-3529560-1_N.1 bus2=_720-64961_N.1 switch=y // CIM Disconnector
+new Line._395-2483456-0_A phases=1 bus1=_395-2483456_SN.1 bus2=_391-2042008_N.1 switch=y // CIM Disconnector
+new Line._395-2525471-0_B phases=1 bus1=_395-2525471_SN.2 bus2=_391-2076644_N.2 switch=y // CIM Disconnector
+new Line._395-2769676-0_B phases=1 bus1=_395-2769676_SN.2 bus2=_391-33247_N.2 switch=y // CIM Disconnector
+new Line._395-1566096-0_B phases=1 bus1=_395-1566096_SN.2 bus2=_391-1214037_N.2 switch=y // CIM Disconnector
+new Line._395-2857737-0_C phases=1 bus1=_391-2377503_N.3 bus2=_395-2857737_LN.3 switch=y // CIM Disconnector
+new Line._395-2864406-0_B phases=1 bus1=_395-2864406_SN.2 bus2=_391-2383192_N.2 switch=y // CIM Disconnector
+new Line._395-2314495-0_A phases=1 bus1=_391-1885211_N.1 bus2=_395-2314495_LN.1 switch=y // CIM Disconnector
+new Line._395-2314501-0_A phases=1 bus1=_391-1885211_N.1 bus2=_395-2314501_LN.1 switch=y // CIM Disconnector
+new Line._395-57697-0_A phases=1 bus1=_391-33198_N.1 bus2=_395-57697_LN.1 switch=y // CIM Disconnector
+new Line._395-2803888-0_C phases=1 bus1=_395-2803888_SN.3 bus2=_391-2327239_N.3 switch=y // CIM Disconnector
+new Line._395-2855471-0_A phases=1 bus1=_720-64323_N.1 bus2=_395-2855471_LN.1 switch=y // CIM Disconnector
+new Line._395-2864398-0_C phases=1 bus1=_391-2374908_N.3 bus2=_395-2864398_LN.3 switch=y // CIM Disconnector
+new Line._395-3045324-0_A phases=1 bus1=_395-3045324_SN.1 bus2=_391-2545844_N.1 switch=y // CIM Disconnector
+new Line._395-2314493-0_B phases=1 bus1=_395-2314493_SN.2 bus2=_391-1885211_N.2 switch=y // CIM Disconnector
+new Line._396-225971-0_A phases=1 bus1=_396-225971_SN.1 bus2=_396-225971_LN.1 switch=y // CIM Disconnector
+new Line._395-2855482-0_C phases=1 bus1=_395-2855482_SN.3 bus2=_391-2374908_N.3 switch=y // CIM Disconnector
+new Line._395-2485395-0_C phases=1 bus1=_391-2042966_N.3 bus2=_395-2485395_LN.3 switch=y // CIM Disconnector
+new Line._395-2855478-0_B phases=1 bus1=_395-2855478_SN.2 bus2=_391-2374904_N.2 switch=y // CIM Disconnector
+new Line._395-3109895-0_B phases=1 bus1=_391-2602718_N.2 bus2=_395-3109895_LN.2 switch=y // CIM Disconnector
+new Line._395-2483458-0_B phases=1 bus1=_395-2483458_SN.2 bus2=_391-2042008_N.2 switch=y // CIM Disconnector
+new Line._395-2858647-0_C phases=1 bus1=_394-3529526-1_N.3 bus2=_720-64961_N.3 switch=y // CIM Disconnector
+new Line._395-1522756-0_B phases=1 bus1=_395-1522756_SN.2 bus2=_391-987477_N.2 switch=y // CIM Disconnector
+new Line._395-2855481-0_B phases=1 bus1=_395-2855481_SN.2 bus2=_391-2374908_N.2 switch=y // CIM Disconnector
+new Line._395-2857730-0_C phases=1 bus1=_395-2857730_SN.3 bus2=_720-64642_N.3 switch=y // CIM Disconnector
+new Line._395-2858641-0_C phases=1 bus1=_411-2870450-0_N.3 bus2=_391-2374908_N.3 switch=y // CIM Disconnector
+new Line._395-2483453-0_B phases=1 bus1=_395-2483453_SN.2 bus2=_391-2042005_N.2 switch=y // CIM Disconnector
+new Line._395-2525469-0_A phases=1 bus1=_395-2525469_SN.1 bus2=_391-2076644_N.1 switch=y // CIM Disconnector
+new Line._395-3109851-0_B phases=1 bus1=_395-3109851_SN.2 bus2=_391-2602718_N.2 switch=y // CIM Disconnector
+new Line._395-3109894-0_A phases=1 bus1=_391-2602718_N.1 bus2=_395-3109894_LN.1 switch=y // CIM Disconnector
+new Line._395-2864397-0_B phases=1 bus1=_391-2374908_N.2 bus2=_395-2864397_LN.2 switch=y // CIM Disconnector
+new Line._395-2485390-0_C phases=1 bus1=_395-2485390_SN.3 bus2=_391-2042966_N.3 switch=y // CIM Disconnector
+new Line._395-57444-0_B phases=1 bus1=_391-33198_N.2 bus2=_395-57444_LN.2 switch=y // CIM Disconnector
+new Line._395-1522790-0_C phases=1 bus1=_395-1522790_SN.3 bus2=_391-809851_N.3 switch=y // CIM Disconnector
+new Line._395-2803886-0_A phases=1 bus1=_395-2803886_SN.1 bus2=_391-2327239_N.1 switch=y // CIM Disconnector
+new Line._395-2855473-0_C phases=1 bus1=_720-64323_N.3 bus2=_395-2855473_LN.3 switch=y // CIM Disconnector
+new Line._396-174451-0_A phases=1 bus1=_396-174451_SN.1 bus2=_396-174451_LN.1 switch=y // CIM Disconnector
+new Line._396-174451-0_B phases=1 bus1=_396-174451_SN.2 bus2=_396-174451_LN.2 switch=y // CIM Disconnector
+new Line._395-2483461-0_A phases=1 bus1=_391-2042008_N.1 bus2=_395-2483461_LN.1 switch=y // CIM Disconnector
+new Line._396-174451-0_C phases=1 bus1=_396-174451_SN.3 bus2=_396-174451_LN.3 switch=y // CIM Disconnector
+new Line._395-1135230-0_C phases=1 bus1=_395-1135230_SN.3 bus2=_391-851127_N.3 switch=y // CIM Disconnector
+new Line._395-1522789-0_B phases=1 bus1=_395-1522789_SN.2 bus2=_391-809851_N.2 switch=y // CIM Disconnector
+new Line._395-2314496-0_A phases=1 bus1=_395-2314496_SN.1 bus2=_391-1885212_N.1 switch=y // CIM Disconnector
+new Line._395-2485389-0_B phases=1 bus1=_395-2485389_SN.2 bus2=_391-2042966_N.2 switch=y // CIM Disconnector
+new Line._395-3109884-0_C phases=1 bus1=_395-3109884_SN.3 bus2=_391-2602718_N.3 switch=y // CIM Disconnector
+new Line._395-1522792-0_B phases=1 bus1=_391-1172438_N.2 bus2=_395-1522792_LN.2 switch=y // CIM Disconnector
+new Line._395-2855475-0_B phases=1 bus1=_720-64324_N.2 bus2=_395-2855475_LN.2 switch=y // CIM Disconnector
+new Line._395-2857729-0_B phases=1 bus1=_395-2857729_SN.2 bus2=_720-64642_N.2 switch=y // CIM Disconnector
+new Line._395-2453702-0_A phases=1 bus1=_395-2453702_SN.1 bus2=_391-2013548_N.1 switch=y // CIM Disconnector
+new Line._395-2864402-0_A phases=1 bus1=_395-2864402_SN.1 bus2=_391-2383188_N.1 switch=y // CIM Disconnector
+new Line._395-2864407-0_C phases=1 bus1=_395-2864407_SN.3 bus2=_391-2383192_N.3 switch=y // CIM Disconnector
+new Line._395-219604-0_C phases=1 bus1=_395-219604_SN.3 bus2=_391-146420_N.3 switch=y // CIM Disconnector
+new Line._395-3045326-0_C phases=1 bus1=_395-3045326_SN.3 bus2=_391-2545844_N.3 switch=y // CIM Disconnector
+new Line._395-1100672-0_B phases=1 bus1=_395-1100672_SN.2 bus2=_391-828099_N.2 switch=y // CIM Disconnector
+new Line._395-3133233-0_C phases=1 bus1=_395-3133233_SN.3 bus2=_391-2625460_N.3 switch=y // CIM Disconnector
+new Line._395-2483455-0_A phases=1 bus1=_391-2042005_N.1 bus2=_395-2483455_LN.1 switch=y // CIM Disconnector
+new Line._395-2485392-0_A phases=1 bus1=_395-2485392_SN.1 bus2=_391-33198_N.1 switch=y // CIM Disconnector
+new Line._395-2314498-0_B phases=1 bus1=_395-2314498_SN.2 bus2=_391-1885212_N.2 switch=y // CIM Disconnector
+new Line._395-3109886-0_A phases=1 bus1=_395-3109886_SN.1 bus2=_391-1713300_N.1 switch=y // CIM Disconnector
+new Line._395-219035-0_C phases=1 bus1=_395-219035_SN.3 bus2=_391-33215_N.3 switch=y // CIM Disconnector
+new Line._395-3109890-0_C phases=1 bus1=_395-3109890_SN.3 bus2=_391-1713300_N.3 switch=y // CIM Disconnector
+new Line._395-3109899-0_C phases=1 bus1=_395-3109899_SN.3 bus2=_391-2602721_N.3 switch=y // CIM Disconnector
+new Line._395-2858643-0_B phases=1 bus1=_395-2858643_SN.2 bus2=_391-2377503_N.2 switch=y // CIM Disconnector
+new Line._396-274611-0_C phases=1 bus1=_396-274611_SN.3 bus2=_396-274611_LN.3 switch=y // CIM Disconnector
+new Line._395-2277693-0_B phases=1 bus1=_395-2277693_SN.2 bus2=_391-1850027_N.2 switch=y // CIM Disconnector
+new Line._396-274611-0_B phases=1 bus1=_396-274611_SN.2 bus2=_396-274611_LN.2 switch=y // CIM Disconnector
+new Line._395-2864400-0_B phases=1 bus1=_391-2374908_N.2 bus2=_395-2864400_LN.2 switch=y // CIM Disconnector
+new Line._396-274611-0_A phases=1 bus1=_396-274611_SN.1 bus2=_396-274611_LN.1 switch=y // CIM Disconnector
+new Line._395-219034-0_B phases=1 bus1=_395-219034_SN.2 bus2=_391-33244_N.2 switch=y // CIM Disconnector
+new Line._395-219602-0_A phases=1 bus1=_395-219602_SN.1 bus2=_391-146420_N.1 switch=y // CIM Disconnector
+new Line._395-2314492-0_A phases=1 bus1=_395-2314492_SN.1 bus2=_391-1885211_N.1 switch=y // CIM Disconnector
+new Line._395-2314504-0_B phases=1 bus1=_395-2314504_SN.2 bus2=_391-33189_N.2 switch=y // CIM Disconnector
+new Line._395-2855477-0_A phases=1 bus1=_395-2855477_SN.1 bus2=_391-2374904_N.1 switch=y // CIM Disconnector
+new Line._395-1695815-0_C phases=1 bus1=_391-809851_N.3 bus2=_395-1695815_LN.3 switch=y // CIM Disconnector
+new Line._395-57775-0_B phases=1 bus1=_395-57775_SN.2 bus2=_391-33252_N.2 switch=y // CIM Disconnector
+new Line._395-1556525-0_B phases=1 bus1=_395-1556525_SN.2 bus2=_391-1204452_N.2 switch=y // CIM Disconnector
+new Line._395-2314505-0_C phases=1 bus1=_391-1885211_N.3 bus2=_395-2314505_LN.3 switch=y // CIM Disconnector
+new Line._395-2858637-0_A phases=1 bus1=_411-2870448-0_N.1 bus2=_391-2374908_N.1 switch=y // CIM Disconnector
+new Line._395-1135229-0_B phases=1 bus1=_395-1135229_SN.2 bus2=_391-851127_N.2 switch=y // CIM Disconnector
+new Line._395-57414-0_A phases=1 bus1=_395-57414_SN.1 bus2=_391-33252_N.1 switch=y // CIM Disconnector
+new Line._395-2485394-0_B phases=1 bus1=_395-2485394_SN.2 bus2=_391-33198_N.2 switch=y // CIM Disconnector
+new Line._395-3109898-0_B phases=1 bus1=_395-3109898_SN.2 bus2=_391-2602721_N.2 switch=y // CIM Disconnector
+new Line._395-2483459-0_C phases=1 bus1=_391-2042005_N.3 bus2=_395-2483459_LN.3 switch=y // CIM Disconnector
+new Line._395-2858646-0_B phases=1 bus1=_394-3529528-1_N.2 bus2=_720-64961_N.2 switch=y // CIM Disconnector
+new Line._395-2525472-0_C phases=1 bus1=_391-2042008_N.3 bus2=_395-2525472_LN.3 switch=y // CIM Disconnector
+new Line._395-2864403-0_B phases=1 bus1=_395-2864403_SN.2 bus2=_391-2383188_N.2 switch=y // CIM Disconnector
+new Line._395-1522793-0_C phases=1 bus1=_391-1172438_N.3 bus2=_395-1522793_LN.3 switch=y // CIM Disconnector
+new Line._395-2857734-0_B phases=1 bus1=_391-2377503_N.2 bus2=_395-2857734_LN.2 switch=y // CIM Disconnector
+new Line._395-3109888-0_B phases=1 bus1=_395-3109888_SN.2 bus2=_391-1713300_N.2 switch=y // CIM Disconnector
+new Line._395-1566093-0_B phases=1 bus1=_391-1172438_N.2 bus2=_395-1566093_LN.2 switch=y // CIM Disconnector
+new Line._395-2864399-0_A phases=1 bus1=_391-2374908_N.1 bus2=_395-2864399_LN.1 switch=y // CIM Disconnector
+new Line._395-3109896-0_C phases=1 bus1=_391-2602718_N.3 bus2=_395-3109896_LN.3 switch=y // CIM Disconnector
+new Line._395-2314502-0_A phases=1 bus1=_395-2314502_SN.1 bus2=_391-33189_N.1 switch=y // CIM Disconnector
+new Line._395-2314494-0_C phases=1 bus1=_395-2314494_SN.3 bus2=_391-1885211_N.3 switch=y // CIM Disconnector
+new Line._396-269492-0_A phases=1 bus1=_396-269492_SN.1 bus2=_396-269492_LN.1 switch=y // CIM Disconnector
+new Line._396-269492-0_B phases=1 bus1=_396-269492_SN.2 bus2=_396-269492_LN.2 switch=y // CIM Disconnector
+new Line._396-269492-0_C phases=1 bus1=_396-269492_SN.3 bus2=_396-269492_LN.3 switch=y // CIM Disconnector
+new Line._395-2485396-0_C phases=1 bus1=_395-2485396_SN.3 bus2=_391-33198_N.3 switch=y // CIM Disconnector
+new Line._395-2483457-0_B phases=1 bus1=_391-2042005_N.2 bus2=_395-2483457_LN.2 switch=y // CIM Disconnector
+new Line._395-1695813-0_B phases=1 bus1=_391-809851_N.2 bus2=_395-1695813_LN.2 switch=y // CIM Disconnector
+new Line._395-2483463-0_C phases=1 bus1=_391-2042008_N.3 bus2=_395-2483463_LN.3 switch=y // CIM Disconnector
+new Line._395-2855479-0_C phases=1 bus1=_395-2855479_SN.3 bus2=_391-2374904_N.3 switch=y // CIM Disconnector
+new Line._395-2864405-0_A phases=1 bus1=_395-2864405_SN.1 bus2=_391-2383192_N.1 switch=y // CIM Disconnector
+new Line._395-2525470-0_B phases=1 bus1=_391-2042008_N.2 bus2=_395-2525470_LN.2 switch=y // CIM Disconnector
+new Line._395-2314500-0_C phases=1 bus1=_395-2314500_SN.3 bus2=_391-1885212_N.3 switch=y // CIM Disconnector
+new Line._395-1522795-0_B phases=1 bus1=_395-1522795_SN.2 bus2=_391-1172438_N.2 switch=y // CIM Disconnector
+new Line._395-1566095-0_A phases=1 bus1=_395-1566095_SN.1 bus2=_391-1214037_N.1 switch=y // CIM Disconnector
+new Line._395-2857736-0_A phases=1 bus1=_391-2377503_N.1 bus2=_395-2857736_LN.1 switch=y // CIM Disconnector
+new Line._395-2803887-0_B phases=1 bus1=_395-2803887_SN.2 bus2=_391-2327239_N.2 switch=y // CIM Disconnector
+new Line._395-57696-0_A phases=1 bus1=_395-57696_SN.1 bus2=_391-33240_N.1 switch=y // CIM Disconnector
+new Line._403-142229-0 phases=1 bus1=_403-142229_SN.2 bus2=_403-142229_LN.2 switch=y // CIM Jumper
+new Line._403-39761-0 phases=3 bus1=_403-39761_SN.1.2.3 bus2=_403-39761_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-142228-0 phases=3 bus1=_403-142228_SN.1.2.3 bus2=_403-142228_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-1269049-0 phases=3 bus1=_403-1269049_SN.1.2.3 bus2=_403-1269049_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-142227-0 phases=2 bus1=_403-142227_SN.2.3 bus2=_403-142227_LN.2.3 switch=y // CIM Jumper
+new Line._403-264122-0 phases=3 bus1=_403-264122_SN.1.2.3 bus2=_403-264122_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-36888-0 phases=3 bus1=_403-36888_SN.1.2.3 bus2=_403-36888_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-36885-0 phases=1 bus1=_389-150307-1_N.2 bus2=_403-36885_LN.2 switch=y // CIM Jumper
+new Line._403-142230-0 phases=1 bus1=_403-142230_SN.2 bus2=_403-142230_LN.2 switch=y // CIM Jumper
+new Line._403-142231-0 phases=3 bus1=_403-142231_SN.1.2.3 bus2=_403-142231_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-142232-0 phases=3 bus1=_403-142232_SN.1.2.3 bus2=_403-142232_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-37193-0 phases=3 bus1=_403-37193_SN.1.2.3 bus2=_403-37193_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-37199-0 phases=3 bus1=_403-37199_SN.1.2.3 bus2=_403-37199_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-37196-0 phases=3 bus1=_403-37196_SN.1.2.3 bus2=_403-37196_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-37197-0 phases=3 bus1=_403-37197_SN.1.2.3 bus2=_403-37197_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-1235114-0 phases=3 bus1=_403-1235114_SN.1.2.3 bus2=_403-1235114_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-39755-0 phases=3 bus1=_403-39755_SN.1.2.3 bus2=_403-39755_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-1490489-0 phases=2 bus1=_403-1490489_SN.1.3 bus2=_403-1490489_LN.1.3 switch=y // CIM Jumper
+new Line._403-1425850-0 phases=3 bus1=_403-1425850_SN.1.2.3 bus2=_403-1425850_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-142218-0 phases=2 bus1=_403-142218_SN.2.3 bus2=_403-142218_LN.2.3 switch=y // CIM Jumper
+new Line._403-40075-0 phases=1 bus1=_403-40075_SN.1 bus2=_403-40075_LN.1 switch=y // CIM Jumper
+new Line._403-1545214-0 phases=3 bus1=_403-1545214_SN.1.2.3 bus2=_403-1545214_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-1545212-0 phases=1 bus1=_403-1545212_SN.3 bus2=_403-1545212_LN.3 switch=y // CIM Jumper
+new Line._403-1545213-0 phases=1 bus1=_403-1545213_SN.3 bus2=_403-1545213_LN.3 switch=y // CIM Jumper
+new Line._403-666121-0 phases=3 bus1=_403-666121_SN.1.2.3 bus2=_403-666121_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-801451-0 phases=3 bus1=_403-801451_SN.1.2.3 bus2=_403-801451_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-144445-0 phases=3 bus1=_403-144445_SN.1.2.3 bus2=_403-144445_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-1527929-0 phases=3 bus1=_403-1527929_SN.1.2.3 bus2=_403-1527929_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-36882-0 phases=2 bus1=_403-36882_SN.2.3 bus2=_403-36882_LN.2.3 switch=y // CIM Jumper
+new Line._403-40080-0 phases=1 bus1=_389-160652-0_N.2 bus2=_403-40080_LN.2 switch=y // CIM Jumper
+new Line._403-1490490-0 phases=2 bus1=_403-1490490_SN.1.3 bus2=_403-1490490_LN.1.3 switch=y // CIM Jumper
+new Line._403-36881-0 phases=1 bus1=_403-36881_SN.3 bus2=_403-36881_LN.3 switch=y // CIM Jumper
+new Line._403-1278617-0 phases=3 bus1=_403-1278617_SN.1.2.3 bus2=_403-1278617_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-144444-0 phases=3 bus1=_403-144444_SN.1.2.3 bus2=_403-144444_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-142226-0 phases=2 bus1=_403-142226_SN.2.3 bus2=_403-142226_LN.2.3 switch=y // CIM Jumper
+new Line._403-1425849-0 phases=3 bus1=_403-1425849_SN.1.2.3 bus2=_403-1425849_LN.1.2.3 switch=y // CIM Jumper
+new Line._403-141578-0 phases=3 bus1=_403-141578_SN.1.2.3 bus2=_403-141578_LN.1.2.3 switch=y // CIM Jumper

@@ -1,0 +1,14 @@
+clear
+set defaultbasefrequency=60
+New Circuit.myCircuit bus1=1.1.2.3 pu=1.05 phases=3 MVAsc3=20000 MVASC1=21000 R1=0 X1=0.0001 R0=0 X0=0.0001
+New Vsource.src bus1=1.1.2.3 pu=1.05 phases=3
+Redirect BranchData.dss
+Redirect Loads.dss
+!Redirect PVSystem.dss
+!Redirect Storage.dss
+Redirect Transformers.dss
+Set voltageBases=[115, 69, 12.47,  0.480, 0.208] 
+Calcvoltagebases 
+Set mode = Daily
+Set stepsize = 1h
+Set number = 1

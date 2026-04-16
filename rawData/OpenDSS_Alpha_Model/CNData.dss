@@ -1,0 +1,22 @@
+new CNData.1000CN15 gmr=0.000782 radius=0.014186 rac=0.000169 rdc=0.000169 normamps=610.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.001600 DiaIns=0.043410 DiaCable=0.056060
+~ k=14 GmrStrand=0.001010 DiaStrand=0.001628 Rstrand=0.005413
+new CNData.350CN15 gmr=0.009388 radius=0.008400 rac=0.000237 rdc=0.000237 normamps=317.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.001165 DiaIns=0.030510 DiaCable=0.038970
+~ k=25 GmrStrand=0.001010 DiaStrand=0.001628 Rstrand=0.003668
+new CNData.2CN15 gmr=0.002560 radius=0.003600 rac=0.000998 rdc=0.000998 normamps=125.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.000940 DiaIns=0.022120 DiaCable=0.030950
+~ k=10 GmrStrand=0.000640 DiaStrand=0.001628 Rstrand=0.013538
+new CNData.4/0CN15 gmr=0.003383 radius=0.004295 rac=0.000637 rdc=0.000637 normamps=161.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.003505 DiaIns=0.018690 DiaCable=0.027520
+~ k=13 GmrStrand=0.000640 DiaStrand=0.001628 Rstrand=0.008637
+new CNData.1CN15 gmr=0.002560 radius=0.003600 rac=0.000998 rdc=0.000998 normamps=125.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.000940 DiaIns=0.022120 DiaCable=0.030950
+~ k=10 GmrStrand=0.000640 DiaStrand=0.001628 Rstrand=0.013538
+new CNData.750CUXLP_SPG gmr=0.009388 radius=0.012294 rac=0.000168 rdc=0.000168 normamps=470.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.001600 DiaIns=0.035306 DiaCable=0.045974
+~ k=18 GmrStrand=0.001010 DiaStrand=0.001628 Rstrand=0.005413
+
+new CNData.unknown gmr=0.002560 radius=0.003600 rac=0.000998 rdc=0.000998 normamps=125.0 Runits=m Radunits=m gmrunits=m
+~ EpsR=2.30 Ins=0.000940 DiaIns=0.022120 DiaCable=0.030950
+~ k=10 GmrStrand=0.000640 DiaStrand=0.001628 Rstrand=0.013538
