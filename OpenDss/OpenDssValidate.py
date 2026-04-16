@@ -15,27 +15,50 @@ def collect_opendss_substationpower(openDssVals,t,P_base):
 
     return openDssVals
 
-def collect_opendss_lineflows(openDssVals,t,P_base):
-    line_id = dss.Lines.First()
-    while line_id > 0:
-        line_name = dss.Lines.Name()
-        dss.Circuit.SetActiveElement(f"Line.{line_name}")
-        busnames = dss.CktElement.BusNames()
-        line_powers = dss.CktElement.Powers()
-        node_order = dss.CktElement.NodeOrder()
-        nodes = [x for x in dict.fromkeys(node_order) if x != 0]# e.g., ["1", "2"] for phases a, b
-        fb = busnames[0].split('.')[0]
-        tb = busnames[1].split('.')[0]
-        for index, node in enumerate(nodes):
-            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
-            p = line_powers[2 * index]* 1000 / P_base
-            q = line_powers[2 * index + 1]* 1000 / P_base
+def collect_opendss_lineflows(openDssVals, t, data,P_base):
+    flag = dss.PDElements.First()
+    while flag:
+        element_type = dss.CktElement.Name().lower().split(".")[0]
 
+        if element_type not in ["line", "transformer", "reactor"]:
+            flag = dss.PDElements.Next()
+            continue
+
+        if element_type == "line" and dss.Lines.IsSwitch():
+            if dss.CktElement.IsOpen(1, 0) or dss.CktElement.IsOpen(2, 0):
+                flag = dss.PDElements.Next()
+                continue
+
+        busnames    = dss.CktElement.BusNames()
+        node_order  = dss.CktElement.NodeOrder()
+        nodes       = [x for x in dict.fromkeys(node_order) if x != 0]
+        n_phases    = dss.CktElement.NumPhases()
+        line_powers = dss.CktElement.Powers()
+        term1_nodes = nodes[:n_phases]
+
+        fb_dss = busnames[0].split('.')[0]
+        tb_dss = busnames[1].split('.')[0]
+
+        if (fb_dss, tb_dss) in data['Lset']:
+            fb, tb, flipped = fb_dss, tb_dss, False
+        elif (tb_dss, fb_dss) in data['Lset']:
+            fb, tb, flipped = tb_dss, fb_dss, True
+        else:
+            flag = dss.PDElements.Next()
+            continue
+
+        for index, node in enumerate(term1_nodes):
+            ph = {1: 'a', 2: 'b', 3: 'c'}.get(node)
+            if ph is None:
+                continue
+            p = line_powers[2 * index]     * 1000 / P_base
+            q = line_powers[2 * index + 1] * 1000 / P_base
+            if flipped:
+                p, q = -p, -q
             openDssVals['P'][t, fb, tb, ph] = p
             openDssVals['Q'][t, fb, tb, ph] = q
 
-        line_id = dss.Lines.Next()
-
+        flag = dss.PDElements.Next()
     return openDssVals
 
 def collect_opendss_voltages(openDssVals,t): # Activate all buses
@@ -51,27 +74,51 @@ def collect_opendss_voltages(openDssVals,t): # Activate all buses
             openDssVals['v'][t, bus_id, ph] = vmag_pu[i_node]
     return openDssVals
 
-def collect_opendss_linecurrents(openDssVals,t): # Activate all buses
-    line_id = dss.Lines.First()
-    while line_id > 0:
-        line_name = dss.Lines.Name()
-        dss.Circuit.SetActiveElement(f"Line.{line_name}")
-        busnames = dss.CktElement.BusNames()
-        line_currents = dss.CktElement.CurrentsMagAng()
-        node_order = dss.CktElement.NodeOrder()
-        nodes = [x for x in dict.fromkeys(node_order) if x != 0]# e.g., ["1", "2"] for phases a, b
-        fb = busnames[0].split('.')[0]
-        tb = busnames[1].split('.')[0]
-        for index, node in enumerate(nodes):
-            ph = {1: 'a', 2: 'b', 3: 'c'}[node]
-            I_mag = line_currents[2 * index]
-            I_ang = line_currents[2 * index + 1]
 
+def collect_opendss_linecurrents(openDssVals, t, data):
+    flag = dss.PDElements.First()
+    while flag:
+        element_type = dss.CktElement.Name().lower().split(".")[0]
+
+        if element_type not in ["line", "transformer", "reactor"]:
+            flag = dss.PDElements.Next()
+            continue
+
+        if element_type == "line" and dss.Lines.IsSwitch():
+            if dss.CktElement.IsOpen(1, 0) or dss.CktElement.IsOpen(2, 0):
+                flag = dss.PDElements.Next()
+                continue
+
+        busnames    = dss.CktElement.BusNames()
+        node_order  = dss.CktElement.NodeOrder()
+        nodes       = [x for x in dict.fromkeys(node_order) if x != 0]
+        n_phases    = dss.CktElement.NumPhases()
+        currents    = dss.CktElement.CurrentsMagAng()
+        term1_nodes = nodes[:n_phases]
+
+        fb_dss = busnames[0].split('.')[0]
+        tb_dss = busnames[1].split('.')[0]
+
+        if (fb_dss, tb_dss) in data['Lset']:
+            fb, tb, flipped = fb_dss, tb_dss, False
+        elif (tb_dss, fb_dss) in data['Lset']:
+            fb, tb, flipped = tb_dss, fb_dss, True
+        else:
+            flag = dss.PDElements.Next()
+            continue
+
+        for index, node in enumerate(term1_nodes):
+            ph = {1: 'a', 2: 'b', 3: 'c'}.get(node)
+            if ph is None:
+                continue
+            I_mag = currents[2 * index]
+            I_ang = currents[2 * index + 1]
+            if flipped:
+                I_ang = (I_ang + 180)
             openDssVals['I_mag'][t, fb, tb, ph] = I_mag
             openDssVals['I_ang'][t, fb, tb, ph] = I_ang * (math.pi / 180)
 
-        line_id = dss.Lines.Next()
-
+        flag = dss.PDElements.Next()
     return openDssVals
 
 def collect_opendss_pvPowers(openDssVals,t, P_base):
@@ -275,7 +322,7 @@ def get_total_nameplate_pv_powers():
         pv_id = dss.PVsystems.Next()
     return p_kw
 
-def initialize_current_angles(data,path, multi=False):
+def initialize_current_angles(data,path, multi=False,start_step=1):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(script_dir, path)
 
@@ -294,7 +341,7 @@ def initialize_current_angles(data,path, multi=False):
         dss.Text.Command("Set mode = Daily")
         dss.Text.Command("Set stepsize = 1h")
         dss.Text.Command("Set number = 1")
-        dss.Text.Command("Set hour = 0")
+        dss.Text.Command(f"Set hour = {start_step-1}")
 
     openDssVals = {
         'I_mag': {},
@@ -307,11 +354,11 @@ def initialize_current_angles(data,path, multi=False):
         if not dss.Solution.Converged():
             print(f"Power flow did not converge at time {t}")
 
-        openDssVals = collect_opendss_linecurrents(openDssVals,t)
+        openDssVals = collect_opendss_linecurrents(openDssVals,t,data)
 
     return openDssVals
 
-def run_opendss_validation(data, modelVals, path,multi=False):
+def run_opendss_validation(data, modelVals, path,multi=False,start_step=1):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(script_dir, path)
@@ -331,7 +378,7 @@ def run_opendss_validation(data, modelVals, path,multi=False):
         dss.Text.Command("Set mode = Daily")
         dss.Text.Command("Set stepsize = 1h")
         dss.Text.Command("Set number = 1")
-        dss.Text.Command("Set hour = 0")
+        dss.Text.Command(f"Set hour = {start_step-1}")
     P_base = 1e6
     openDssVals = {
         'P_subs': {},
@@ -381,7 +428,7 @@ def run_opendss_validation(data, modelVals, path,multi=False):
         total_q_loss += total_loss_t['reactive_power_loss_t_kW']
 
         openDssVals = collect_opendss_substationpower(openDssVals, t, P_base)
-        openDssVals = collect_opendss_lineflows(openDssVals,t,P_base)
+        openDssVals = collect_opendss_lineflows(openDssVals,t,data,P_base)
         openDssVals = collect_opendss_voltages(openDssVals,t)
         openDssVals = collect_opendss_pvPowers(openDssVals, t, P_base)
         openDssVals = collect_opendss_batteryresults(data,openDssVals, t, P_base)

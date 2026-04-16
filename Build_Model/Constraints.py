@@ -1,9 +1,9 @@
 import math
 from pyomo.environ import ConcreteModel, Var, Param,Constraint, ConstraintList, Set, NonNegativeReals, Reals, minimize, sqrt, inequality, Binary, sin, cos,Objective,minimize,Suffix
 
-def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=False, integer=False):
+def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
     model = ConcreteModel()
-    model.dual = Suffix(direction=Suffix.IMPORT)
+    # model.dual = Suffix(direction=Suffix.IMPORT)
 
     # Sets
     if stage_idx is not None:
@@ -35,6 +35,7 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
     # Create indexed sets for only existing phases
     model.bus_phase_set = Set(initialize=[(j, ph) for j in model.Nset for ph in bus_phases[j]])
     model.branch_phase_set = Set(initialize=[((i, j), ph) for (i, j) in model.Lset for ph in branch_phases[(i, j)]])
+    model.branch_phase_pair_set = Set(initialize=[((i, j), p, q) for (i, j) in model.Lset for p in branch_phases[(i, j)] for q in branch_phases[(i, j)]])
     model.gen_phase_set = Set(initialize=[(j, ph) for j in model.Dset for ph in gen_phases[j]])
     model.bat_phase_set = Set(initialize=[(j, ph) for j in model.Bset for ph in bat_phases[j]])
     model.substation_phase_set = Set(initialize=[(j, ph) for j in model.substationBus for ph in bus_phases[j]])
@@ -42,6 +43,16 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
     ## initializing model parameters
     model.r = data['r']
     model.x = data['x']
+    # THRESHOLD = 1e-6
+    # for key in model.r:
+    #     for branch in model.r[key]:
+    #         if abs(model.r[key][branch]) < THRESHOLD:
+    #             model.r[key][branch] = 0.0
+    # for key in model.x:
+    #     for branch in model.x[key]:
+    #         if abs(model.x[key][branch]) < THRESHOLD:
+    #             model.x[key][branch] = 0.0
+
     model.cost = data['costshape']
     model.eta_c = data['eta_c']
     model.eta_d = data['eta_d']
@@ -55,24 +66,27 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
 
     # Variables - defined ONLY for existing phases
     if p_control:
-        model.p_D = Var(model.Tset, model.gen_phase_set, domain=NonNegativeReals)
-        model.q_D = Var(model.Tset, model.gen_phase_set, domain=NonNegativeReals, bounds=(0, 0))
+        model.p_D = Var(model.Tset, model.gen_phase_set, domain=NonNegativeReals,initialize=0)
+        model.q_D = Var(model.Tset, model.gen_phase_set, domain=NonNegativeReals)
     else:
         model.p_D = Param(model.Tset, model.gen_phase_set, initialize=lambda m, t, j, ph: data['p_D'][(t, j, ph)])
-        model.q_D = Var(model.Tset, model.gen_phase_set)
+        model.q_D = Var(model.Tset, model.gen_phase_set,initialize=0)
 
-    model.P_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals)
-    model.Q_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals)
-    model.P = Var(model.Tset, model.branch_phase_set)
-    model.Q = Var(model.Tset, model.branch_phase_set)
-    model.v = Var(model.Tset, model.bus_phase_set, domain=NonNegativeReals)
-    model.B = Var(model.Tset, model.Bset, domain=NonNegativeReals)
-    model.P_c = Var(model.Tset, model.Bset, domain=NonNegativeReals)
-    model.P_d = Var(model.Tset, model.Bset, domain=NonNegativeReals)
+    if single_battery_variable:
+            model.P_b = Var(model.Tset, model.Bset, domain=Reals,initialize=0)
+    else:
+        model.P_c = Var(model.Tset, model.Bset, domain=NonNegativeReals, initialize=0)
+        model.P_d = Var(model.Tset, model.Bset, domain=NonNegativeReals, initialize=0)
+
+    model.P_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals,initialize=0)
+    model.Q_subs = Var(model.Tset, model.substation_phase_set, domain=NonNegativeReals,initialize=0)
+    model.P = Var(model.Tset, model.branch_phase_set,initialize=0)
+    model.Q = Var(model.Tset, model.branch_phase_set,initialize=0)
+    model.v = Var(model.Tset, model.bus_phase_set, domain=NonNegativeReals,initialize=1)
+    model.B = Var(model.Tset, model.Bset, domain=NonNegativeReals,initialize=0)
 
     if non_linear:
         # Current angle parameter
-        model.branch_phase_pair_set = Set(initialize=[((i, j), p, q) for (i, j) in model.Lset for p in branch_phases[(i, j)] for q in branch_phases[(i, j)]])
         model.l = Var(model.Tset, model.branch_phase_pair_set, domain=NonNegativeReals)
         def delta_init(m, t, i, j, ph):
             return data['I_ang'][t, i, j, ph]
@@ -96,6 +110,31 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
 
         model.current_magnitude = Constraint(model.Tset, model.branch_phase_pair_set, rule=current_magnitude_rule)
 
+    if isocp:
+        # Current angle parameter
+        model.l = Var(model.Tset, model.branch_phase_pair_set, domain=NonNegativeReals)
+        def delta_init(m, t, i, j, ph):
+            return data['I_ang'][t, i, j, ph]
+
+        model.delta = Param(model.Tset, model.branch_phase_set, initialize=delta_init,mutable=True)
+        # Power, Voltage and Current Constraint (only for phases present in branch)
+        def power_voltage_current_socp_rule(model, t, i, j, ph):
+            Pij = model.P[t, i, j, ph]
+            Qij = model.Q[t, i, j, ph]
+            vi = model.v[t, i, ph]
+            lij = model.l[t, i, j, ph, ph]
+            return Pij ** 2 + Qij ** 2 - vi * lij <= 0
+
+        model.power_voltage_current_socp = Constraint(model.Tset, model.branch_phase_set, rule=power_voltage_current_socp_rule)
+
+        # Current magnitude cross-product constraint
+        def current_magnitude_socp_rule(model, t, i, j, p, q):
+            if p == q:
+                return Constraint.Skip
+            return model.l[t, i, j, p, q] ** 2 - model.l[t, i, j, p, p] * model.l[t, i, j, q, q] <= 0
+
+        model.current_magnitude_socp = Constraint(model.Tset, model.branch_phase_pair_set, rule=current_magnitude_socp_rule)
+
     # Real power balance constraint
     def real_power_balance_rule(model, t, j, ph):
         substationBus = data['substationBus']
@@ -105,13 +144,16 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
         P_subs = model.P_subs[t, j, ph] if (j, ph) in model.substation_phase_set else 0
         PD_t = model.p_D[t, j, ph] if (j, ph) in model.gen_phase_set else 0
         p_load = model.p_L[t, j, ph]
-        P_c = model.P_c[t, j]/3 if j in model.Bset else 0
-        P_d = model.P_d[t, j]/3 if j in model.Bset else 0
-        battery_power = P_d - P_c
+        if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
+            P_c = model.P_c[t, j]/3 if j in model.Bset else 0
+            P_d = model.P_d[t, j]/3 if j in model.Bset else 0
+            battery_power = P_d - P_c
+        elif hasattr(model, 'P_b'):
+            battery_power = model.P_b[t, j]/3 if j in model.Bset else 0
 
-        if non_linear:
-            r = data['r']
-            x = data['x']
+        if non_linear or isocp:
+            r = model.r
+            x = model.x
             loss_term = sum(
                 (r[f'{ph}{q}'][i, jj] * cos(model.delta[t, i, jj, ph] - model.delta[t, i, jj, q])
                  + x[f'{ph}{q}'][i, jj] * sin(model.delta[t, i, jj, ph] - model.delta[t, i, jj, q]))
@@ -139,9 +181,9 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
         q_D_t = model.q_D[t, j, ph] if (j, ph) in model.gen_phase_set else 0
 
         # Loss term: sum over incoming branches and their phase pairs
-        if non_linear:
-            r = data['r']
-            x = data['x']
+        if non_linear or isocp:
+            r = model.r
+            x = model.x
             loss_term = sum(
                 (x[f'{ph}{q}'][i, jj] * cos(model.delta[t, i, jj, ph] - model.delta[t, i, jj, q])
                  - r[f'{ph}{q}'][i, jj] * sin(model.delta[t, i, jj, ph] - model.delta[t, i, jj, q]))
@@ -161,10 +203,10 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
 
     # KVL constraint (three-phase aware)
     def kvl_three_phase_rule(model, t, i, j, ph):
-        r = data['r']
-        x = data['x']
+        r = model.r
+        x = model.x
         br_phases = branch_phases[(i, j)]
-        if non_linear:
+        if non_linear or isocp:
             loss_term = sum(
                 ((r[f'{ph}{q1}'][i, j] * r[f'{ph}{q2}'][i, j] + x[f'{ph}{q1}'][i, j] * x[f'{ph}{q2}'][i, j]) *
                  cos(model.delta[t, i, j, q1] - model.delta[t, i, j, q2]) +
@@ -226,27 +268,42 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
     # Battery dynamics constraint
     if stage_idx is not None:
         model.prev_B = Param(model.Bset, initialize={b: data['b0'][b] for b in data['Bset']}, mutable=True)
-        def battery_dynamics_rule(model, t, j):
-            n_c = 0.95
-            n_d = 0.95
-            if n_d == 0:
-                return model.B[t, j] == model.prev_B[j] + model.P_c[t, j] * n_c
-            else:
-                return model.B[t, j] == model.prev_B[j] + (model.P_c[t, j] * n_c) - (model.P_d[t, j] / n_d)
+        if single_battery_variable:
+            def battery_dynamics_rule(model, t, j):
+                prev_soc = model.prev_B[j]
+                return model.B[t, j] == prev_soc - model.P_b[t, j]
 
-        model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
+            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
+        else:
+            def battery_dynamics_rule(model, t, j):
+                n_c = 0.95
+                n_d = 0.95
+                if n_d == 0:
+                    return model.B[t, j] == model.prev_B[j] + model.P_c[t, j] * n_c
+                else:
+                    return model.B[t, j] == model.prev_B[j] + (model.P_c[t, j] * n_c) - (model.P_d[t, j] / n_d)
+
+            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
     else:
-        def battery_dynamics_rule(model, t, j):
-            b0 = data['b0'][j]
-            prev_soc = b0 if t == min(data['Tset']) else model.B[t - 1, j]
-            n_c = 0.95
-            n_d = 0.95
-            if n_d == 0:
-                return model.B[t, j] == prev_soc + (model.P_c[t, j] * n_c)
-            else:
-                return model.B[t, j] == prev_soc + (model.P_c[t, j] * n_c) - (model.P_d[t, j] / n_d)
+        if single_battery_variable:
+            def battery_dynamics_rule(model, t, j):
+                b0 = data['b0'][j]
+                prev_soc = b0 if t == min(data['Tset']) else model.B[t - 1, j]
+                return model.B[t, j] == prev_soc - model.P_b[t, j]
 
-        model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
+            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
+        else:
+            def battery_dynamics_rule(model, t, j):
+                b0 = data['b0'][j]
+                prev_soc = b0 if t == min(data['Tset']) else model.B[t - 1, j]
+                n_c = 0.95
+                n_d = 0.95
+                if n_d == 0:
+                    return model.B[t, j] == prev_soc + (model.P_c[t, j] * n_c)
+                else:
+                    return model.B[t, j] == prev_soc + (model.P_c[t, j] * n_c) - (model.P_d[t, j] / n_d)
+
+            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
 
     # Final SOC = initial SOC rule
     def final_soc_rule(model, t, j):
@@ -284,18 +341,25 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
 
         model.discharging_power_limits = Constraint(model.Tset, model.Bset, rule=discharging_power_rule)
     else:
-        def charging_power_rule(model, t, j):
-            Pmax = data['p_B'][j]
-            return model.P_c[t, j] <= Pmax
+        if single_battery_variable:
+            def battery_power_rule(model, t, j):
+                Pmax = data['p_B'][j]
+                return inequality(-Pmax, model.P_b[t, j], Pmax)
 
-        model.charging_power_limits = Constraint(model.Tset, model.Bset, rule=charging_power_rule)
+            model.battery_power_limits = Constraint(model.Tset, model.Bset, rule=battery_power_rule)
+        else:
+            def charging_power_rule(model, t, j):
+                Pmax = data['p_B'][j]
+                return model.P_c[t, j] <= Pmax
 
-        # Battery discharging power limit
-        def discharging_power_rule(model, t, j):
-            Pmax = data['p_B'][j]
-            return model.P_d[t, j] <= Pmax
+            model.charging_power_limits = Constraint(model.Tset, model.Bset, rule=charging_power_rule)
 
-        model.discharging_power_limits = Constraint(model.Tset, model.Bset, rule=discharging_power_rule)
+            # Battery discharging power limit
+            def discharging_power_rule(model, t, j):
+                Pmax = data['p_B'][j]
+                return model.P_d[t, j] <= Pmax
+
+            model.discharging_power_limits = Constraint(model.Tset, model.Bset, rule=discharging_power_rule)
 
     if p_control:
         # PV active power limit rule
@@ -322,4 +386,5 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, p_control=F
     else:
         model.obj = Objective(expr=model.stage_cost, sense=minimize)
     return model
+
 

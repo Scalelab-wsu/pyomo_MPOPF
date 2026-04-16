@@ -63,7 +63,7 @@ def loss_minimize_with_scd(model, **kwargs):
 
     # SCD penalty only for linear model (to prevent simultaneous charge/discharge)
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-        alpha_scd = getattr(model, "alpha_scd", 1e-3)
+        alpha_scd = getattr(model, "alpha_scd", 20)
         scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
                        (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
                        for t in model.Tset for j in model.Bset)
@@ -104,6 +104,15 @@ def pyomo_solve(model, obj_func,**kwargs):
     model.obj = Objective(rule=obj_func, sense=minimize)
     solver = getattr(model, "solver", 'gurobi')
     opt = SolverFactory(solver)
+    if solver == 'ipopt':
+        opt.options['linear_solver'] = 'ma97'  # Use HSL MA97 for linear solves
+    # opt.options['tol'] = 1e-6  # loosen from default 1e-8
+    # opt.options['dual_inf_tol'] = 1e-4  # loosen dual tolerance
+    # opt.options['constr_viol_tol'] = 1e-6
+    # opt.options['acceptable_tol'] = 1e-4  # accept near-optimal solution
+    # opt.options['max_iter'] = 1000
+    # opt.options['nlp_scaling_method'] = 'gradient-based'
+    # opt.options['mu_strategy'] = 'adaptive'
     # opt.set_options('NonConvex=2')  # Allow non-convex problems
     # opt.options['tol'] = 1e-6  # Set tolerance
     # opt.options['max_iter'] = 10000  # Set max iterations

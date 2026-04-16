@@ -13,12 +13,13 @@ def store_results(model):
     modelVals['v'] = {}
     modelVals['p_D'] = {}
     modelVals['q_D'] = {}
+    modelVals['l'] = {}
+    modelVals['B'] = {}
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
         modelVals['P_c'] = {}
         modelVals['P_d'] = {}
     elif hasattr(model, 'P_b'):
         modelVals['P_b'] = {}
-    modelVals['B'] = {}
 
     # Store the optimization results for each variable
     for t in model.Tset:
@@ -28,15 +29,28 @@ def store_results(model):
             modelVals['Q_subs'][t, ph] = value(model.Q_subs[t, j, ph] * pu_to_kw)
 
     for t in model.Tset:
+        for idx in model.bus_phase_set:
+            j, ph = idx
+            modelVals['v'][t, j, ph] = value(model.v[t, j, ph])
+
+    for t in model.Tset:
         for idx in model.branch_phase_set:
             i, j, ph = idx
             modelVals['P'][t, i, j, ph] = value(model.P[t, i, j, ph] * pu_to_kw)
             modelVals['Q'][t, i, j, ph] = value(model.Q[t, i, j, ph] * pu_to_kw)
 
-    for t in model.Tset:
-        for idx in model.bus_phase_set:
-            j, ph = idx
-            modelVals['v'][t, j, ph] = value(model.v[t, j, ph])
+        if hasattr(model, 'l'):
+            for idx in model.branch_phase_pair_set:
+                i, j, p, q = idx
+                modelVals['l'][t,i,j,p,q] = value(model.l[t,i,j,p,q] * pu_to_kw)
+                modelVals['l'][t,i,j,p,p] = value(model.l[t,i,j,p,p] * pu_to_kw)
+                modelVals['l'][t,i,j,q,q] = value(model.l[t,i,j,q,q] * pu_to_kw)
+        else:
+            for idx in model.branch_phase_pair_set:
+                i, j, p, q = idx
+                modelVals['l'][t, i, j, p, p] = (modelVals['P'][t, i, j, p]**2 + modelVals['Q'][t, i, j, p]**2)
+                modelVals['l'][t, i, j, q, q] = (modelVals['P'][t, i, j, q]**2 + modelVals['Q'][t, i, j, q]**2)
+                modelVals['l'][t, i, j, p, q] = np.sqrt(modelVals['l'][t, i, j, p, p]*modelVals['l'][t, i, j, q, q])
 
     for t in model.Tset:
         for idx in model.gen_phase_set:

@@ -15,22 +15,22 @@ from Build_Model.Constraints import build_pyomo_model
 # =========================================================
 MODEL_CACHE = {}  # {stage_idx: model}
 
-def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, integer=False):
+def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     """Get cached model or build new one. Also creates persistent solver."""
     global MODEL_CACHE
 
-    cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer))
+    cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))
 
     if cache_key not in MODEL_CACHE:
-        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, stage_idx, non_linear=non_linear, p_control=p_control, integer=integer)
+        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
     return MODEL_CACHE[cache_key]
 
 # =========================================================
 # SDDP solve_stage with cuts
 # =========================================================
-def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,non_linear=False, p_control=False, integer=False):
-    m = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer)
+def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+    m = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     t = stage_idx
 
     for j in m.Bset:
@@ -54,11 +54,11 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,non_line
     Q = value(m.obj)
     S_obj = value(m.stage_cost)
     B_end = {j: value(m.B[t, j]) for j in m.Bset}
-    print(f"Stage {stage_idx} solved with Q={Q:.4f}")
+    # print(f"Stage {stage_idx} solved with Q={Q:.4f}")
     return Q, beta, B_end, S_obj
 
 
-def dddp_solve(data, obj, solver='gurobi',max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False):
+def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     global MODEL_CACHE
     MODEL_CACHE.clear()
 
@@ -69,7 +69,7 @@ def dddp_solve(data, obj, solver='gurobi',max_iters=50, tol=1e-4, *, non_linear=
     # Pre-build all stage models (one-time cost)
     print("Building cached models for all stages...")
     for stage_idx in range(1, num_stages + 1):
-        MODEL_CACHE[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer))] = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer)
+        MODEL_CACHE[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))] = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     print(f"Built {num_stages} cached models.")
 
     # Cuts storage: cuts[stage] = list of (alpha, beta) tuples
@@ -94,7 +94,9 @@ def dddp_solve(data, obj, solver='gurobi',max_iters=50, tol=1e-4, *, non_linear=
                 data,
                 obj,
                 solver=solver,
+                alpha_scd=alpha_scd,
                 non_linear=non_linear, p_control=p_control, integer=integer,
+                single_battery_variable=single_battery_variable
             )
             stage_results[stage_idx] = {"Q": Q, "beta": beta, "B_end": B_end, "stage_obj": stage_obj}
             total_obj_value += stage_obj
@@ -111,7 +113,9 @@ def dddp_solve(data, obj, solver='gurobi',max_iters=50, tol=1e-4, *, non_linear=
                 data,
                 obj,
                 solver=solver,
+                alpha_scd=alpha_scd,
                 non_linear=non_linear, p_control=p_control, integer=integer,
+                single_battery_variable=single_battery_variable
             )
 
             Q_exp = Q_s
@@ -140,7 +144,7 @@ def dddp_solve(data, obj, solver='gurobi',max_iters=50, tol=1e-4, *, non_linear=
 
     return LB_k, cuts, LB_container, UB_container
 
-def collect_converged_solution(data, cuts, obj, *, non_linear=False, p_control=False, integer=False):
+def collect_converged_solution(data, cuts, obj, *, solver='gurobi',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
     initial_b = data['b0']
@@ -159,10 +163,11 @@ def collect_converged_solution(data, cuts, obj, *, non_linear=False, p_control=F
             cuts.get(f'cuts_{stage_idx}', {}),
             data,
             obj,
+            solver=solver,alpha_scd=alpha_scd,
             non_linear=non_linear, p_control=p_control, integer=integer,
         )
 
-        cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer))
+        cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))
         m = MODEL_CACHE[cache_key]
         stage_vars = store_results(m)
 

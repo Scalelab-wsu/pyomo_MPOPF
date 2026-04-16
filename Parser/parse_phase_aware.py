@@ -46,9 +46,9 @@ def parse_all_data_phase_aware(bus, branch, gen=None, bat=None, loadshape=None, 
     v_swing = {(t, i, ph): bus_lookup.at[i, f"v_{ph}"] for t in Tset for i in substationBus for ph in bus_phases[i]}
 
     ## parsing branch_data
+    branch = branch.loc[branch.status != 'OPEN'].copy()
     branch['from_name'] = branch['from_name'].astype(str)
     branch['to_name'] = branch['to_name'].astype(str)
-    branch = branch.loc[branch.status != 'OPEN']
     branch_set = set(zip(branch['from_name'], branch['to_name']))
 
     # Extract phase information for each branch

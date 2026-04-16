@@ -10,14 +10,14 @@ def init_worker():
     global _model_cache
     _model_cache = {}
 
-def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solution=None, non_linear=False, p_control=False, integer=False):
+def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solution=None, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     global _model_cache
     # Cache models by (area, formulation) so toggling flags builds the right model
     cache_key = (area_name, bool(non_linear), bool(p_control), bool(integer))
 
     if cache_key not in _model_cache:
         data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
-        model = build_pyomo_model(data_areas, obj_fcn,stage_idx=None,non_linear=non_linear, p_control=p_control, integer=integer)
+        model = build_pyomo_model(data_areas, obj_fcn,stage_idx=None,non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
         _model_cache[cache_key] = model
     else:
         model = _model_cache[cache_key]
@@ -168,7 +168,7 @@ def exclude_dummies(dopfVals):
             filtered[var] = dct
     return filtered
 
-def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3,max_iterations=50, alpha=0, non_linear=False, p_control=False, integer=False):
+def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3,max_iterations=50, alpha=0, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     shared_vars = initialize_shared(area_info, data)
     convergence = {}
     objective = {}
@@ -180,7 +180,7 @@ def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3
             results = pool.starmap(
                 process_area,
                 [
-                    (data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear, p_control, integer)
+                    (data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear, p_control, integer,single_battery_variable)
                     for area in areas
                 ],
             )
