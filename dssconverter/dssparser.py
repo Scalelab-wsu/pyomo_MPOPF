@@ -760,6 +760,7 @@ class DSSParser:
                 {
                     "id": [],
                     "name": [],
+                    "bus":[],
                     "pa": [],
                     "pb": [],
                     "pc": [],
@@ -809,7 +810,29 @@ class DSSParser:
         sbase = self.s_base
 
         if self.dss.Storages.Count() == 0:
-            return pd.DataFrame()
+            return pd.DataFrame({
+                "id":[],
+                "name":[],
+                "phases":[],
+                "Pb_max_a":[],
+                "Pb_max_b": [],
+                "Pb_max_c": [],
+                "hmax_a":[],
+                "hmax_b": [],
+                "hmax_c": [],
+                "bmin_a":[],
+                "bmin_b": [],
+                "bmin_c": [],
+                "bmax_a":[],
+                "bmax_b": [],
+                "bmax_c": [],
+                "nc_a":[],
+                "nc_b": [],
+                "nc_c": [],
+                "nd_a": [],
+                "nd_b": [],
+                "nd_c": [],
+             })
 
         storage_df = self.dss.utils.class_to_dataframe("Storage")
         storage_df.columns = storage_df.columns.str.lower()
@@ -857,6 +880,7 @@ class DSSParser:
             bat_data.append(each_bat)
 
         bat_df = pd.DataFrame(bat_data)
+
         bat_df = (
             bat_df.groupby("id", as_index=False)
             .agg({col: "first" if col in ("id", "name") else "sum"

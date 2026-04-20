@@ -8,7 +8,8 @@ def savedsscsv(
 ) -> None:
     if folderpath is None:
         # folderpath = os.path.join(wd,"..","rawData","IEEE_123_other", "csvs")
-        folderpath = os.path.join(wd, "..", "rawData", "IEEE_9500", "csvs")
+        # folderpath = os.path.join(wd, "..", "rawData", "IEEE_9500", "csvs")
+        folderpath = os.path.join(wd, "..", "rawData", "IEEE_13", "csvs")
         Path(folderpath).mkdir(parents=True, exist_ok=overwrite)
     else:
         folderpath = os.path.abspath(folderpath)
@@ -22,7 +23,8 @@ def savedsscsv(
 
 def main() -> None:
     # master_path = os.path.join(wd, "..", "rawData", "IEEE_123_other", "dss_scripts", "Master.dss")
-    master_path = os.path.join(wd,"..","rawData","IEEE_9500", "dss_scripts","Master.dss")
+    # master_path = os.path.join(wd,"..","rawData","IEEE_9500", "dss_scripts","Master.dss")
+    master_path = os.path.join(wd, "..", "rawData", "IEEE_13", "dss_scripts", "Master.dss")
     dss_data = DSSParser(master_path)
     savedsscsv(dss_data)
 

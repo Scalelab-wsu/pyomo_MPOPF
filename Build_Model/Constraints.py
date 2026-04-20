@@ -135,6 +135,14 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
 
         model.current_magnitude_socp = Constraint(model.Tset, model.branch_phase_pair_set, rule=current_magnitude_socp_rule)
 
+        # Current magnitude symmetry constraint
+        def current_magnitude_symmetry_rule(model, t, i, j, p, q):
+            if p == q:
+                return Constraint.Skip
+            return model.l[t, i, j, p, q]  - model.l[t, i, j, q, p] == 0
+
+        model.current_magnitude_symmetry = Constraint(model.Tset, model.branch_phase_pair_set, rule=current_magnitude_symmetry_rule)
+
     # Real power balance constraint
     def real_power_balance_rule(model, t, j, ph):
         substationBus = data['substationBus']
@@ -144,6 +152,7 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
         P_subs = model.P_subs[t, j, ph] if (j, ph) in model.substation_phase_set else 0
         PD_t = model.p_D[t, j, ph] if (j, ph) in model.gen_phase_set else 0
         p_load = model.p_L[t, j, ph]
+        # n_ph = len(bus_phases[j])
         if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
             P_c = model.P_c[t, j]/3 if j in model.Bset else 0
             P_d = model.P_d[t, j]/3 if j in model.Bset else 0

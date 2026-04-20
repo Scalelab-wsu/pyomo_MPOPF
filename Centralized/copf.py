@@ -154,9 +154,8 @@ def _compute_gaps(model):
 
 
 def _add_linear_directional_constraints_pvc(
-        model, solver, dir_pvc, e_pvc, lin_pvc, gamma
+        model, solver, dir_pvc, e_pvc, lin_pvc, gamma,gap_tol = 1e-4
 ):
-    gap_tol = 1e-4
     for t in model.Tset:
         for (i, j, ph) in model.branch_phase_set:
             key = (t, i, j, ph)
@@ -190,9 +189,8 @@ def _add_linear_directional_constraints_pvc(
 
 
 def _add_linear_directional_constraints_cmc(
-        model, solver, dir_cmc, e_cmc, lin_cmc, gamma
+        model, solver, dir_cmc, e_cmc, lin_cmc, gamma, gap_tol = 1e-4
 ):
-    gap_tol = 1e-4
     for t in model.Tset:
         for (i, j, p, q) in model.branch_phase_pair_set:
             if p == q:
@@ -231,7 +229,7 @@ def _add_linear_directional_constraints_cmc(
 # ---------------------------------------------------------------------------
 
 def _solve_isocp(prev_sol, data, obj, stage_idx, non_linear, isocp, p_control,
-                 integer, single_battery_variable, gamma, inner_tol, max_inner):
+                 integer, single_battery_variable, gamma, inner_tol, gap_tol, max_inner):
     socp_model, socp_persistent_solver = get_or_build_model(
         data=data,
         obj=obj,
@@ -260,16 +258,16 @@ def _solve_isocp(prev_sol, data, obj, stage_idx, non_linear, isocp, p_control,
         n_pos_pvc = sum(1 for v in e_pvc.values() if abs(v) > 0.0) ## Finding no. of pvc directional constraints to be added
         n_pos_cmc = sum(1 for v in e_cmc.values() if abs(v) > 0.0) ## Finding no. of cmc directional constraints to be added
         print(f"  [ISOCP] adding cuts — PVC: {n_pos_pvc}, CMC: {n_pos_cmc}")
-        socp_model,socp_persistent_solver,dir_pvc = _add_linear_directional_constraints_pvc(socp_model, socp_persistent_solver, dir_pvc, e_pvc, lin_pvc, gamma)
-        socp_model,socp_persistent_solver, dir_cmc = _add_linear_directional_constraints_cmc(socp_model, socp_persistent_solver, dir_cmc, e_cmc, lin_cmc, gamma)
+        socp_model,socp_persistent_solver,dir_pvc = _add_linear_directional_constraints_pvc(socp_model, socp_persistent_solver, dir_pvc, e_pvc, lin_pvc, gamma,gap_tol)
+        socp_model,socp_persistent_solver, dir_cmc = _add_linear_directional_constraints_cmc(socp_model, socp_persistent_solver, dir_cmc, e_cmc, lin_cmc, gamma,gap_tol)
         socp_model = initialize_model_variables(socp_model, prev_sol) ## initializing socp model with previous solution
-        # socp_model, socp_persistent_solver = apply_trust_region(socp_model, socp_persistent_solver,lin_pvc,lin_cmc,rho=0.01) ## Applying trust region to the current variables
+        # socp_model, socp_persistent_solver = apply_trust_region(socp_model, socp_persistent_solver,lin_pvc,lin_cmc,rho=0.1) ## Applying trust region to the current variables
         # socp_model.write("debug_model_socp_first_iter.lp", io_options={'symbolic_solver_labels': True})
         socp_persistent_solver.solve(socp_model, tee=False, save_results=False, warmstart=True)
         status = socp_persistent_solver._solver_model.Status
         if status not in (gp.GRB.OPTIMAL, gp.GRB.SUBOPTIMAL):
             print(f"  [ISOCP] solve failed at iter {k} — status {status}")
-            return prev_sol
+            return socp_model
 
         prev_sol = store_results(socp_model)
         e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(socp_model)
@@ -280,7 +278,7 @@ def _solve_isocp(prev_sol, data, obj, stage_idx, non_linear, isocp, p_control,
             return
 
     print(f"  [ISOCP] reached max_inner={max_inner} without convergence")
-    return prev_sol
+    return socp_model
 
 def solve_copf(
     data,
@@ -295,25 +293,38 @@ def solve_copf(
     single_battery_variable: bool = False,
     gamma: float = 0.9,
     inner_tol: float = 1e-4,
-    max_inner: int = 50,
+    gap_tol: float = 1e-4,
+    max_inner: int = 150,
 ) -> dict:
 
-    ## Solving Linear model
     model = build_pyomo_model(
-        data, obj, stage_idx, non_linear=False, isocp=False,
+        data, obj, stage_idx, non_linear=non_linear, isocp=isocp,
         p_control=p_control, integer=integer, single_battery_variable=single_battery_variable,
     )
     pyomo_solve(model, obj_func=obj, solver=solver, alpha_scd=alpha_scd)
-    prev_sol = store_results(model)
+    sol = store_results(model)
+
 
     if isocp:
-        prev_sol = _solve_isocp(
+        ## Solving Linear model
+        print(f"Entering ISOCP iteration")
+        model = build_pyomo_model(
+            data, obj, stage_idx, non_linear=False, isocp=False,
+            p_control=p_control, integer=integer, single_battery_variable=single_battery_variable,
+        )
+        pyomo_solve(model, obj_func=obj, solver=solver, alpha_scd=alpha_scd)
+        prev_sol = store_results(model)
+        print(f"solved Linear model")
+
+        socp_model = _solve_isocp(
             prev_sol, data=data, obj=obj, stage_idx=stage_idx,
             non_linear=non_linear, isocp=isocp,p_control=p_control, integer=integer,
             single_battery_variable=single_battery_variable,
             gamma=gamma,
             inner_tol=inner_tol,
+            gap_tol=gap_tol,
             max_inner=max_inner,
         )
+        sol = store_results(socp_model)
 
-    return prev_sol
+    return sol

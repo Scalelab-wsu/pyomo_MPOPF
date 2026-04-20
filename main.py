@@ -14,9 +14,10 @@ from Decomposition.Temporal.DDDP_M_cache import *
 import pandas as pd
 from Helpers import *
 
+# system_name = 'IEEE_13'
 system_name = 'IEEE_123_other'
 # system_name = 'IEEE_9500'
-area_info = eval(f'{system_name}' + '_area_info')
+# area_info = eval(f'{system_name}' + '_area_info')
 obj = loss_minimize_with_scd
 # obj = cost_minimize_with_scd
 # obj = voltage_deviation_minimize
@@ -40,21 +41,21 @@ if __name__ == "__main__":
     enAPP = False
     DDDP = False
     opendss = True
-    multi = True
+    multi = False
     non_linear = False
     isocp = True
     p_control = False
     integer = False
     single_battery_variable = False
     start_step = 1
-    n_steps = 1
+    n_steps = 24
     solver = 'ipopt' if non_linear else 'gurobi'
     alpha_scd=1e-2
 
     data_single = parse_all_data_phase_aware(bus_data, branch_data,n_steps=1) ## for 24 hrs default n_steps is 24 hrs
     data = parse_all_data_phase_aware(bus_data, branch_data,gen_data,bat_data,loadshape=loadshape_data,pvshape=pvshape_data,price=price,start_step=start_step,n_steps=n_steps) ## why using loadshape=None in full model gives better results?
-    # data['v_min'] = { node: 0.9 for node in data['v_min'].keys() }
-    # data['v_max'] = { node: 1.2 for node in data['v_max'].keys() }
+    data['v_min'] = { node: 0.9 for node in data['v_min'].keys() }
+    data['v_max'] = { node: 1.2 for node in data['v_max'].keys() }
     if multi:
         data = data
     else:
