@@ -53,18 +53,18 @@ IEEE_9500_area_info = {
         # Area connection information
         'is_root': True,
         'up_area': [],
-        'up_global_node_id': ['1'],
-        'up_local_node_id': ['1'],
+        'up_global_node_id': ['sourcebus'],
+        'up_local_node_id': ['sourcebus'],
         'down_areas': ['area2','area3'],
         'down_local_node_id': ['D12','D13'],
-        'down_global_node_id': ['21','26'],
+        'down_global_node_id': ['hvmv69sub2_lnb','hvmv69s2s3_2'],
         'data_dir' : 'area1'
     },
     'area2': {
         # Area connection information
         'is_root': False,
         'up_area': ['area1'],
-        'up_global_node_id': ['22'],
+        'up_global_node_id': ['hvmv69sub2_hsb'],
         'up_local_node_id': ['D21'],
         'down_areas': [],
         'down_local_node_id': [],
@@ -75,7 +75,7 @@ IEEE_9500_area_info = {
         # Area connection information
         'is_root': False,
         'up_area': ['area1'],
-        'up_global_node_id': ['27'],
+        'up_global_node_id': ['hvmv69sub3_hsb'],
         'up_local_node_id': ['D31'],
         'down_areas': [],
         'down_local_node_id': [],

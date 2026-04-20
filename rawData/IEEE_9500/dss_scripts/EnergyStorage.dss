@@ -1,8 +1,8 @@
 !New utility-scale battery storage systems
 
-New Storage.Battery1 Phases=3 bus1=m2001-ESS1 kVA=250 kV=0.480 KWrated=250 Kwhrated=500 %reserve=30 %stored=62.5 %reserve=30 %EffCharge=95 %EffDischarge=95 %idlingKW=0
+!New Storage.Battery1 Phases=3 bus1=m2001-ESS1 kVA=250 kV=0.480 KWrated=250 Kwhrated=500 %reserve=30 %stored=62.5 %reserve=30 %EffCharge=95 %EffDischarge=95 %idlingKW=0
 
-New Storage.Battery2 Phases=3 bus1=m2001-ESS2 kVA=250 kV=0.480 KWrated=250 Kwhrated=500 %reserve=30 %stored=62.5 %reserve=30 %EffCharge=95 %EffDischarge=95 %idlingKW=0
+!New Storage.Battery2 Phases=3 bus1=m2001-ESS2 kVA=250 kV=0.480 KWrated=250 Kwhrated=500 %reserve=30 %stored=62.5 %reserve=30 %EffCharge=95 %EffDischarge=95 %idlingKW=0
 
 New Storage.Battery3  bus1=L2673319.3 Phases=1 kV=7.2 kVA=10 KWrated=10 Kwhrated=20 %stored=62.5 %reserve=30 %EffCharge=95 %EffDischarge=95 %idlingKW=0
 New Storage.Battery4  bus1=L3197641.1 Phases=1 kV=7.2 kVA=10 KWrated=10 Kwhrated=20 %stored=62.5 %reserve=30 %EffCharge=95 %EffDischarge=95 %idlingKW=0

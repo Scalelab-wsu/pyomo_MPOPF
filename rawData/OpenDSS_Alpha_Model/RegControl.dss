@@ -1,0 +1,6 @@
+new RegControl._416:4523_C_RTC transformer=_416:4523_C_TNK winding=2 vreg=123.00 band=2.00 ptratio=63.50 ctprim=328.00 r=1.00 x=2.00 revr=0.00 revx=0.00 delay=30.00 tapdelay=30.00 vlimit=0.00
+edit transformer._416:4523_C_TNK wdg=2 tap=1.000000
+new RegControl._416:4523_A_RTC transformer=_416:4523_A_TNK winding=2 vreg=123.00 band=2.00 ptratio=63.50 ctprim=328.00 r=1.00 x=2.00 revr=0.00 revx=0.00 delay=30.00 tapdelay=30.00 vlimit=0.00
+edit transformer._416:4523_A_TNK wdg=2 tap=1.000000
+new RegControl._416:4523_B_RTC transformer=_416:4523_B_TNK winding=2 vreg=123.00 band=2.00 ptratio=63.50 ctprim=328.00 r=1.00 x=2.00 revr=0.00 revx=0.00 delay=30.00 tapdelay=30.00 vlimit=0.00
+edit transformer._416:4523_B_TNK wdg=2 tap=1.000000

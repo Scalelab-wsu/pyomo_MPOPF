@@ -22,7 +22,8 @@ class DSSParser:
     ) -> None:
         self.dss = dss
         self.dssfile = dssfile
-        self.dss.Text.Command(f"Redirect {self.dssfile}")
+        self.dss.Text.Command(f'Redirect "{self.dssfile}"')
+        self.dss.Text.Command("Solve") ## Added because some parsing were not correct
         # if self.dss.Topology.NumLoops() > 0:
         #     raise ValueError("Toplogy must be radial; topology has .")
         self.s_base = s_base
@@ -69,6 +70,20 @@ class DSSParser:
             if element_type not in ["line", "transformer", "reactor"]:
                 flag = self.dss.PDElements.Next()
                 continue
+
+            if element_type == "line" and self.dss.Lines.IsSwitch():
+                element_type = "switch"
+                switch_status = (
+                    "OPEN"
+                    if (
+                        self.dss.CktElement.IsOpen(1, 0)
+                        or self.dss.CktElement.IsOpen(2, 0)
+                    )
+                    else "CLOSED"
+                )
+                if switch_status == "OPEN":
+                    flag = self.dss.PDElements.Next()
+                    continue
             bus1 = self.dss.CktElement.BusNames()[0].split(".")[0]
             bus2 = self.dss.CktElement.BusNames()[1].split(".")[0]
             branches.append((bus1, bus2))
@@ -89,13 +104,7 @@ class DSSParser:
             dict[str,int]: dictionary with key as bus names and value as its index
         """
         _map = {bus: index + 1 for index, bus in enumerate(self.bus_names)}
-        self.save_bus_map(_map)
         return _map
-
-    def save_bus_map(self, bus_map):
-        """Save the bus mapping to a JSON file"""
-        with open("bus_index_map.json", "w") as f:
-            json.dump(bus_map, f)
 
     def bus_names_to_index_map_fun(self, bus: str) -> int:
         return self.bus_names_to_index_map[bus]
@@ -138,7 +147,7 @@ class DSSParser:
         flag = self.dss.Storages.First()
         bat_buses = set()
         while flag:
-            bat_buses.add(self.dss.Storages.Bus1().split(".")[0])
+            bat_buses.add(self.dss.CktElement.BusNames()[0].split(".")[0])
             flag = self.dss.Storages.Next()
         return bat_buses
 
@@ -226,7 +235,7 @@ class DSSParser:
                 flag = self.dss.PDElements.Next()
                 continue
             s_out = self._get_powers() * 1000 / self.s_base
-            if element_type not in ["line", "transformer"]:
+            if element_type not in ["line", "transformer", "reactor"]:
                 flag = self.dss.PDElements.Next()
                 continue
             bus1 = self.dss.CktElement.BusNames()[0].split(".")[0]
@@ -234,8 +243,10 @@ class DSSParser:
             self.dss.Circuit.SetActiveBus(bus2)
 
             each_power = dict(
-                fb=bus1,
-                tb=bus2,
+                fb=self.bus_names_to_index_map[bus1],
+                tb=self.bus_names_to_index_map[bus2],
+                from_name=bus1,
+                to_name=bus2,
                 a=s_out[0],
                 b=s_out[1],
                 c=s_out[2],
@@ -246,9 +257,21 @@ class DSSParser:
 
         # combine lines between identical buses.
         power_df = pd.DataFrame(power_data)
+        power_df.fb = power_df.fb.astype(int)
+        power_df.tb = power_df.tb.astype(int)
         power_df = (
             power_df.groupby(by=["fb", "tb"], as_index=False)
-            .agg({"fb": "first", "tb": "first", "a": "sum", "b": "sum", "c": "sum"})
+            .agg(
+                {
+                    "fb": "first",
+                    "tb": "first",
+                    "from_name": "first",
+                    "to_name": "first",
+                    "a": "sum",
+                    "b": "sum",
+                    "c": "sum",
+                }
+            )
             .reset_index(drop=True)
             .sort_values(by=["fb"], ignore_index=True)
             .sort_values(by=["tb"], ignore_index=True)
@@ -269,21 +292,17 @@ class DSSParser:
         if n_phases > 3:
             pass
         if (len(self.dss.CktElement.BusNames()[0].split(".")) == 4) or (
-            len(self.dss.CktElement.BusNames()[0].split(".")) == 1
-        ):
+            len(self.dss.CktElement.BusNames()[0].split(".")) == 1) or (
+            len(self.dss.CktElement.BusNames()[0].split(".")) == 5):
 
             # this is the condition check for three phase since three phase is either represented by bus_name.1.2.3 or bus_name
             z_matrix = (
                 np.array(self.dss.Lines.RMatrix())
                 + 1j * np.array(self.dss.Lines.XMatrix())
             ) * self.dss.Lines.Length()
-
             z_matrix = z_matrix.reshape(3, 3)
-
             return np.real(z_matrix), np.imag(z_matrix)
-
         else:
-
             # for other than 3 phases
             active_phases = [
                 int(phase) for phase in self.dss.CktElement.BusNames()[0].split(".")[1:]
@@ -299,7 +318,6 @@ class DSSParser:
                         * self.dss.Lines.Length()
                     )
                     counter = counter + 1
-
             return np.real(z_matrix), np.imag(z_matrix)
 
     def _get_reactor_zmatrix(self) -> tuple[np.ndarray, np.ndarray]:
@@ -314,7 +332,7 @@ class DSSParser:
 
         else:
             # for other than 3 phases
-            raise NotImplemented(
+            raise NotImplementedError(
                 "Parsing reactors with phases other than 3 not implemented"
             )
             # active_phases = [
@@ -331,8 +349,8 @@ class DSSParser:
             #             * self.dss.Lines.Length()
             #         )
             #         counter = counter + 1
-
-            return np.real(z_matrix), np.imag(z_matrix)
+            #
+            # return np.real(z_matrix), np.imag(z_matrix)
 
     def _get_powers(self):
         n_phases = self.dss.CktElement.NumPhases()
@@ -364,7 +382,6 @@ class DSSParser:
             switch_status = None
             element_type = self.dss.CktElement.Name().lower().split(".")[0]
             element_name = self.dss.CktElement.Name().lower().split(".")[1]
-            s_out = self._get_powers()
             z_matrix_real = np.zeros((3, 3))
             z_matrix_imag = np.zeros((3, 3))
             if element_type not in ["line", "transformer", "reactor"]:
@@ -457,6 +474,11 @@ class DSSParser:
                 z_matrix_real, z_matrix_imag = self._get_reactor_zmatrix()
             bus1 = self.dss.CktElement.BusNames()[0].split(".")[0]
             bus2 = self.dss.CktElement.BusNames()[1].split(".")[0]
+            fb = self.bus_names_to_index_map[bus1]
+            tb = self.bus_names_to_index_map[bus2]
+            if fb > tb:
+                fb, tb = tb, fb
+                bus1, bus2 = bus2, bus1
             self.dss.Circuit.SetActiveBus(bus2)
             base_kv_ln = self.dss.Bus.kVBase()
             z_base = (base_kv_ln * 1000) ** 2 / s_base
@@ -468,11 +490,6 @@ class DSSParser:
                 active_phases = self.dss.CktElement.BusNames()[0].split(".")[1:]
                 active_phases = np.array(active_phases).astype(int) - 1
                 phases = "".join("abc"[i] for i in active_phases)
-            fb = self.bus_names_to_index_map[bus1]
-            tb = self.bus_names_to_index_map[bus2]
-            # if fb > tb:
-            #     fb, tb = tb, fb
-            #     bus1, bus2 = bus2, bus1
             each_line = dict(
                 fb=fb,
                 tb=tb,
@@ -509,8 +526,8 @@ class DSSParser:
                 {
                     "fb": "max",
                     "tb": "max",
-                    "from_name": "sum",
-                    "to_name": "sum",
+                    "from_name": "first",
+                    "to_name": "first",
                     "raa": "sum",
                     "rab": "sum",
                     "rac": "sum",
@@ -524,7 +541,7 @@ class DSSParser:
                     "xbc": "sum",
                     "xcc": "sum",
                     "type": "first",
-                    "name": "sum",
+                    "name": "first",
                     "status": "first",
                     "s_base": "first",
                     "v_ln_base": "first",
@@ -705,7 +722,7 @@ class DSSParser:
             bus_name = self.dss.CktElement.BusNames()[0].split(".")[0]
             each_gen = dict(
                 id=self.bus_names_to_index_map[bus_name],
-                name=gen_name,
+                name=bus_name,
                 bus=bus_name,
             )
             phases = ""
@@ -741,24 +758,25 @@ class DSSParser:
         if len(gen_data) < 1:
             gen_df = pd.DataFrame(
                 {
-                    "id": [0],
-                    "name": ["none"],
-                    "pa": [0],
-                    "pb": [0],
-                    "pc": [0],
-                    "qa": [0],
-                    "qb": [0],
-                    "qc": [0],
-                    "sa_max": [0],
-                    "sb_max": [0],
-                    "sc_max": [0],
-                    "phases": ["abc"],
-                    "qa_max": [0],
-                    "qb_max": [0],
-                    "qc_max": [0],
-                    "qa_min": [0],
-                    "qb_min": [0],
-                    "qc_min": [0],
+                    "id": [],
+                    "name": [],
+                    "bus":[],
+                    "pa": [],
+                    "pb": [],
+                    "pc": [],
+                    "qa": [],
+                    "qb": [],
+                    "qc": [],
+                    "sa_max": [],
+                    "sb_max": [],
+                    "sc_max": [],
+                    "phases": [],
+                    "qa_max": [],
+                    "qb_max": [],
+                    "qc_max": [],
+                    "qa_min": [],
+                    "qb_min": [],
+                    "qc_min": [],
                 }
             )
         gen_df = gen_df.groupby(by=["id"], as_index=False).agg(
@@ -789,110 +807,86 @@ class DSSParser:
     ## including battery data as well
 
     def get_bat_data(self) -> pd.DataFrame:
-        """
-        Parses a .dss storage file and returns a Pandas DataFrame with all required columns.
+        sbase = self.s_base
 
-        Args:
-            filename (str): Path to the .dss storage file.
-            s_base (float): System base power in VA (default: 1 MVA).
+        if self.dss.Storages.Count() == 0:
+            return pd.DataFrame({
+                "id":[],
+                "name":[],
+                "phases":[],
+                "Pb_max_a":[],
+                "Pb_max_b": [],
+                "Pb_max_c": [],
+                "hmax_a":[],
+                "hmax_b": [],
+                "hmax_c": [],
+                "bmin_a":[],
+                "bmin_b": [],
+                "bmin_c": [],
+                "bmax_a":[],
+                "bmax_b": [],
+                "bmax_c": [],
+                "nc_a":[],
+                "nc_b": [],
+                "nc_c": [],
+                "nd_a": [],
+                "nd_b": [],
+                "nd_c": [],
+             })
 
-        Returns:
-            pd.DataFrame: DataFrame containing structured battery data.
-        """
-        # Get the working directory of this script
-        wd = os.path.dirname(os.path.abspath(__file__))
+        storage_df = self.dss.utils.class_to_dataframe("Storage")
+        storage_df.columns = storage_df.columns.str.lower()
 
-        # Construct the full file path for the Storage.dss file
-        filename = os.path.join(wd, "..", "rawData", "IEEE_9500", "dss_scripts", "EnergyStorage.dss")
-        s_base = self.s_base
-
-        # Regular expression to match key-value pairs
-        kv_pattern = re.compile(r"(\w+)\s*=\s*([\S]+)")
-
-        # List to store dictionaries with extracted data
         bat_data = []
 
-        # Read and parse the .dss file
-        with open(filename, "r") as file:
-            for line in file:
-                line = line.split("!")[0].strip()  # Remove comments and whitespace
-                if not line or not line.startswith("New Storage."):
-                    continue  # Skip non-storage lines
+        for elem_name, row in storage_df.iterrows():
+            bus_parts = str(row['bus1']).split('.')
+            bus_name = bus_parts[0].lower()
+            n_phases = int(row['phases'])
 
-                # Extract key-value pairs
-                storage_info = {match.group(1): match.group(2) for match in kv_pattern.finditer(line)}
+            if n_phases == 3 or len(bus_parts) == 1:
+                active_phases = [0, 1, 2]
+            else:
+                active_phases = [int(p) - 1 for p in bus_parts[1:]]
 
-                # Extract bus name (remove phases if included)
-                bus_name = storage_info.get("bus1", "").split(".")[0].lower()
+            kw_rated = float(row['kwrated'])
+            kwh_rated = float(row['kwhrated'])
+            eff_c = float(row['%effcharge']) / 100.0
+            eff_d = float(row['%effdischarge']) / 100.0
+            pct_res = float(row['%reserve']) / 100.0
 
-                bus_phases = storage_info.get("bus1", "").split(".")[1:]
-                n_phases = len(bus_phases)
-                if len(bus_phases) == 0 or len(bus_phases) >= 3:
-                    n_phases = 3
-                active_phases = np.array([0, 1, 2])
-                if n_phases < 3:
-                    active_phases = (
-                            np.array(storage_info.get("bus1", "").split(".")[1:]).astype(int)- 1)
+            each_bat = {
+                "id": self.bus_names_to_index_map[bus_name],
+                "name": bus_name,
+            }
 
-                # # Determine number of phases (default is 3 for three-phase systems)
-                # n_phases = 3 if "Phases" not in storage_info else int(storage_info["Phases"])
-                # active_phases = ([int(storage_info.get("bus1", "").split(".")[1]) - 1] if "." in storage_info.get("bus1", "") else np.arange(n_phases))
+            phases = ""
+            for ph_idx in active_phases:
+                ph = "abc"[ph_idx]
+                each_bat[f"Pb_max_{ph}"] = (kw_rated / n_phases) / 1000 / sbase * 1e6
+                each_bat[f"hmax_{ph}"] = (kw_rated / n_phases) / 1000 / sbase * 1e6
+                each_bat[f"bmin_{ph}"] = pct_res * (kwh_rated / n_phases) / 1000 / sbase * 1e6
+                each_bat[f"bmax_{ph}"] = 0.95 * (kwh_rated / n_phases) / 1000 / sbase * 1e6
+                each_bat[f"nc_{ph}"] = eff_c
+                each_bat[f"nd_{ph}"] = eff_d
+                phases += ph
 
-                # Convert numerical values
-                for key in ["KWrated", "Kwhrated", "kVA", "%reserve", "%stored", "EffCharge", "EffDischarge"]:
-                    if key in storage_info:
-                        storage_info[key] = float(storage_info[key])
+            for ph in "abc":
+                if ph not in phases:
+                    for key in ["Pb_max", "hmax", "bmin", "bmax", "nc", "nd"]:
+                        each_bat[f"{key}_{ph}"] = 0.0
 
-                # Initialize battery data dictionary
-                each_bat = {
-                    "id": self.bus_names_to_index_map[bus_name],
-                    "name": bus_name,
-                    # "phases": ("".join("abc"[:n_phases]) if n_phases == 3 else "".join("abc"[i] for i in active_phases)),
-                }
+            each_bat["phases"] = phases
+            bat_data.append(each_bat)
 
-                # Dynamically compute phase-specific and default data
-                phases = ""
-                for phase_id in active_phases:
-                    ph = "abc"[phase_id]
-                    each_bat[f"Pb_max_{ph}"] = storage_info.get("KWrated", 0) / n_phases * 1000 / s_base
-                    each_bat[f"hmax_{ph}"] = (storage_info.get("KWrated", 0) * storage_info.get("PF", 1.0)) / n_phases * 1000 / s_base
-                    each_bat[f"bmin_{ph}"] = 0.3 * storage_info.get("Kwhrated", 0) * 1000 / s_base
-                    each_bat[f"bmax_{ph}"] = 0.95 * storage_info.get("Kwhrated", 0) * 1000 / s_base
-                    each_bat[f"nc_{ph}"] = storage_info.get("EffCharge", 0) /100
-                    each_bat[f"nd_{ph}"] = storage_info.get("EffDischarge", 100) /100
-                    phases += ph
-                each_bat["phases"] = phases
-
-                # Fill in missing phase data with 0
-                for ph in "abc":
-                    if ph not in phases:
-                        each_bat[f"Pb_max_{ph}"] = 0
-                        each_bat[f"hmax_{ph}"] = 0
-                        each_bat[f"bmin_{ph}"] = 0
-                        each_bat[f"bmax_{ph}"] = 0
-                        each_bat[f"nc_{ph}"] = 0
-                        each_bat[f"nd_{ph}"] = 0
-
-                bat_data.append(each_bat)
-        # Convert list to Pandas DataFrame
         bat_df = pd.DataFrame(bat_data)
 
-        # If DataFrame is empty, assign zero values
-        if bat_df.empty:
-            bat_df = pd.DataFrame(
-                {
-                    "id": [0],
-                    "name": ["none"],
-                    "phases": ["abc"],
-                    "nc_a": [0], "nc_b": [0], "nc_c": [0],
-                    "nd_a": [0], "nd_b": [0], "nd_c": [0],
-                    "hmax_a": [0], "hmax_b": [0], "hmax_c": [0],
-                    "Pb_max_a": [0], "Pb_max_b": [0], "Pb_max_c": [0],
-                    "bmin_a": [0], "bmin_b": [0], "bmin_c": [0],
-                    "bmax_a": [0], "bmax_b": [0], "bmax_c": [0]
-                }
-            )
-
+        bat_df = (
+            bat_df.groupby("id", as_index=False)
+            .agg({col: "first" if col in ("id", "name") else "sum"
+                  for col in bat_df.columns})
+            .sort_values("id", ignore_index=True)
+        )
         return bat_df
 
     def get_cap_data(self) -> pd.DataFrame:
@@ -949,12 +943,12 @@ class DSSParser:
         if len(cap_data) < 1:
             cap_df = pd.DataFrame(
                 {
-                    "id": [0],
-                    "name": [0],
-                    "qa": [0],
-                    "qb": [0],
-                    "qc": [0],
-                    "phases": ["abc"],
+                    "id": [],
+                    "name": [],
+                    "qa": [],
+                    "qb": [],
+                    "qc": [],
+                    "phases": [],
                 }
             )
 
@@ -972,22 +966,32 @@ class DSSParser:
 
     def get_reg_data(self) -> pd.DataFrame:
         s_base = self.s_base
-        flag = self.dss.Transformers.First()
         reg_data = []
+        reg_control_names = self.dss.RegControls.AllNames()
+        reg_names = []
+        if len(reg_control_names) != 0:
+            dss_reg_df = self.dss.utils.regcontrols_to_dataframe()
+            reg_names = dss_reg_df.Transformer.to_list()
+        flag = self.dss.Transformers.First()
         while flag:
-            switch_status = None
             element_type = self.dss.CktElement.Name().lower().split(".")[0]
             element_name = self.dss.CktElement.Name().lower().split(".")[1]
-            z_matrix_real = z_matrix_imag = np.zeros((3, 3))
             if element_type not in ["transformer"]:
-                flag = self.dss.PDElements.Next()
+                flag = self.dss.Transformers.Next()
+                continue
+            if element_name not in reg_names:
+                flag = self.dss.Transformers.Next()
                 continue
             bus1 = self.dss.CktElement.BusNames()[0].split(".")[0]
-            bus2 = self.dss.CktElement.BusNames()[1].split(".")[0]
+            bus2 = self.dss.CktElement.BusNames()[-1].split(".")[0]
+            fb = self.bus_names_to_index_map[bus1]
+            tb = self.bus_names_to_index_map[bus2]
+            tap_direction = 1
+            if fb > tb:
+                fb, tb = tb, fb
+                bus1, bus2 = bus2, bus1
+                tap_direction = -1
             self.dss.Circuit.SetActiveBus(bus2)
-            # self.dss.Circuit.SetActiveBus(self.dss.Lines.Bus2().split(".")[0])
-            base_kv_ln = self.dss.Bus.kVBase()
-            z_base = (base_kv_ln * 1000) ** 2 / s_base
             line_phases = self.dss.CktElement.BusNames()[0].split(".")[1:]
             line_phases = sorted(line_phases)
 
@@ -997,17 +1001,16 @@ class DSSParser:
                 # three phases are usually represented by either .1.2.3 or nothing in opendss
                 # for second case we should ensure that 3 phase is actually represented
                 line_phases = "[1, 2, 3]"
-            try:
-
-                line_phase = self.num_phase_map[line_phases]
-            except:
-                breakpoint()
-            tap = self.dss.Transformers.Tap()
+            line_phase = self.num_phase_map[line_phases]
+            ratio = self.dss.Transformers.Tap()
+            tap = (ratio - 1) / 0.00625 * tap_direction
             each_reg = {}
             each_reg["fb"] = self.bus_names_to_index_map[bus1]
             each_reg["tb"] = self.bus_names_to_index_map[bus2]
+            each_reg["from_name"] = bus1
+            each_reg["to_name"] = bus2
             for ph in line_phase:
-                each_reg[f"ratio_{ph}"] = tap
+                each_reg[f"tap_{ph}"] = int(round(tap))
             each_reg["phases"] = line_phase
             reg_data.append(each_reg)
 
@@ -1018,29 +1021,33 @@ class DSSParser:
         if len(reg_data) < 1:
             reg_df = pd.DataFrame(
                 {
-                    "fb": [0],
-                    "tb": [0],
-                    "ratio_a": [0],
-                    "ratio_b": [0],
-                    "ratio_c": [0],
-                    "phases": ["abc"],
+                    "fb": [],
+                    "tb": [],
+                    "from_name": [],
+                    "to_name": [],
+                    "tap_a": [],
+                    "tap_b": [],
+                    "tap_c": [],
+                    "phases": [],
                 }
             )
         reg_df = reg_df.groupby(["fb", "tb"]).agg(
             {
                 "fb": "first",
                 "tb": "first",
-                "ratio_a": "max",
-                "ratio_b": "max",
-                "ratio_c": "max",
+                "from_name": "first",
+                "to_name": "first",
+                "tap_a": "max",
+                "tap_b": "max",
+                "tap_c": "max",
                 "phases": "sum",
             }
         )
         reg_df = reg_df.reset_index(drop=True)
         reg_df = reg_df.sort_values(by="tb", ignore_index=True).fillna(1)
-        reg_df["tap_a"] = (reg_df["ratio_a"] - 1) / 0.00625
-        reg_df["tap_b"] = (reg_df["ratio_b"] - 1) / 0.00625
-        reg_df["tap_c"] = (reg_df["ratio_c"] - 1) / 0.00625
+        # reg_df["tap_a"] = (reg_df["ratio_a"] - 1) / 0.00625
+        # reg_df["tap_b"] = (reg_df["ratio_b"] - 1) / 0.00625
+        # reg_df["tap_c"] = (reg_df["ratio_c"] - 1) / 0.00625
         return reg_df
 
     def _get_loads(self) -> dict[str, list[float]]:
@@ -1056,10 +1063,27 @@ class DSSParser:
         )
         loads_flag = self.dss.Loads.First()
         load_data = []
+        model_to_cvr_map = {
+            1: (0, 0),
+            2: (2, 2),
+            3: (0, 2),
+            5: (1, 1),
+            6: (0, 0),
+            7: (0, 2),
+        }
         while loads_flag:
             connected_buses = self.dss.CktElement.BusNames()
             if len(connected_buses) > 1:
                 raise Exception("Multiple connected buses")
+            model = self.dss.Loads.Model()
+            cvr_p, cvr_q = model_to_cvr_map.get(model, 0)
+            if model == 4:  # exponential model
+                cvr_p = self.dss.Loads.CVRwatts()
+                cvr_q = self.dss.Loads.CVRvars()
+            if model == 8:  # zip model
+                zipv = self.dss.Loads.ZipV()
+                cvr_p = 2 * zipv[0] + zipv[1]
+                cvr_q = 2 * zipv[3] + zipv[4]
             bus = connected_buses[0]
             bus_name = bus.split(".")[0]
             each_load = {
@@ -1070,6 +1094,8 @@ class DSSParser:
                 "ql_b": 0,
                 "pl_c": 0,
                 "ql_c": 0,
+                "cvr_p": cvr_p,
+                "cvr_q": cvr_q,
             }
             bus_split = bus.split(".")
             each_load["id"] = self.bus_names_to_index_map[bus_name]
@@ -1146,6 +1172,3 @@ class DSSParser:
             kvar = q.loc[bus_id, phase_columns].sum() * self.s_base / 1000
             self.dss.Generators.kvar(kvar)
             flag = self.dss.Generators.Next()
-
-
-

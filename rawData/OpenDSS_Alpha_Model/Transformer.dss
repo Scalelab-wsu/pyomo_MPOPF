@@ -1,0 +1,390 @@
+new Transformer.AVA22958_AVA22977_AVA23008_TNK bank=AVA22958_AVA22977_AVA23008 xfmrcode=_45000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23095_N.1.2.3
+~ wdg=2 bus=_409-23095_N_SEC.1.2.3
+new Transformer.AVE01431_AVE01404_AVE01433_TNK bank=AVE01431_AVE01404_AVE01433 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23100_N.1.2.3
+~ wdg=2 bus=_409-23100_N_SEC.1.2.3
+new Transformer.AVE07855_AVE08233_AVE07832_TNK bank=AVE07855_AVE08233_AVE07832 xfmrcode=_150000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23127_N.1.2.3
+~ wdg=2 bus=_409-23127_N_SEC.1.2.3
+new Transformer.SE6469_____TNK bank=SE6469____ xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23019_N.1
+~ wdg=2 bus=_409-23019_N_SEC.1.0
+~ wdg=3 bus=_409-23019_N_SEC.0.2
+new Transformer.SC4977_AVA08919_SC4978_TNK bank=SC4977_AVA08919_SC4978 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23037_N.1.2.3
+~ wdg=2 bus=_409-23037_N_SEC.1.2.3
+new Transformer.SE3025_SE3024_SE3023_TNK bank=SE3025_SE3024_SE3023 xfmrcode=_150000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23080_N.1.2.3
+~ wdg=2 bus=_409-23080_N_SEC.1.2.3
+new Transformer.AVE01068_AVE01250_AVE01249_TNK bank=AVE01068_AVE01250_AVE01249 xfmrcode=_225000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23090_N.1.2.3
+~ wdg=2 bus=_409-23090_N_SEC.1.2.3
+new Transformer.AVC10829_AVC12818_AVC12597_TNK bank=AVC10829_AVC12818_AVC12597 xfmrcode=_150000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23073_N.1.2.3
+~ wdg=2 bus=_409-23073_N_SEC.1.2.3
+new Transformer.AVE31199_TNK bank=AVE31199 xfmrcode=_225000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-2625460_N.1.2.3
+~ wdg=2 bus=_391-2625460_LN.1.2.3
+new Transformer.AVE01310_AVE07138_AVA11747_TNK bank=AVE01310_AVE07138_AVA11747 xfmrcode=_200000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-1392532_N.1.2.3
+~ wdg=2 bus=_409-1392532_N_SEC.1.2.3
+new Transformer.AVE31154_TNK bank=AVE31154 xfmrcode=_1000000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-2545844_N.1.2.3
+~ wdg=2 bus=_391-2545844_LN.1.2.3
+new Transformer.AVA07453_AVA08187_AVA08183_TNK bank=AVA07453_AVA08187_AVA08183 xfmrcode=_125000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23035_N.1.2.3
+~ wdg=2 bus=_409-23035_N_SEC.1.2.3
+new Transformer.AVE01219_AVE01218_AVE01210_TNK bank=AVE01219_AVE01218_AVE01210 xfmrcode=_225000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-1262899_N.1.2.3
+~ wdg=2 bus=_409-1262899_N_SEC.1.2.3
+new Transformer.SF6904_TNK bank=SF6904 xfmrcode=_225000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-33198_N.1.2.3
+~ wdg=2 bus=_391-33198_LN.1.2.3
+new Transformer.AV04592_AV04594_AV04583_TNK bank=AV04592_AV04594_AV04583 xfmrcode=_150000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-719428_N.1.2.3
+~ wdg=2 bus=_409-719428_N_SEC.1.2.3
+new Transformer.AVA14412_AVA14386_AVA13094_TNK bank=AVA14412_AVA14386_AVA13094 xfmrcode=_45000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23043_N.1.2.3
+~ wdg=2 bus=_409-23043_N_SEC.1.2.3
+new Transformer.AVA08069___AVA09637_TNK bank=AVA08069___AVA09637 xfmrcode=_62500_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23074_N.1.3
+~ wdg=2 bus=_409-23074_N_SEC.1.3
+new Transformer.AVE08775_____TNK bank=AVE08775____ xfmrcode=_100000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23044_N.1
+~ wdg=2 bus=_409-23044_N_SEC.1.0
+~ wdg=3 bus=_409-23044_N_SEC.0.2
+new Transformer.SG0569_SG0564_SG0566_TNK bank=SG0569_SG0564_SG0566 xfmrcode=_100000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-176291_N.1.2.3
+~ wdg=2 bus=_409-176291_N_SEC.1.2.3
+new Transformer.AVE03123_AVE00949_AVE00583_TNK bank=AVE03123_AVE00949_AVE00583 xfmrcode=_125000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-22698_N.1.2.3
+~ wdg=2 bus=_409-22698_N_SEC.1.2.3
+new Transformer.AVA21375_____TNK bank=AVA21375____ xfmrcode=_37500_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23048_N.1
+~ wdg=2 bus=_409-23048_N_SEC.1.0
+~ wdg=3 bus=_409-23048_N_SEC.0.2
+new Transformer.AVA02769_AVA00242_AVA01057_TNK bank=AVA02769_AVA00242_AVA01057 xfmrcode=_55000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-22700_N.1.2.3
+~ wdg=2 bus=_409-22700_N_SEC.1.2.3
+new Transformer.AVE01512_AVA14455_AVA14489_TNK bank=AVE01512_AVA14455_AVA14489 xfmrcode=_55000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23096_N.1.2.3
+~ wdg=2 bus=_409-23096_N_SEC.1.2.3
+new Transformer.AVC21683_AVC21682_AVC21672_TNK bank=AVC21683_AVC21682_AVC21672 xfmrcode=_150000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_409-2046771_N.1.2.3
+~ wdg=2 bus=_409-2046771_N_SEC.1.2.3
+new Transformer._416:4523_C_TNK bank=_416-4523-0_C xfmrcode=_416:4523_C_TNKI
+~ wdg=1 bus=_416-4523_SN.3
+~ wdg=2 bus=_416-4523_LN.3
+new Transformer.____AVE09389_TNK bank=____AVE09389 xfmrcode=_75000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23023_N.3
+~ wdg=2 bus=_409-23023_N_SEC.1.0
+~ wdg=3 bus=_409-23023_N_SEC.0.2
+new Transformer.AVE30444_TNK bank=AVE30444 xfmrcode=_300000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-33252_N.1.2.3
+~ wdg=2 bus=_391-33252_LN.1.2.3
+new Transformer.__AV05378___TNK bank=__AV05378__ xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-704709_N.2
+~ wdg=2 bus=_409-704709_N_SEC.1.0
+~ wdg=3 bus=_409-704709_N_SEC.0.2
+new Transformer.AVA14074_AVA14043_AVA14172_TNK bank=AVA14074_AVA14043_AVA14172 xfmrcode=_3000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-1541093_N.1.2.3
+~ wdg=2 bus=_409-1541093_LN.1.2.3
+new Transformer.AVC10039_AVC10021_AVA25514_TNK bank=AVC10039_AVC10021_AVA25514 xfmrcode=_150000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-22703_N.1.2.3
+~ wdg=2 bus=_409-22703_N_SEC.1.2.3
+new Transformer.__AV01418___TNK bank=__AV01418__ xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_391-828099_N.2
+~ wdg=2 bus=_391-828099_LN.1.0
+~ wdg=3 bus=_391-828099_LN.0.2
+new Transformer.__AVA22339_AVE07797_TNK bank=__AVA22339_AVE07797 xfmrcode=_40000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-1446292_N.2.3
+~ wdg=2 bus=_409-1446292_N_SEC.2.3
+new Transformer.SE7491_TNK bank=SE7491 xfmrcode=_300000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-33189_N.1.2.3
+~ wdg=2 bus=_391-33189_LN.1.2.3
+new Transformer.__SB5486___TNK bank=__SB5486__ xfmrcode=_100000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-22385_N.2
+~ wdg=2 bus=_409-22385_N_SEC.1.0
+~ wdg=3 bus=_409-22385_N_SEC.0.2
+new Transformer.AVE10210_AVE09555_AVE10211_TNK bank=AVE10210_AVE09555_AVE10211 xfmrcode=_175000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-150372_N.1.2.3
+~ wdg=2 bus=_409-150372_N_SEC.1.2.3
+new Transformer._416:4523_A_TNK bank=_416-4523-0_A xfmrcode=_416:4523_A_TNKI
+~ wdg=1 bus=_416-4523_SN.1
+~ wdg=2 bus=_416-4523_LN.1
+new Transformer.AVE06473_____TNK bank=AVE06473____ xfmrcode=_37500_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1470612_N.1
+~ wdg=2 bus=_409-1470612_N_SEC.1.0
+~ wdg=3 bus=_409-1470612_N_SEC.0.2
+new Transformer.__SC3418_SC6717_TNK bank=__SC3418_SC6717 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23011_N.2.3
+~ wdg=2 bus=_409-23011_N_SEC.2.3
+new Transformer.AVE31183_TNK bank=AVE31183 xfmrcode=_225000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-2327239_N.1.2.3
+~ wdg=2 bus=_391-2327239_LN.1.2.3
+new Transformer.AVA01539_TNK bank=AVA01539 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-1214037_N.1.2.3
+~ wdg=2 bus=_391-1214037_LN.1.2.3
+new Transformer.__AVA20761_SF6498_TNK bank=__AVA20761_SF6498 xfmrcode=_90000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-22705_N.2.3
+~ wdg=2 bus=_409-22705_N_SEC.2.3
+new Transformer.SE2496_TNK bank=SE2496 xfmrcode=_225000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-33240_N.1.2.3
+~ wdg=2 bus=_391-33240_LN.1.2.3
+new Transformer.__AV01845___TNK bank=__AV01845__ xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_391-987477_N.2
+~ wdg=2 bus=_391-987477_LN.1.0
+~ wdg=3 bus=_391-987477_LN.0.2
+new Transformer.____AVE01090_TNK bank=____AVE01090 xfmrcode=_75000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23066_N.3
+~ wdg=2 bus=_409-23066_N_SEC.1.0
+~ wdg=3 bus=_409-23066_N_SEC.0.2
+new Transformer.AVE01070___AVE01697_TNK bank=AVE01070___AVE01697 xfmrcode=_112500_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23071_N.1.3
+~ wdg=2 bus=_409-23071_N_SEC.1.3
+new Transformer.____SC9539_TNK bank=____SC9539 xfmrcode=_75000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1033379_N.3
+~ wdg=2 bus=_409-1033379_N_SEC.1.0
+~ wdg=3 bus=_409-1033379_N_SEC.0.2
+new Transformer.L6064_____TNK bank=L6064____ xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23109_N.1
+~ wdg=2 bus=_409-23109_N_SEC.1.0
+~ wdg=3 bus=_409-23109_N_SEC.0.2
+new Transformer.SF7935_SF5170_SF7934_TNK bank=SF7935_SF5170_SF7934 xfmrcode=_300000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-748547_N.1.2.3
+~ wdg=2 bus=_409-748547_N_SEC.1.2.3
+new Transformer.AVA14379_____TNK bank=AVA14379____ xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23050_N.1
+~ wdg=2 bus=_409-23050_N_SEC.1.0
+~ wdg=3 bus=_409-23050_N_SEC.0.2
+new Transformer.AVA22434___AVE09624_TNK bank=AVA22434___AVE09624 xfmrcode=_40000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23078_N.1.3
+~ wdg=2 bus=_409-23078_N_SEC.1.3
+new Transformer.AVE09259_AVE06159_AVE09568_TNK bank=AVE09259_AVE06159_AVE09568 xfmrcode=_100000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23029_N.1.2.3
+~ wdg=2 bus=_409-23029_N_SEC.1.2.3
+new Transformer.__SG3507___TNK bank=__SG3507__ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_391-33247_N.2
+~ wdg=2 bus=_391-33247_LN.1.0
+~ wdg=3 bus=_391-33247_LN.0.2
+new Transformer.AVA07446_AVA07302_AVA07410_TNK bank=AVA07446_AVA07302_AVA07410 xfmrcode=_150000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23092_N.1.2.3
+~ wdg=2 bus=_409-23092_N_SEC.1.2.3
+new Transformer.__AVA11504___TNK bank=__AVA11504__ xfmrcode=_37500_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_391-33244_N.2
+~ wdg=2 bus=_391-33244_LN.1.0
+~ wdg=3 bus=_391-33244_LN.0.2
+new Transformer.__AVE11394_AVA21400_TNK bank=__AVE11394_AVA21400 xfmrcode=_90000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23115_N.2.3
+~ wdg=2 bus=_409-23115_N_SEC.2.3
+new Transformer.AVA14619_____TNK bank=AVA14619____ xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1333350_N.1
+~ wdg=2 bus=_409-1333350_N_SEC.1.0
+~ wdg=3 bus=_409-1333350_N_SEC.0.2
+new Transformer.AVA02057_TNK bank=AVA02057 xfmrcode=_150000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-1885212_N.1.2.3
+~ wdg=2 bus=_391-1885212_LN.1.2.3
+new Transformer.AVE08888_AV07660_AV08110_TNK bank=AVE08888_AV07660_AV08110 xfmrcode=_300000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_409-748548_N.1.2.3
+~ wdg=2 bus=_409-748548_N_SEC.1.2.3
+new Transformer.__ZF102___TNK bank=__ZF102__ xfmrcode=_1000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1200484_N.2
+~ wdg=2 bus=_409-1200484_LN.1.0
+~ wdg=3 bus=_409-1200484_LN.0.2
+new Transformer.____AVA25378_TNK bank=____AVA25378 xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23086_N.3
+~ wdg=2 bus=_409-23086_N_SEC.1.0
+~ wdg=3 bus=_409-23086_N_SEC.0.2
+new Transformer.__AVA14550___TNK bank=__AVA14550__ xfmrcode=_100000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23060_N.2
+~ wdg=2 bus=_409-23060_N_SEC.1.0
+~ wdg=3 bus=_409-23060_N_SEC.0.2
+new Transformer.____AVE07943_TNK bank=____AVE07943 xfmrcode=_37500_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1472851_N.3
+~ wdg=2 bus=_409-1472851_N_SEC.1.0
+~ wdg=3 bus=_409-1472851_N_SEC.0.2
+new Transformer.AVA08687_AVA01040_AVA06249_TNK bank=AVA08687_AVA01040_AVA06249 xfmrcode=_175000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23027_N.1.2.3
+~ wdg=2 bus=_409-23027_N_SEC.1.2.3
+new Transformer.AVA01454_TNK bank=AVA01454 xfmrcode=_300000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-1204452_N.1.2.3
+~ wdg=2 bus=_391-1204452_LN.1.2.3
+new Transformer.AVA25490_____TNK bank=AVA25490____ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23018_N.1
+~ wdg=2 bus=_409-23018_N_SEC.1.0
+~ wdg=3 bus=_409-23018_N_SEC.0.2
+new Transformer.____AVA21975_TNK bank=____AVA21975 xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_391-33215_N.3
+~ wdg=2 bus=_391-33215_LN.1.0
+~ wdg=3 bus=_391-33215_LN.0.2
+new Transformer.SE2952___SE2969_TNK bank=SE2952___SE2969 xfmrcode=_40000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23064_N.1.3
+~ wdg=2 bus=_409-23064_N_SEC.1.3
+new Transformer.____AVE09416_TNK bank=____AVE09416 xfmrcode=_75000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23083_N.3
+~ wdg=2 bus=_409-23083_N_SEC.1.0
+~ wdg=3 bus=_409-23083_N_SEC.0.2
+new Transformer.AVE31285_TNK bank=AVE31285 xfmrcode=_1500000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-2383188_N.1.2.3
+~ wdg=2 bus=_391-2383188_LN.1.2.3
+new Transformer.SF5116_SF5115_SF5128_TNK bank=SF5116_SF5115_SF5128 xfmrcode=_501000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_409-23017_N.1.2.3
+~ wdg=2 bus=_409-23017_N_SEC.1.2.3
+new Transformer.__BE0644_SF7374_TNK bank=__BE0644_SF7374 xfmrcode=_65000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23055_N.2.3
+~ wdg=2 bus=_409-23055_N_SEC.2.3
+new Transformer.____AVE06289_TNK bank=____AVE06289 xfmrcode=_37500_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1374934_N.3
+~ wdg=2 bus=_409-1374934_N_SEC.1.0
+~ wdg=3 bus=_409-1374934_N_SEC.0.2
+new Transformer.AVE01687_AVE01464_AVE01761_TNK bank=AVE01687_AVE01464_AVE01761 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23069_N.1.2.3
+~ wdg=2 bus=_409-23069_N_SEC.1.2.3
+new Transformer.SC9008_TNK bank=SC9008 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-146420_N.1.2.3
+~ wdg=2 bus=_391-146420_LN.1.2.3
+new Transformer.__AVE04971___TNK bank=__AVE04971__ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23030_N.2
+~ wdg=2 bus=_409-23030_N_SEC.1.0
+~ wdg=3 bus=_409-23030_N_SEC.0.2
+new Transformer.AVE02954___AVA17230_TNK bank=AVE02954___AVA17230 xfmrcode=_65000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-22382_N.1.3
+~ wdg=2 bus=_409-22382_N_SEC.1.3
+new Transformer.____AVA16960_TNK bank=____AVA16960 xfmrcode=_15000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1258403_N.3
+~ wdg=2 bus=_409-1258403_N_SEC.1.0
+~ wdg=3 bus=_409-1258403_N_SEC.0.2
+new Transformer.__SE4122_SE4207_TNK bank=__SE4122_SE4207 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23013_N.2.3
+~ wdg=2 bus=_409-23013_N_SEC.2.3
+new Transformer.AVE30724_TNK bank=AVE30724 xfmrcode=_500000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-2013548_N.1.2.3
+~ wdg=2 bus=_391-2013548_LN.1.2.3
+new Transformer.AVE09929_AVE11385_AVE09917_TNK bank=AVE09929_AVE11385_AVE09917 xfmrcode=_175000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-1487587_N.1.2.3
+~ wdg=2 bus=_409-1487587_N_SEC.1.2.3
+new Transformer.SA8497_SE8721___TNK bank=SA8497_SE8721__ xfmrcode=_65000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23049_N.1.2
+~ wdg=2 bus=_409-23049_N_SEC.1.2
+new Transformer.AVE09595_AVE01178_AVE07794_TNK bank=AVE09595_AVE01178_AVE07794 xfmrcode=_100000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23067_N.1.2.3
+~ wdg=2 bus=_409-23067_N_SEC.1.2.3
+new Transformer.AVC15754___AVC14950_TNK bank=AVC15754___AVC14950 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-1678771_N.1.3
+~ wdg=2 bus=_409-1678771_N_SEC.1.3
+new Transformer.__AVV00890___TNK bank=__AVV00890__ xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-2127443_N.2
+~ wdg=2 bus=_409-2127443_N_SEC.1.0
+~ wdg=3 bus=_409-2127443_N_SEC.0.2
+new Transformer.AVE31592_TNK bank=AVE31592 xfmrcode=_1000000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-2602721_N.1.2.3
+~ wdg=2 bus=_391-2602721_LN.1.2.3
+new Transformer.__AVC21495___TNK bank=__AVC21495__ xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-2046499_N.2
+~ wdg=2 bus=_409-2046499_N_SEC.1.0
+~ wdg=3 bus=_409-2046499_N_SEC.0.2
+new Transformer.AVC16240_AVC16403_AVV00169_TNK bank=AVC16240_AVC16403_AVV00169 xfmrcode=_225000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23045_N.1.2.3
+~ wdg=2 bus=_409-23045_N_SEC.1.2.3
+new Transformer._416:4523_B_TNK bank=_416-4523-0_B xfmrcode=_416:4523_B_TNKI
+~ wdg=1 bus=_416-4523_SN.2
+~ wdg=2 bus=_416-4523_LN.2
+new Transformer.AVE30240_TNK bank=AVE30240 xfmrcode=_300000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_391-1850027_N.1.2.3
+~ wdg=2 bus=_391-1850027_LN.1.2.3
+new Transformer.AVE03374_AVE02814_AVE03060_TNK bank=AVE03374_AVE02814_AVE03060 xfmrcode=_87500_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-22381_N.1.2.3
+~ wdg=2 bus=_409-22381_N_SEC.1.2.3
+new Transformer.AVE05084_AVE05086_AVE05093_TNK bank=AVE05084_AVE05086_AVE05093 xfmrcode=_45000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_409-1378451_N.1.2.3
+~ wdg=2 bus=_409-1378451_N_SEC.1.2.3
+new Transformer.__SC961_SC5503_TNK bank=__SC961_SC5503 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23012_N.2.3
+~ wdg=2 bus=_409-23012_N_SEC.2.3
+new Transformer.__SF7119_SF6516_TNK bank=__SF7119_SF6516 xfmrcode=_65000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-23112_N.2.3
+~ wdg=2 bus=_409-23112_N_SEC.2.3
+new Transformer.AVC10037_____TNK bank=AVC10037____ xfmrcode=_37500_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23123_N.1
+~ wdg=2 bus=_409-23123_N_SEC.1.0
+~ wdg=3 bus=_409-23123_N_SEC.0.2
+new Transformer.____SE2656_TNK bank=____SE2656 xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23085_N.3
+~ wdg=2 bus=_409-23085_N_SEC.1.0
+~ wdg=3 bus=_409-23085_N_SEC.0.2
+new Transformer.__AVE01015_AVE00351_TNK bank=__AVE01015_AVE00351 xfmrcode=_112500_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-1194789_N.2.3
+~ wdg=2 bus=_409-1194789_N_SEC.2.3
+new Transformer.__AVE01469___TNK bank=__AVE01469__ xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23063_N.2
+~ wdg=2 bus=_409-23063_N_SEC.1.0
+~ wdg=3 bus=_409-23063_N_SEC.0.2
+new Transformer.SF0146_SF0660_SF0662_TNK bank=SF0146_SF0660_SF0662 xfmrcode=_125000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23125_N.1.2.3
+~ wdg=2 bus=_409-23125_N_SEC.1.2.3
+new Transformer.AVE30778_TNK bank=AVE30778 xfmrcode=_500000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-2076644_N.1.2.3
+~ wdg=2 bus=_391-2076644_LN.1.2.3
+new Transformer.AVE10054_____TNK bank=AVE10054____ xfmrcode=_100000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23102_N.1
+~ wdg=2 bus=_409-23102_N_SEC.1.0
+~ wdg=3 bus=_409-23102_N_SEC.0.2
+new Transformer.____AVE01842_TNK bank=____AVE01842 xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-1365332_N.3
+~ wdg=2 bus=_409-1365332_N_SEC.1.0
+~ wdg=3 bus=_409-1365332_N_SEC.0.2
+new Transformer.__SC8217___TNK bank=__SC8217__ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23121_N.2
+~ wdg=2 bus=_409-23121_N_SEC.1.0
+~ wdg=3 bus=_409-23121_N_SEC.0.2
+new Transformer.SF0151_SE2595_AVE08046_TNK bank=SF0151_SE2595_AVE08046 xfmrcode=_175000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23087_N.1.2.3
+~ wdg=2 bus=_409-23087_N_SEC.1.2.3
+new Transformer.__AVE03335_AVE03473_TNK bank=__AVE03335_AVE03473 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23079_N.2.3
+~ wdg=2 bus=_409-23079_N_SEC.2.3
+new Transformer.AVA11860_TNK bank=AVA11860 xfmrcode=_750000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-1713300_N.1.2.3
+~ wdg=2 bus=_391-1713300_LN.1.2.3
+new Transformer.AVE01472_____TNK bank=AVE01472____ xfmrcode=_25000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23061_N.1
+~ wdg=2 bus=_409-23061_N_SEC.1.0
+~ wdg=3 bus=_409-23061_N_SEC.0.2
+new Transformer.SC3117_SC3067_SC3066_TNK bank=SC3117_SC3067_SC3066 xfmrcode=_200000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-23081_N.1.2.3
+~ wdg=2 bus=_409-23081_N_SEC.1.2.3
+new Transformer.AVA07306_____TNK bank=AVA07306____ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-22702_N.1
+~ wdg=2 bus=_409-22702_N_SEC.1.0
+~ wdg=3 bus=_409-22702_N_SEC.0.2
+new Transformer.AVE31344_TNK bank=AVE31344 xfmrcode=_1500000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-2383192_N.1.2.3
+~ wdg=2 bus=_391-2383192_LN.1.2.3
+new Transformer.SF9664_____TNK bank=SF9664____ xfmrcode=_100000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-425303_N.1
+~ wdg=2 bus=_409-425303_N_SEC.1.0
+~ wdg=3 bus=_409-425303_N_SEC.0.2
+new Transformer.__SE6671___TNK bank=__SE6671__ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23014_N.2
+~ wdg=2 bus=_409-23014_N_SEC.1.0
+~ wdg=3 bus=_409-23014_N_SEC.0.2
+new Transformer.AV06071_TNK bank=AV06071 xfmrcode=_300000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_391-851127_N.1.2.3
+~ wdg=2 bus=_391-851127_LN.1.2.3
+new Transformer.__AVC10743_AVC21223_TNK bank=__AVC10743_AVC21223 xfmrcode=_40000_kVA_13200V/120V_2PH_TI
+~ wdg=1 bus=_409-2041987_N.2.3
+~ wdg=2 bus=_409-2041987_N_SEC.2.3
+new Transformer.SG0952_SG0394_SG0396_TNK bank=SG0952_SG0394_SG0396 xfmrcode=_75000_kVA_13200V/277V_3PH_TI
+~ wdg=1 bus=_409-234868_N.1.2.3
+~ wdg=2 bus=_409-234868_N_SEC.1.2.3
+new Transformer.AVE04799_AVA18787_AVA18968_TNK bank=AVE04799_AVA18787_AVA18968 xfmrcode=_55000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-1450774_N.1.2.3
+~ wdg=2 bus=_409-1450774_N_SEC.1.2.3
+new Transformer.SE7479_SE7480_SE7478_TNK bank=SE7479_SE7480_SE7478 xfmrcode=_75000_kVA_13200V/120V_3PH_TI
+~ wdg=1 bus=_409-22383_N.1.2.3
+~ wdg=2 bus=_409-22383_N_SEC.1.2.3
+new Transformer.PA1412_____TNK bank=PA1412____ xfmrcode=_50000_kVA_13200V/120V_1PH_TI
+~ wdg=1 bus=_409-23103_N.1
+~ wdg=2 bus=_409-23103_N_SEC.1.0
+~ wdg=3 bus=_409-23103_N_SEC.0.2

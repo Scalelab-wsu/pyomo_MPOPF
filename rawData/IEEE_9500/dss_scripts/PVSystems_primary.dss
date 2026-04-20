@@ -29,8 +29,8 @@ New PVsystem.pv_1111 bus1=L3233412.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
 New PVsystem.pv_1183 bus1=L2990098.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
 New PVsystem.pv_1155 bus1=L3252336.2 Phases=1 kV=7.2 kVA=14.59 pmpp=14.59
 New PVsystem.pv_1041 bus1=L2803199.2 Phases=1 kV=7.2 kVA=19.45 pmpp=19.45
-New PVsystem.pv_1179 bus1=L3215203.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
-New PVsystem.pv_1113 bus1=L3215203.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
+!New PVsystem.pv_1179 bus1=L3215203.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
+!New PVsystem.pv_1113 bus1=L3215203.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
 New PVsystem.pv_1117 bus1=L2897768.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
 New PVsystem.pv_1035 bus1=L2935551.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
 New PVsystem.pv_1083 bus1=L3179650.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
@@ -172,6 +172,6 @@ New PVsystem.pv_1177 bus1=L2673308.2 Phases=1 kV=7.2 kVA=14.59 pmpp=14.59
 New PVsystem.pv_1081 bus1=L2897767.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
 New PVsystem.pv_1115 bus1=L3728043.1 Phases=1 kV=7.2 kVA=13.3 pmpp=13.3
 New PVsystem.pv_1069 bus1=L3216368.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1049 bus1=L2814529.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
-New PVsystem.pv_1063 bus1=L2814529.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
+!New PVsystem.pv_1049 bus1=L2814529.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
+!New PVsystem.pv_1063 bus1=L2814529.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
 New PVsystem.pv_1163 bus1=L2879078.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32

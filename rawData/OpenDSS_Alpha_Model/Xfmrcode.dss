@@ -1,0 +1,152 @@
+new Xfmrcode._1000000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.909693 xht=0.909693 xlt=2606.576298 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=1000.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=1000.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=1000.0 %r=0.000000
+new Xfmrcode._200000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.229568 xht=0.229568 xlt=2777.777666 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=200.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=200.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=200.0 %r=0.000000
+new Xfmrcode._225000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.258264 xht=0.258264 xlt=586.479271 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=225.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=225.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=225.0 %r=0.000000
+new Xfmrcode._416:4523_C_TNKI windings=2 phases=1 xhl=0.000200 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.600 kva=250.0 %r=0.000000
+~ wdg=2 conn=w kv=7.600 kva=250.0 %r=0.000000
+new Xfmrcode._40000_kVA_13200V/120V_2PH_TI windings=3 phases=3 xhl=0.045914 xht=0.045914 xlt=555.554416 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=40.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=40.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=40.0 %r=0.000000
+new Xfmrcode._37500_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.043044 xht=0.043044 xlt=520.832497 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=37.5 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=37.5 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=37.5 %r=0.000000
+new Xfmrcode._75000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.086088 xht=0.086088 xlt=1041.666278 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=75.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=75.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=75.0 %r=0.000000
+new Xfmrcode._75000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.086088 xht=0.086088 xlt=195.491158 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=75.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=75.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=75.0 %r=0.000000
+new Xfmrcode._1500000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=1.573044 xht=1.573044 xlt=3909.864526 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=1500.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=1500.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=1500.0 %r=0.000000
+new Xfmrcode._100000_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.114784 xht=0.114784 xlt=1388.888629 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=100.0 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=100.0 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=100.0 %r=0.000000
+new Xfmrcode._500000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.573921 xht=0.573921 xlt=1303.288008 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=500.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=500.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=500.0 %r=0.000000
+new Xfmrcode._75000_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.086088 xht=0.086088 xlt=1041.666278 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=75.0 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=75.0 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=75.0 %r=0.000000
+new Xfmrcode._300000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.344353 xht=0.344353 xlt=4166.666608 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=300.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=300.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=300.0 %r=0.000000
+new Xfmrcode._45000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.051653 xht=0.051653 xlt=117.291675 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=45.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=45.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=45.0 %r=0.000000
+new Xfmrcode._150000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.172176 xht=0.172176 xlt=2083.333204 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=150.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=150.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=150.0 %r=0.000000
+new Xfmrcode._175000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.200872 xht=0.200872 xlt=2430.555389 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=175.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=175.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=175.0 %r=0.000000
+new Xfmrcode._1000_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.001148 xht=0.001148 xlt=13.888889 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=1.0 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=1.0 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=1.0 %r=0.000000
+new Xfmrcode._501000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.575069 xht=0.575069 xlt=1305.894352 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=501.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=501.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=501.0 %r=0.000000
+new Xfmrcode._750000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.501116 xht=0.501116 xlt=1954.932169 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=750.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=750.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=750.0 %r=0.000000
+new Xfmrcode._15000_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.017218 xht=0.017218 xlt=208.330429 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=15.0 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=15.0 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=15.0 %r=0.000000
+new Xfmrcode._3000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.003444 xht=0.003444 xlt=41.302072 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=3.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=3.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=3.0 %r=0.000000
+new Xfmrcode._45000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.051653 xht=0.051653 xlt=624.999200 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=45.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=45.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=45.0 %r=0.000000
+new Xfmrcode._300000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.344353 xht=0.344353 xlt=781.972604 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=300.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=300.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=300.0 %r=0.000000
+new Xfmrcode._50000_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.057392 xht=0.057392 xlt=694.443724 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=50.0 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=50.0 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=50.0 %r=0.000000
+new Xfmrcode._125000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.143480 xht=0.143480 xlt=1736.110888 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=125.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=125.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=125.0 %r=0.000000
+new Xfmrcode._55000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.063131 xht=0.063131 xlt=763.887903 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=55.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=55.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=55.0 %r=0.000000
+new Xfmrcode._62500_kVA_13200V/120V_2PH_TI windings=3 phases=3 xhl=0.071740 xht=0.071740 xlt=868.054884 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=62.5 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=62.5 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=62.5 %r=0.000000
+new Xfmrcode._416:4523_B_TNKI windings=2 phases=1 xhl=0.000200 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.600 kva=250.0 %r=0.000000
+~ wdg=2 conn=w kv=7.600 kva=250.0 %r=0.000000
+new Xfmrcode._65000_kVA_13200V/120V_2PH_TI windings=3 phases=3 xhl=0.074610 xht=0.074610 xlt=902.777181 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=65.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=65.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=65.0 %r=0.000000
+new Xfmrcode._112500_kVA_13200V/120V_2PH_TI windings=3 phases=3 xhl=0.129132 xht=0.129132 xlt=1562.499694 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=112.5 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=112.5 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=112.5 %r=0.000000
+new Xfmrcode._25000_kVA_13200V/120V_1PH_TI windings=3 phases=1 xhl=0.028696 xht=0.028696 xlt=347.220782 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.621 kva=25.0 %r=0.000000
+~ wdg=2 conn=w kv=0.120 kva=25.0 %r=0.000000
+~ wdg=3 conn=w kv=0.120 kva=25.0 %r=0.000000
+new Xfmrcode._100000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.114784 xht=0.114784 xlt=1388.888629 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=100.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=100.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=100.0 %r=0.000000
+new Xfmrcode._1000000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.909693 xht=0.909693 xlt=13888.888871 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=1000.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=1000.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=1000.0 %r=0.000000
+new Xfmrcode._150000_kVA_13200V/277V_3PH_TI windings=3 phases=3 xhl=0.172176 xht=0.172176 xlt=390.985771 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=150.0 %r=0.000000
+~ wdg=2 conn=w kv=0.48 kva=150.0 %r=0.000000
+~ wdg=3 conn=w kv=0.48 kva=150.0 %r=0.000000
+new Xfmrcode._90000_kVA_13200V/120V_2PH_TI windings=3 phases=3 xhl=0.103306 xht=0.103306 xlt=1249.999643 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=90.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=90.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=90.0 %r=0.000000
+new Xfmrcode._416:4523_A_TNKI windings=2 phases=1 xhl=0.000200 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=7.600 kva=250.0 %r=0.000000
+~ wdg=2 conn=w kv=7.600 kva=250.0 %r=0.000000
+new Xfmrcode._87500_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.100436 xht=0.100436 xlt=1215.277390 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=87.5 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=87.5 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=87.5 %r=0.000000
+new Xfmrcode._225000_kVA_13200V/120V_3PH_TI windings=3 phases=3 xhl=0.258264 xht=0.258264 xlt=3124.999922 %imag=0.000 %noloadloss=0.000
+~ wdg=1 conn=w kv=13.200 kva=225.0 %r=0.000000
+~ wdg=2 conn=w kv=0.208 kva=225.0 %r=0.000000
+~ wdg=3 conn=w kv=0.208 kva=225.0 %r=0.000000
+
+
+

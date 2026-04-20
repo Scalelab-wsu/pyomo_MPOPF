@@ -12,14 +12,14 @@ def init_worker():
     global _model_cache
     _model_cache = {}
 
-def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj_fcn,prev_solution = None, non_linear=False, p_control=False, integer=False):
+def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj_fcn,solver,alpha_scd=1e-3,prev_solution = None, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     global _model_cache
     # Cache models by (area, formulation) so toggling flags builds the right model
     cache_key = (area_name, bool(non_linear), bool(p_control), bool(integer))
 
     if cache_key not in _model_cache:
         data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
-        model = build_pyomo_model(data_areas,obj_fcn,stage_idx=None, non_linear=non_linear, p_control=p_control, integer=integer)
+        model = build_pyomo_model(data_areas,obj_fcn,stage_idx=None, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
         _model_cache[cache_key] = model
     else:
         model = _model_cache[cache_key]
@@ -42,6 +42,8 @@ def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj
     model = pyomo_solve(
         model,
         augmented_obj_function,
+        solver=solver,
+        alpha_scd=alpha_scd,
         area_name=area_name,
         area_info=area_info,
         shared_vars=shared_vars,
@@ -311,7 +313,7 @@ def exclude_dummies(dopfVals):
             filtered[var] = dct
     return filtered
 
-def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,rho, max_iterations,non_linear=False, p_control=False, integer=False):
+def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,solver,alpha_scd,rho, max_iterations,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     shared_vars, dual_vars = initialize_shared_dual(area_info, data)
     mu = 10
     tau = 2
@@ -323,7 +325,7 @@ def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,rho, max_iterations,non_
         for iter in range(max_iterations):
             # Solve all areas in parallel
             results = pool.starmap(process_area,
-                                   [(data_by_area[area], area, area_info, shared_vars, dual_vars, rho, obj_fcn,None, non_linear, p_control, integer)
+                                   [(data_by_area[area], area, area_info, shared_vars, dual_vars, rho, obj_fcn,solver,alpha_scd,None, non_linear, p_control, integer, single_battery_variable)
                                     for area in areas])
             area_results = {a: s for a, s in results}
 
@@ -397,7 +399,7 @@ def solve_ADMM(data, data_by_area, area_info,obj_fcn, *,rho, max_iterations,non_
                 aug_objective[iter] = sum(area_results[area]['augmented_objective'] for area in areas)
 
             print(f"iteration = {iter}, tolerance={tol}, objective value: {objective[iter]},original obj:{objective[iter]}, augmented obj = {aug_objective[iter]}")
-            if tol < 1e-6:
+            if tol < 1e-7:
                 print(f"Converged after {iter} iterations")
                 print(f"total objective value for DOPF:{objective[iter]}")
                 break

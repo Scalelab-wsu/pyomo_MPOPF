@@ -1,0 +1,12 @@
+new WireData.4ACSR gmr=0.001378 radius=0.003264 rac=0.001335 rdc=0.001309 normamps=140.0 Runits=m Radunits=m gmrunits=m
+new WireData.336ACSR gmr=0.006736 radius=0.008687 rac=0.000172 rdc=0.000167 normamps=515.0 Runits=m Radunits=m gmrunits=m
+new WireData.2STCU gmr=0.002691 radius=0.003708 rac=0.000548 rdc=0.000540 normamps=240.0 Runits=m Radunits=m gmrunits=m
+new WireData.6CU gmr=0.001603 radius=0.002057 rac=0.001373 rdc=0.001367 normamps=140.0 Runits=m Radunits=m gmrunits=m
+new WireData.1/0STCU gmr=0.003392 radius=0.004674 rac=0.000349 rdc=0.000341 normamps=310.0 Runits=m Radunits=m gmrunits=m
+new WireData.2/0ACSR gmr=0.001554 radius=0.005677 rac=0.000427 rdc=0.000413 normamps=275.0 Runits=m Radunits=m gmrunits=m
+new WireData.556AAC gmr=0.008230 radius=0.010871 rac=0.000105 rdc=0.000102 normamps=700.0 Runits=m Radunits=m gmrunits=m
+new WireData.6A gmr=0.000141 radius=0.002337 rac=0.002208 rdc=0.002162 normamps=105.0 Runits=m Radunits=m gmrunits=m
+new WireData.4CU gmr=0.002021 radius=0.002591 rac=0.000867 rdc=0.000859 normamps=170.0 Runits=m Radunits=m gmrunits=m
+new WireData.4/0ACSR gmr=0.001378 radius=0.007150 rac=0.000270 rdc=0.000261 normamps=365.0 Runits=m Radunits=m gmrunits=m
+new WireData.2CU gmr=0.002548 radius=0.003272 rac=0.000548 rdc=0.000540 normamps=230.0 Runits=m Radunits=m gmrunits=m
+new WireData.2ACSR gmr=0.001536 radius=0.004128 rac=0.000840 rdc=0.000823 normamps=185.0 Runits=m Radunits=m gmrunits=m

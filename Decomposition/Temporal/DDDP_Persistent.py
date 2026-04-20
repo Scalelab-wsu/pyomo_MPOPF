@@ -18,14 +18,14 @@ PERSISTENT_SOLVERS = {}  # {stage_idx: solver}
 # =========================================================
 MODEL_CACHE = {}  # {stage_idx: model}
 
-def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, integer=False):
+def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     """Get cached model or build new one. Also creates persistent solver."""
     global MODEL_CACHE, PERSISTENT_SOLVERS
 
-    cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer))
+    cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))
 
     if cache_key not in MODEL_CACHE:
-        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, stage_idx, non_linear=non_linear, p_control=p_control, integer=integer)
+        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
         solver = SolverFactory("gurobi_persistent")
         solver.set_instance(MODEL_CACHE[cache_key])
@@ -37,8 +37,8 @@ def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, 
 # =========================================================
 # SDDP solve_stage with cuts
 # =========================================================
-def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, non_linear=False, p_control=False, integer=False):
-    m, solver = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer)
+def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+    m, solver = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     t = stage_idx
 
     # Update prev_B_param and battery_dynamics constraints
@@ -69,7 +69,7 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, non_linear=Fals
     return Q, beta, B_end, S_obj
 
 
-def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False):
+def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     global MODEL_CACHE, PERSISTENT_SOLVERS
     MODEL_CACHE.clear()
     PERSISTENT_SOLVERS.clear()
@@ -81,12 +81,7 @@ def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control
     # Pre-build all stage models (one-time cost)
     print("Building cached models for all stages...")
     for stage_idx in range(1, num_stages + 1):
-        MODEL_CACHE[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer))] = build_pyomo_model(data, obj, stage_idx,non_linear=non_linear, p_control=p_control, integer=integer
-        )
-        solver = SolverFactory("gurobi_persistent")
-        solver.set_instance(MODEL_CACHE[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer))])
-        solver.options['OutputFlag'] = 0
-        PERSISTENT_SOLVERS[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer))] = solver
+        get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     print(f"Built {num_stages} cached models.")
 
     # Cuts storage: cuts[stage] = list of (alpha, beta) tuples
@@ -105,20 +100,17 @@ def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control
 
         # FORWARD PASS
         for stage_idx in range(1, num_stages+1):
-            if stage_idx == 1:
-                Q, beta, B_end, stage_obj = solve_stage(
-                    stage_idx, initial_b, cuts.get(f'cuts_{stage_idx}', []),
-                    data,
-                    obj,
-                    non_linear=non_linear, p_control=p_control, integer=integer,
-                )
-            else:
-                Q, beta, B_end, stage_obj = solve_stage(
-                    stage_idx, stage_results[stage_idx-1]["B_end"], cuts.get(f'cuts_{stage_idx}', []),
-                    data,
-                    obj,
-                    non_linear=non_linear, p_control=p_control, integer=integer,
-                )
+            prev_B = initial_b if stage_idx == 1 else stage_results[stage_idx-1]["B_end"]
+
+            Q, beta, B_end, stage_obj = solve_stage(
+                stage_idx, prev_B, cuts.get(f'cuts_{stage_idx}', []),
+                data,
+                obj,
+                solver=solver,
+                alpha_scd=alpha_scd,
+                non_linear=non_linear, p_control=p_control, integer=integer,
+                single_battery_variable=single_battery_variable
+            )
             stage_results[stage_idx] = {"Q": Q, "beta": beta, "B_end": B_end, "stage_obj": stage_obj}
             total_obj_value += stage_obj
 
@@ -126,21 +118,25 @@ def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control
         for stage_idx in range(num_stages, 1, -1):
             beta_exp = {j: 0.0 for j in Bset}
             Q_exp = 0.0
+            prev_B = stage_results[stage_idx-1]["B_end"]
             Q_s, beta_s, _, _ = solve_stage(
                 stage_idx,
-                stage_results[stage_idx-1]["B_end"],
+                prev_B,
                 cuts.get(f'cuts_{stage_idx}', []),
                 data,
                 obj,
+                solver=solver,
+                alpha_scd=alpha_scd,
                 non_linear=non_linear, p_control=p_control, integer=integer,
+                single_battery_variable=single_battery_variable
             )
 
-            Q_exp =  Q_s
+            Q_exp = Q_s
             for j in Bset:
                 beta_exp[j] = beta_s[j]
 
-            alpha = Q_exp - sum(beta_exp[j] * stage_results[stage_idx-1]["B_end"][j] for j in Bset)
-            cuts[f'cuts_{stage_idx-1}'].append((alpha, beta_exp))  # Add expected cut for Stage-2
+            alpha = Q_exp - sum(beta_exp[j] * prev_B[j] for j in Bset)
+            cuts[f'cuts_{stage_idx-1}'].append((alpha, beta_exp))
 
         LB_k = stage_results[1]['Q']
         UB_k = total_obj_value
@@ -152,19 +148,16 @@ def dddp_solve(data, obj, max_iters=50, tol=1e-4, *, non_linear=False, p_control
             print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
             print("B1 End:", {j: stage_results[1]['B_end'][j] for j in Bset})
             break
-        else:
-            # print(f"Iter {k:02d} LB = {LB_k:.6f}, UB~{UB_k:.6f}")
-            if k %1 ==0:
-                end_time = time.perf_counter()
-                print(f'time taken: {end_time - start_time:.2f} seconds')
-                print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
-                # print("B1 End:", {j: stage_results[1]['B_end'][j] for j in Bset})
-                start_time = time.perf_counter()
-            prev_LB = LB_k
 
-    return LB_k, cuts,LB_container,UB_container
+        end_time = time.perf_counter()
+        print(f'time taken: {end_time - start_time:.2f} seconds')
+        print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
+        start_time = time.perf_counter()
+        prev_LB = LB_k
 
-def collect_converged_solution(data, cuts, obj, *, non_linear=False, p_control=False, integer=False):
+    return LB_k, cuts, LB_container, UB_container
+
+def collect_converged_solution(data, cuts, obj, *, solver='gurobi',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
     initial_b = data['b0']
@@ -183,10 +176,12 @@ def collect_converged_solution(data, cuts, obj, *, non_linear=False, p_control=F
             cuts.get(f'cuts_{stage_idx}', {}),
             data,
             obj,
+            solver=solver,alpha_scd=alpha_scd,
             non_linear=non_linear, p_control=p_control, integer=integer,
+            single_battery_variable=single_battery_variable,
         )
 
-        cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer))
+        cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))
         m = MODEL_CACHE[cache_key]
         stage_vars = store_results(m)
 

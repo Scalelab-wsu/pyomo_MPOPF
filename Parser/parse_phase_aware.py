@@ -46,9 +46,9 @@ def parse_all_data_phase_aware(bus, branch, gen=None, bat=None, loadshape=None, 
     v_swing = {(t, i, ph): bus_lookup.at[i, f"v_{ph}"] for t in Tset for i in substationBus for ph in bus_phases[i]}
 
     ## parsing branch_data
+    branch = branch.loc[branch.status != 'OPEN'].copy()
     branch['from_name'] = branch['from_name'].astype(str)
     branch['to_name'] = branch['to_name'].astype(str)
-    branch = branch.loc[branch.status != 'OPEN']
     branch_set = set(zip(branch['from_name'], branch['to_name']))
 
     # Extract phase information for each branch
@@ -127,8 +127,8 @@ def parse_all_data_phase_aware(bus, branch, gen=None, bat=None, loadshape=None, 
         bat_phases = {i: list(bat_lookup.at[i, 'phases']) for i in bat_set}
         p_B = {(i): sum(bat_lookup.at[i, f"Pb_max_{ph}"] for ph in bat_phases[i]) for i in bat_set}
         s_B = {(i): sum(bat_lookup.at[i, f"hmax_{ph}"] for ph in bat_phases[i]) for i in bat_set}
-        eta_c = {(i, ph): bat_lookup.at[i, f"nc_{ph}"] for i in bat_set for ph in bat_phases[i]}
-        eta_d = {(i, ph): bat_lookup.at[i, f"nd_{ph}"] for i in bat_set for ph in bat_phases[i]}
+        eta_c = {(i): bat_lookup.at[i, f"nc_{ph}"] for i in bat_set for ph in bat_phases[i]}
+        eta_d = {(i): bat_lookup.at[i, f"nd_{ph}"] for i in bat_set for ph in bat_phases[i]}
         bmin = {(i): sum(bat_lookup.at[i, f"bmin_{ph}"] for ph in bat_phases[i]) for i in bat_set}
         bmax = {(i): sum(bat_lookup.at[i, f"bmax_{ph}"] for ph in bat_phases[i]) for i in bat_set}
         b0 = {(i): (bmin[(i)] + bmax[(i)])/2 for i in bat_set}
