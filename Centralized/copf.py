@@ -12,7 +12,6 @@ from Build_Model.store        import store_results
 MODEL_CACHE      = {}
 PERSISTENT_SOLVERS = {}
 
-
 def _make_cache_key(stage_idx, non_linear, p_control, integer,
                     single_battery_variable, isocp) -> tuple:
     return (
@@ -42,7 +41,7 @@ def get_or_build_model(
         solver.options["OutputFlag"] = 0
         solver.options['BarHomogeneous'] = 1  # handles ill-conditioned cuts
         solver.options['NumericFocus'] = 3  # max numerical care
-        solver.options['BarConvTol'] = 1e-6  # slightly relaxed convergence
+        # solver.options['BarConvTol'] = 1e-6  # slightly relaxed convergence
 
         MODEL_CACHE[key]       = model
         PERSISTENT_SOLVERS[key] = solver
@@ -76,8 +75,8 @@ def initialize_model_variables(model,prev_sol = None):
             if hasattr(model, 'P_b'):
                 model.P_b[t, j].value = prev_sol['P_b'][t, j] if prev else 0
             if hasattr(model, 'P_c'):
-                model.P_c[t, j].value = prev_sol['P_c'][t, j] if prev_sol else 0
-                model.P_d[t, j].value = prev_sol['P_d'][t, j] if prev_sol else 0
+                model.P_c[t, j].value = prev_sol['P_c'][t, j] if prev else 0
+                model.P_d[t, j].value = prev_sol['P_d'][t, j] if prev else 0
 
     return model
 
@@ -162,14 +161,15 @@ def _add_linear_directional_constraints_pvc(
             gap = e_pvc[key]
 
             # 1. If this branch ALREADY has a cut, remove the old one
-            if key in dir_pvc:
-                name, old_con = dir_pvc[key]
-                solver.remove_constraint(old_con)
-                model.del_component(name)
-                del dir_pvc[key]
+
 
             # 2. If it currently has a gap (new or existing), add the updated cut
             if abs(gap) > gap_tol:
+                if key in dir_pvc:
+                    name, old_con = dir_pvc[key]
+                    solver.remove_constraint(old_con)
+                    model.del_component(name)
+                    del dir_pvc[key]
                 P0, Q0, v0, lpp0 = lin_pvc[key]
                 rhs = (gamma + 1) * gap
 
@@ -200,14 +200,15 @@ def _add_linear_directional_constraints_cmc(
             gap = e_cmc[key]
 
             # 1. Remove old cut if it exists
-            if key in dir_cmc:
-                name, old_con = dir_cmc[key]
-                solver.remove_constraint(old_con)
-                model.del_component(name)
-                del dir_cmc[key]
+
 
             # 2. Add new cut if there is an error
             if abs(gap) > gap_tol:
+                if key in dir_cmc:
+                    name, old_con = dir_cmc[key]
+                    solver.remove_constraint(old_con)
+                    model.del_component(name)
+                    del dir_cmc[key]
                 lpq0, lpp0, lqq0 = lin_cmc[key]
                 rhs = (gamma + 1) * gap
 
@@ -261,7 +262,7 @@ def _solve_isocp(prev_sol, data, obj, stage_idx, non_linear, isocp, p_control,
         socp_model,socp_persistent_solver,dir_pvc = _add_linear_directional_constraints_pvc(socp_model, socp_persistent_solver, dir_pvc, e_pvc, lin_pvc, gamma,gap_tol)
         socp_model,socp_persistent_solver, dir_cmc = _add_linear_directional_constraints_cmc(socp_model, socp_persistent_solver, dir_cmc, e_cmc, lin_cmc, gamma,gap_tol)
         socp_model = initialize_model_variables(socp_model, prev_sol) ## initializing socp model with previous solution
-        # socp_model, socp_persistent_solver = apply_trust_region(socp_model, socp_persistent_solver,lin_pvc,lin_cmc,rho=0.1) ## Applying trust region to the current variables
+        # socp_model, socp_persistent_solver = apply_trust_region(socp_model, socp_persistent_solver,lin_pvc,lin_cmc,rho=0.0011) ## Applying trust region to the current variables
         # socp_model.write("debug_model_socp_first_iter.lp", io_options={'symbolic_solver_labels': True})
         socp_persistent_solver.solve(socp_model, tee=False, save_results=False, warmstart=True)
         status = socp_persistent_solver._solver_model.Status
@@ -291,10 +292,10 @@ def solve_copf(
     p_control: bool = False,
     integer: bool = False,
     single_battery_variable: bool = False,
-    gamma: float = 0.9,
+    gamma: float = 0.5,
     inner_tol: float = 1e-4,
     gap_tol: float = 1e-4,
-    max_inner: int = 150,
+    max_inner: int = 50,
 ) -> dict:
 
     model = build_pyomo_model(

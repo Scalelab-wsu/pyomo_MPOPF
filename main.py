@@ -48,7 +48,7 @@ if __name__ == "__main__":
     integer = False
     single_battery_variable = False
     start_step = 1
-    n_steps = 24
+    n_steps = 1
     solver = 'ipopt' if non_linear else 'gurobi'
     alpha_scd=1e-2
 
