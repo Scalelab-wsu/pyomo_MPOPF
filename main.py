@@ -17,7 +17,7 @@ from Helpers import *
 # system_name = 'IEEE_13'
 system_name = 'IEEE_123_other'
 # system_name = 'IEEE_9500'
-# area_info = eval(f'{system_name}' + '_area_info')
+area_info = eval(f'{system_name}' + '_area_info')
 obj = loss_minimize_with_scd
 # obj = cost_minimize_with_scd
 # obj = voltage_deviation_minimize
@@ -39,16 +39,16 @@ if __name__ == "__main__":
     centralized = True
     ADMM = False
     enAPP = False
-    DDDP = False
+    DDDP = True
     opendss = True
-    multi = False
+    multi = True
     non_linear = False
     isocp = True
     p_control = False
     integer = False
     single_battery_variable = False
     start_step = 1
-    n_steps = 1
+    n_steps = 24
     solver = 'ipopt' if non_linear else 'gurobi'
     alpha_scd=1e-2
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         data_area = split_data_into_areas(data, area_info)
         print(f"Solving EnAPP for {system_name} and objective function {obj}...")
         start_time = time.time()  # Start timing
-        enappVals,enapp_obj,enapp_conv = solve_EnAPP(data,data_area,area_info,obj, solver=solver,alpha_scd=alpha_scd,max_iterations=50,alpha=0,non_linear=non_linear,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
+        enappVals,enapp_obj,enapp_conv = solve_EnAPP(data,data_area,area_info,obj, solver=solver,alpha_scd=alpha_scd,max_iterations=50,alpha=0,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
         end_time = time.time()  # End timing
         enapp_time = end_time - start_time
         print(f"Total substation Real Power Flows: {sum(enappVals['P_subs'].values())}")
@@ -134,24 +134,19 @@ if __name__ == "__main__":
         # print(f"DDDP ran successfully")
         # print(f"DDDP Solver Time: {dddp_time:.2f} seconds")
 
-        from Decomposition.Temporal.dddp_isocp import dddp_solve_isocp
-
-        from Decomposition.Temporal.dddp_isocp import dddp_solve_isocp
-
-        LB, cuts, LB_hist, UB_hist = dddp_solve_isocp(
-            data, obj,
-            non_linear=True,
-            gamma=0.9,
-            inner_tol=1e-4,
-            max_inner=15
-        )
-
+        from Decomposition.Temporal.dddp_isocp import dddp_solve
+        start_time = time.time()  # Start timing
+        LB, cuts, LB_hist, UB_hist = dddp_solve(data, obj,solver=solver,alpha_scd=alpha_scd,max_iters=50,tol = 1e-4,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
+        end_time = time.time()
+        dddp_time = end_time - start_time
+        print(f"DDDP ran successfully")
+        print(f"DDDP Solver Time: {dddp_time:.2f} seconds")
 
     if opendss:
-        dssVals = run_opendss_validation(data, copfVals, dss_path, multi = multi,start_step=start_step)
+        dssVals = run_opendss_validation(data, enappVals, dss_path, multi = multi,start_step=start_step)
         print()
 
-    all_time_highest_discrepancy(dssVals, copfVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
+    all_time_highest_discrepancy(dssVals, enappVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
 
     # # plot_convergence_comparison(copfVals=copfVals,dddpVals=dddpVals,enappVals=enappVals)
     # conv_args = {}

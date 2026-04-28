@@ -1,26 +1,22 @@
-from Build_Model.Constraints import build_pyomo_model
+from Build_Model.Constraints import build_pyomo_model,get_or_build_model
 from Build_Model.Objective import pyomo_solve,cost_minimize_with_scd,loss_minimize_with_scd
 from Build_Model.store import store_results
 import numpy as np
 import multiprocessing as mp
 from collections import defaultdict,ChainMap
+from Centralized.isocp import _solve_isocp,reset_isocp_cuts
 
 # Worker initialization function
-def init_worker():
-    global _model_cache
-    _model_cache = {}
+# def init_worker():
+#     global _model_cache
+#     _model_cache = {}
 
-def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solution=None, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
-    global _model_cache
-    # Cache models by (area, formulation) so toggling flags builds the right model
-    cache_key = (area_name, bool(non_linear), bool(p_control), bool(integer))
+# _model_cache = {}
 
-    if cache_key not in _model_cache:
-        data_areas['v_max'] = {key: 1.1 for key in data_areas['v_max'].keys()}
-        model = build_pyomo_model(data_areas, obj_fcn,stage_idx=None,non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
-        _model_cache[cache_key] = model
-    else:
-        model = _model_cache[cache_key]
+def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solution=None, non_linear=False,isocp=False, p_control=False, integer=False,single_battery_variable=False):
+
+    data_areas['v_max'] = {key:1.1 for key in data_areas['v_max'].keys()}
+    model = get_or_build_model(data_areas, obj_fcn, stage_idx=None, area_name=area_name,non_linear=non_linear, isocp=isocp, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
     # Parameter updates remain the same
     for index in model.p_L:
@@ -37,8 +33,13 @@ def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solu
     #         for index, value in var_values.items():
     #             var[index].value = value  # Set initial values
 
+    reset_isocp_cuts(model)
     model = pyomo_solve(model,obj_fcn,solver=solver,alpha_scd=alpha_scd)
     solutions = store_results(model)
+    if isocp:
+        socp_model = _solve_isocp(prev_sol=solutions, model=model,solver=solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
+        solutions = store_results(socp_model)
+        return area_name,solutions
     return area_name, solutions
 
 
@@ -168,79 +169,89 @@ def exclude_dummies(dopfVals):
             filtered[var] = dct
     return filtered
 
-def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3,max_iterations=50, alpha=0, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3,max_iterations=50, alpha=0, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
     shared_vars = initialize_shared(area_info, data)
     convergence = {}
     objective = {}
     areas = list(area_info.keys())
 
-    with mp.Pool(processes=len(areas), initializer=init_worker) as pool:
-        for iter in range(max_iterations):
-            # Solve all areas in parallel (flags threaded through)
-            results = pool.starmap(
-                process_area,
-                [
-                    (data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear, p_control, integer,single_battery_variable)
-                    for area in areas
-                ],
-            )
-            area_results = {a: s for a, s in results}
+    # # Parallel Processing
+    # with mp.Pool(processes=len(areas), initializer=init_worker) as pool:
+    #     for iter in range(max_iterations):
+    #         # Solve all areas in parallel (flags threaded through)
+    #         results = pool.starmap(
+    #             process_area,
+    #             [
+    #                 (data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear,isocp, p_control, integer,single_battery_variable)
+    #                 for area in areas
+    #             ],
+    #         )
+    #         area_results = {a: s for a, s in results}
+    #
+    #         # Compute boundary variables
+    #         p_local, q_local, v_local = compute_locals(area_info, area_results,shared_vars,alpha)
+    #
+    #         # Update area data with neighbor values
+    #         data_by_area = update_area_values(area_info, data_by_area,
+    #                                           p_local, q_local, v_local)
+    #
+    #         # Update shared variables
+    #         shared_vars = share_local(area_info, shared_vars,
+    #                                   p_local, q_local, v_local)
+    #
+    #         # Check convergence
+    #         max_diff = 0
+    #         for var_list in shared_vars.values():
+    #             if len(var_list) >= 2:
+    #                 diff = np.max(np.abs(var_list[-1] - var_list[-2]))
+    #                 max_diff = max(max_diff, diff)
+    #         tol = max_diff
+    #         convergence[iter] = tol
+    #
+    #         if obj_fcn == cost_minimize_with_scd:
+    #             objective[iter] = area_results['area1']['objective_value']
+    #         else:
+    #             objective[iter] = sum(area_results[a]['objective_value'] for a in areas)
+    #
+    #         print(f"Iter {iter}: Tol={tol}, Obj={objective[iter]}")
+    #         if tol < 1e-4:
+    #             break
+    #         alpha = alpha/2
 
-            # Compute boundary variables
-            p_local, q_local, v_local = compute_locals(area_info, area_results,shared_vars,alpha)
+    for iteration in range(max_iterations):
+        # isocp= iteration>=1
+        results = [process_area(data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear,isocp, p_control, integer,single_battery_variable) for area in areas]
+        area_results = {a: s for a, s in results}
 
-            # Update area data with neighbor values
-            data_by_area = update_area_values(area_info, data_by_area,
-                                              p_local, q_local, v_local)
+        # Compute boundary variables
+        p_local, q_local, v_local = compute_locals(area_info, area_results,shared_vars,alpha)
 
-            # Update shared variables
-            shared_vars = share_local(area_info, shared_vars,
-                                      p_local, q_local, v_local)
+        # Update area data with neighbor values
+        data_by_area = update_area_values(area_info, data_by_area,
+                                          p_local, q_local, v_local)
 
-            # Check convergence
-            max_diff = 0
-            for var_list in shared_vars.values():
-                if len(var_list) >= 2:
-                    diff = np.max(np.abs(var_list[-1] - var_list[-2]))
-                    max_diff = max(max_diff, diff)
-            tol = max_diff
-            convergence[iter] = tol
+        # Update shared variables
+        shared_vars = share_local(area_info, shared_vars,
+                                  p_local, q_local, v_local)
 
-            # ## Convergence Check
-            # max_diff = {}
-            #
-            # for area in areas:
-            #     max_diff[area] = []  # Initialize a list to store the max differences for the area
-            #
-            #     # Iterate over down_areas
-            #     for conn_area in area_info[area]['down_areas']:
-            #         # Compute the maximum difference for 'v' shared variable
-            #         diff_v = np.max(
-            #             np.abs(shared_vars[f"{area}_{conn_area}_v"][-1] - shared_vars[f"{area}_{conn_area}_v"][-2]))
-            #         max_diff[area].append(diff_v)
-            #
-            #     # Iterate over up_area
-            #     for conn_area in area_info[area]['up_area']:
-            #         # Compute the maximum difference for 'p' and 'q' shared variables
-            #         diff_p = np.max(
-            #             np.abs(shared_vars[f"{area}_{conn_area}_p"][-1] - shared_vars[f"{area}_{conn_area}_p"][-2]))
-            #         diff_q = np.max(
-            #             np.abs(shared_vars[f"{area}_{conn_area}_q"][-1] - shared_vars[f"{area}_{conn_area}_q"][-2]))
-            #         max_diff[area].append(max(diff_p, diff_q))  # Take the maximum difference of 'p' and 'q'
-            #
-            # # Print statement for debugging
-            # tol = np.max([np.max(sublist) for sublist in max_diff.values()])
-            # convergence[iter] = tol
-            # Calculate objective
-            if obj_fcn == cost_minimize_with_scd:
-                objective[iter] = area_results['area1']['objective_value']
-            else:
-                objective[iter] = sum(area_results[a]['objective_value'] for a in areas)
+        # Check convergence
+        max_diff = 0
+        for var_list in shared_vars.values():
+            if len(var_list) >= 2:
+                diff = np.max(np.abs(var_list[-1] - var_list[-2]))
+                max_diff = max(max_diff, diff)
+        tol = max_diff
+        convergence[iteration] = tol
 
-            print(f"Iter {iter}: Tol={tol}, Obj={objective[iter]}")
-            if tol < 1e-4:
-                break
-            alpha = alpha/2
+        if obj_fcn == cost_minimize_with_scd:
+            objective[iteration] = area_results['area1']['objective_value']
+        else:
+            objective[iteration] = sum(area_results[a]['objective_value'] for a in areas)
+
+        print(f"Iteration {iteration}: Tol={tol}, Obj={objective[iteration]}")
+        if tol < 1e-4:
+            break
+        alpha = alpha/2
 
     # Final processing
     dopf = arrange_solution_by_areas(area_info, area_results)

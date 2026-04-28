@@ -1,9 +1,40 @@
 import math
-from pyomo.environ import ConcreteModel, Var, Param,Constraint, ConstraintList, Set, NonNegativeReals, Reals, minimize, sqrt, inequality, Binary, sin, cos,Objective,minimize,Suffix
+from pyomo.environ import ConcreteModel, Var, Param,Constraint, ConstraintList, Set, NonNegativeReals, Reals, minimize, sqrt, inequality, Binary, sin, cos,Objective,minimize,Suffix,SolverFactory
+MODEL_CACHE      = {}
+
+def _make_cache_key(stage_idx,area_name, non_linear, isocp,p_control, integer,
+                    single_battery_variable) -> tuple:
+    return (
+        int(stage_idx) if stage_idx is not None else None,
+        area_name if area_name is not None else None,
+        bool(non_linear), bool(isocp),bool(p_control), bool(integer),
+        bool(single_battery_variable),
+    )
+
+
+def get_or_build_model(
+    data, obj,stage_idx=None,area_name=None,
+    non_linear=False,isocp=False, p_control=False, integer=False,
+    single_battery_variable=False,
+):
+    global MODEL_CACHE
+    key = _make_cache_key(stage_idx, area_name, non_linear,isocp, p_control,
+                          integer, single_battery_variable)
+
+    if key not in MODEL_CACHE:
+        model = build_pyomo_model(
+            data, obj, stage_idx=stage_idx,
+            non_linear=non_linear, isocp=isocp,
+            p_control=p_control, integer=integer,
+            single_battery_variable=single_battery_variable,
+        )
+        MODEL_CACHE[key]       = model
+
+    return MODEL_CACHE[key]
 
 def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
     model = ConcreteModel()
-    # model.dual = Suffix(direction=Suffix.IMPORT)
+    model.dual = Suffix(direction=Suffix.IMPORT)
 
     # Sets
     if stage_idx is not None:
@@ -87,7 +118,7 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
 
     if non_linear:
         # Current angle parameter
-        model.l = Var(model.Tset, model.branch_phase_pair_set, domain=NonNegativeReals)
+        model.l = Var(model.Tset, model.branch_phase_pair_set, domain=NonNegativeReals,initialize=0)
         def delta_init(m, t, i, j, ph):
             return data['I_ang'][t, i, j, ph]
 
@@ -112,7 +143,7 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
 
     if isocp:
         # Current angle parameter
-        model.l = Var(model.Tset, model.branch_phase_pair_set, domain=NonNegativeReals)
+        model.l = Var(model.Tset, model.branch_phase_pair_set, domain=NonNegativeReals,initialize=0)
         def delta_init(m, t, i, j, ph):
             return data['I_ang'][t, i, j, ph]
 
