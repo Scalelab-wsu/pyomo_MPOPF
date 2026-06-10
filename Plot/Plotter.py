@@ -97,11 +97,10 @@ def plot_battery_soc(**modelVals_list):
     # Gather data
     for scenario_name, mv in modelVals_list.items():
         scenario_label = scenario_name.replace("Vals", "")
-        for (time, node, phase), val in mv["B"].items():
+        for (time, node), val in mv["B"].items():
             data.append({
                 "time": f"t={time}",
                 "node": node,
-                "phase": phase,
                 "scenario": scenario_label,
                 "value": val
             })
@@ -113,7 +112,7 @@ def plot_battery_soc(**modelVals_list):
     fig = px.bar(
         df,
         x="node_num", y="value",
-        color="time", facet_col="phase", pattern_shape="scenario" if len(modelVals_list) > 1 else None,
+        color="time", pattern_shape="scenario" if len(modelVals_list) > 1 else None,
         title="Battery State of Charge" + (" (All Scenarios)" if len(modelVals_list) > 1 else ""),
         barmode="group"
     )

@@ -5,18 +5,17 @@ import numpy as np
 import multiprocessing as mp
 from collections import defaultdict,ChainMap
 from Centralized.isocp import _solve_isocp,reset_isocp_cuts
+import time
 
 # Worker initialization function
 # def init_worker():
-#     global _model_cache
-#     _model_cache = {}
+#     global MODEL_CACHE
 
-# _model_cache = {}
 
 def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solution=None, non_linear=False,isocp=False, p_control=False, integer=False,single_battery_variable=False):
 
     data_areas['v_max'] = {key:1.1 for key in data_areas['v_max'].keys()}
-    model = get_or_build_model(data_areas, obj_fcn, stage_idx=None, area_name=area_name,non_linear=non_linear, isocp=isocp, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+    model,model_solver = get_or_build_model(data_areas, obj_fcn, stage_idx=None, area_name=area_name,non_linear=non_linear, isocp=isocp, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
     # Parameter updates remain the same
     for index in model.p_L:
@@ -34,10 +33,10 @@ def process_area(data_areas, area_name, obj_fcn, solver,alpha_scd=1e-3,prev_solu
     #             var[index].value = value  # Set initial values
 
     reset_isocp_cuts(model)
-    model = pyomo_solve(model,obj_fcn,solver=solver,alpha_scd=alpha_scd)
+    model_solver.solve(model)
     solutions = store_results(model)
     if isocp:
-        socp_model = _solve_isocp(prev_sol=solutions, model=model,solver=solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
+        socp_model = _solve_isocp(prev_sol=solutions, model=model,model_solver=model_solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
         solutions = store_results(socp_model)
         return area_name,solutions
     return area_name, solutions
@@ -217,8 +216,9 @@ def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3
     #         if tol < 1e-4:
     #             break
     #         alpha = alpha/2
-
+    algo_start_time = time.perf_counter()
     for iteration in range(max_iterations):
+        iter_start_time = time.perf_counter()
         # isocp= iteration>=1
         results = [process_area(data_by_area[area], area, obj_fcn,solver,alpha_scd, None, non_linear,isocp, p_control, integer,single_battery_variable) for area in areas]
         area_results = {a: s for a, s in results}
@@ -248,10 +248,14 @@ def solve_EnAPP(data, data_by_area, area_info, obj_fcn, *,solver, alpha_scd=1e-3
         else:
             objective[iteration] = sum(area_results[a]['objective_value'] for a in areas)
 
-        print(f"Iteration {iteration}: Tol={tol}, Obj={objective[iteration]}")
         if tol < 1e-4:
+            algo_end_time = time.perf_counter()
+            print( f"Converged in Iteration {iteration},Tol={tol}, Obj={objective[iteration]},Total time:{algo_end_time - algo_start_time:.2f} seconds ")
             break
         alpha = alpha/2
+        iter_end_time = time.perf_counter()
+        print(f"Iteration {iteration}: Tol={tol}, Obj={objective[iteration]}, Iteration time :{iter_end_time - iter_start_time:.2f} seconds")
+
 
     # Final processing
     dopf = arrange_solution_by_areas(area_info, area_results)

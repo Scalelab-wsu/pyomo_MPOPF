@@ -15,14 +15,14 @@ from Build_Model.Constraints import build_pyomo_model
 # =========================================================
 MODEL_CACHE = {}  # {stage_idx: model}
 
-def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def get_or_build_stage(stage_idx, data, obj, alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     """Get cached model or build new one. Also creates persistent solver."""
     global MODEL_CACHE
 
     cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))
 
     if cache_key not in MODEL_CACHE:
-        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, alpha_scd,stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
     return MODEL_CACHE[cache_key]
 
@@ -30,7 +30,7 @@ def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, 
 # SDDP solve_stage with cuts
 # =========================================================
 def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
-    m = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+    m = get_or_build_stage(stage_idx, data, obj, alpha_scd,non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     t = stage_idx
 
     for j in m.Bset:
@@ -69,7 +69,7 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
     # Pre-build all stage models (one-time cost)
     print("Building cached models for all stages...")
     for stage_idx in range(1, num_stages + 1):
-        MODEL_CACHE[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))] = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+        MODEL_CACHE[(int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))] = get_or_build_stage(stage_idx, data, obj,alpha_scd, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     print(f"Built {num_stages} cached models.")
 
     # Cuts storage: cuts[stage] = list of (alpha, beta) tuples

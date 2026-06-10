@@ -14,29 +14,32 @@ from Centralized.isocp import _solve_isocp,reset_isocp_cuts
 # =========================================================
 # SDDP solve_stage with cuts
 # =========================================================
-def solve_stage(m,stage_idx, prev_stage_B, cuts_future, solver,alpha_scd=1e-3, isocp=False):
-    # m = get_or_build_model(data,obj,stage_idx, area_name=None, non_linear=non_linear, isocp=isocp,p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+def solve_stage(m,m_solver,stage_idx, prev_stage_B, cuts_future, isocp=False):
     t = stage_idx
 
     for j in m.Bset:
-        m.prev_B[j].set_value(prev_stage_B[j])
+        if m.prev_B[j].value != prev_stage_B[j]:
+            m.prev_B[j].set_value(prev_stage_B[j])
 
     # Add new cuts (only add cuts not already in model)
     current_num_cuts = len(m.cuts)
     if len(cuts_future) > current_num_cuts:
         for i in range(current_num_cuts, len(cuts_future)):
             alpha, beta = cuts_future[i]
-            m.cuts.add(m.theta >= alpha + sum(beta[j] * m.B[t, j] for j in m.Bset))
+            cut_expr = m.theta >= alpha + sum(beta[j] * m.B[t, j] for j in m.Bset)
+            m.cuts.add(cut_expr)
 
     reset_isocp_cuts(m)
-    # m = pyomo_solve(m, obj, solver=solver, alpha_scd=alpha_scd)
-    SolverFactory(solver).solve(m, tee=False)
-    solutions = store_results(m)
+    m_solver.solve(m)
     if isocp:
-        m = _solve_isocp(prev_sol=solutions, model=m,solver=solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
+        solutions = store_results(m)
+        m = _solve_isocp(prev_sol=solutions, model=m,model_solver=m_solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
 
     # Extract results
-    beta = {j: m.dual[m.battery_dynamics[t, j]] for j in m.Bset}
+    dual_cons = [m.battery_dynamics[t, j] for j in m.Bset]
+    duals = m_solver.get_duals(cons_to_load=dual_cons)
+    beta = {j: duals[m.battery_dynamics[t, j]] for j in m.Bset}
+    # beta = {j: m.dual[m.battery_dynamics[t, j]] for j in m.Bset}
     Q = value(m.obj)
     S_obj = value(m.stage_cost)
     B_end = {j: value(m.B[t, j]) for j in m.Bset}
@@ -46,56 +49,53 @@ def solve_stage(m,stage_idx, prev_stage_B, cuts_future, solver,alpha_scd=1e-3, i
 
 def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
 
-
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
     Bset = list(data['Bset'])
 
     # Pre-build all stage models (one-time cost)
     print("Building cached models for all stages...")
+    start_time = time.perf_counter()
     for stage_idx in range(1, num_stages + 1):
-        get_or_build_model( data, obj, stage_idx,area_name=None,non_linear=non_linear,isocp=isocp, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
-    print(f"Built {num_stages} cached models.")
+        get_or_build_model( data, obj, solver,alpha_scd,stage_idx,area_name=None,non_linear=non_linear,isocp=isocp, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+    end_time = time.perf_counter()
+    print(f"Built {num_stages} cached models in {end_time - start_time} seconds.")
 
     # Cuts storage: cuts[stage] = list of (alpha, beta) tuples
     cuts = {f'cuts_{i}': [] for i in range(1, num_stages)}
 
     initial_b = data['b0']
     prev_LB = 0
-    start_time = time.perf_counter()
     LB_container = []
     UB_container = []
-
+    algo_start_time = time.perf_counter()
     for k in range(1, max_iters + 1):
-        isocp=k>3
+        iter_start_time = time.perf_counter()
+        isocp=isocp and (k % 1 == 0)
         stage_results = {}
         total_obj_value = 0
 
         # FORWARD PASS
         for stage_idx in range(1, num_stages+1):
             prev_B = initial_b if stage_idx == 1 else stage_results[stage_idx-1]["B_end"]
-            m = get_or_build_model(data,obj,stage_idx, area_name=None, non_linear=non_linear, isocp=isocp,p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+            m, m_solver = get_or_build_model(data,obj,solver,alpha_scd,stage_idx, area_name=None, non_linear=non_linear, isocp=isocp,p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
-            Q, beta, B_end, stage_obj = solve_stage(m,
-                stage_idx, prev_B, cuts.get(f'cuts_{stage_idx}', []),
-                solver=solver,
-                alpha_scd=alpha_scd,isocp=isocp
+            Q, beta, B_end, stage_obj = solve_stage(m,m_solver,
+                stage_idx, prev_B, cuts.get(f'cuts_{stage_idx}', []),isocp=isocp
             )
             stage_results[stage_idx] = {"Q": Q, "beta": beta, "B_end": B_end, "stage_obj": stage_obj}
             total_obj_value += stage_obj
 
         # BACKWARD PASS - compute expected cuts
         for stage_idx in range(num_stages, 1, -1):
-            m = get_or_build_model(data,obj,stage_idx, area_name=None, non_linear=non_linear, isocp=isocp,p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+            m, m_solver = get_or_build_model(data,obj,solver,alpha_scd,stage_idx, area_name=None, non_linear=non_linear, isocp=isocp,p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
             beta_exp = {j: 0.0 for j in Bset}
             Q_exp = 0.0
             prev_B = stage_results[stage_idx-1]["B_end"]
-            Q_s, beta_s, _, _ = solve_stage(m,
+            Q_s, beta_s, _, _ = solve_stage(m,m_solver,
                 stage_idx,
                 prev_B,
-                cuts.get(f'cuts_{stage_idx}', []),
-                solver=solver,
-                alpha_scd=alpha_scd, isocp=isocp
+                cuts.get(f'cuts_{stage_idx}', []), isocp=False
             )
 
             Q_exp = Q_s
@@ -110,16 +110,14 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
         LB_container.append(LB_k)
         UB_container.append(UB_k)
 
-        if abs(LB_k - prev_LB) < tol:
-            print("SDDP has converged")
-            print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
+        if abs((UB_k - LB_k))/LB_k < tol or abs(LB_k - prev_LB) < tol:
+            algo_end_time = time.perf_counter()
+            print(f"DDDP has converged in Iter {k:02d} with {algo_end_time - algo_start_time:.2f} seconds, LB = {LB_k:.6f} , UB = {UB_k:.6f}")
             print("B1 End:", {j: stage_results[1]['B_end'][j] for j in Bset})
             break
 
-        end_time = time.perf_counter()
-        print(f'time taken: {end_time - start_time:.2f} seconds')
-        print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
-        start_time = time.perf_counter()
+        iter_end_time = time.perf_counter()
+        print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f},time taken: {iter_end_time - iter_start_time:.2f} seconds")
         prev_LB = LB_k
 
     return LB_k, cuts, LB_container, UB_container

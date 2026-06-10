@@ -1,4 +1,5 @@
-from Plot.Plotter import *
+from Plot.Plotting import *
+
 from OpenDss.OpenDssValidate import run_opendss_validation,all_time_highest_discrepancy,initialize_current_angles
 from Parser.parse_phase_aware import parse_all_data_phase_aware
 from Build_Model.Objective import pyomo_solve, cost_minimize, loss_minimize, power_flow, cost_minimize_with_scd, \
@@ -9,8 +10,8 @@ from Decomposition.Spatial.enapp import solve_EnAPP
 from Decomposition.Spatial.admm import solve_ADMM
 from Decomposition.Spatial.area_information import *
 from Decomposition.Spatial.separate_areas import  split_data_into_areas
-from Decomposition.Temporal.DDDP_M_cache import *
-# from Decomposition.Temporal.DDDP_Persistent import *
+# from Decomposition.Temporal.DDDP_M_cache import *
+from Decomposition.Temporal.DDDP_Persistent import *
 import pandas as pd
 from Helpers import *
 
@@ -18,8 +19,8 @@ from Helpers import *
 system_name = 'IEEE_123_other'
 # system_name = 'IEEE_9500'
 area_info = eval(f'{system_name}' + '_area_info')
-obj = loss_minimize_with_scd
-# obj = cost_minimize_with_scd
+# obj = loss_minimize_with_scd
+obj = cost_minimize_with_scd
 # obj = voltage_deviation_minimize
 # obj = power_flow
 wd = os.getcwd()
@@ -39,18 +40,18 @@ if __name__ == "__main__":
     centralized = True
     ADMM = False
     enAPP = False
-    DDDP = True
+    DDDP = False
     opendss = True
     multi = True
-    non_linear = False
-    isocp = True
+    non_linear =False
+    isocp = False
     p_control = False
     integer = False
     single_battery_variable = False
-    start_step = 1
-    n_steps = 24
+    start_step = 19
+    n_steps = 6
     solver = 'ipopt' if non_linear else 'gurobi'
-    alpha_scd=1e-2
+    alpha_scd=1e-3
 
     data_single = parse_all_data_phase_aware(bus_data, branch_data,n_steps=1) ## for 24 hrs default n_steps is 24 hrs
     data = parse_all_data_phase_aware(bus_data, branch_data,gen_data,bat_data,loadshape=loadshape_data,pvshape=pvshape_data,price=price,start_step=start_step,n_steps=n_steps) ## why using loadshape=None in full model gives better results?
@@ -127,8 +128,8 @@ if __name__ == "__main__":
     if DDDP:
         # print(f"Solving DDDP for {system_name} and objective function {obj}...")
         # start_time = time.time()  # Start timing
-        # LB, cuts,LB_container,UB_container = dddp_solve(data, obj,solver=solver,alpha_scd=alpha_scd,max_iters=50,tol = 1e-4,non_linear=non_linear,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
-        # dddpVals = collect_converged_solution(data, cuts, obj, solver=solver,alpha_scd=alpha_scd,non_linear=non_linear, p_control=p_control, integer=integer)
+        # LB, cuts,LB_container,UB_container = dddp_solve(data, obj,solver=solver,alpha_scd=alpha_scd,max_iters=50,tol = 1e-3,non_linear=non_linear,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
+        # # dddpVals = collect_converged_solution(data, cuts, obj, solver=solver,alpha_scd=alpha_scd,non_linear=non_linear, p_control=p_control, integer=integer)
         # end_time = time.time()
         # dddp_time = end_time - start_time
         # print(f"DDDP ran successfully")
@@ -136,18 +137,19 @@ if __name__ == "__main__":
 
         from Decomposition.Temporal.dddp_isocp import dddp_solve
         start_time = time.time()  # Start timing
-        LB, cuts, LB_hist, UB_hist = dddp_solve(data, obj,solver=solver,alpha_scd=alpha_scd,max_iters=50,tol = 1e-4,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
+        LB, cuts, LB_hist, UB_hist = dddp_solve(data, obj,solver=solver,alpha_scd=alpha_scd,max_iters=50,tol = 1e-3,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
+        # dddpVals = collect_converged_solution(data, cuts, obj, solver=solver, alpha_scd=alpha_scd,non_linear=non_linear, p_control=p_control, integer=integer)
         end_time = time.time()
         dddp_time = end_time - start_time
         print(f"DDDP ran successfully")
         print(f"DDDP Solver Time: {dddp_time:.2f} seconds")
 
     if opendss:
-        dssVals = run_opendss_validation(data, enappVals, dss_path, multi = multi,start_step=start_step)
+        dssVals = run_opendss_validation(data, copfVals, dss_path, multi = multi,start_step=start_step)
+        all_time_highest_discrepancy(dssVals,copfVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
         print()
 
-    all_time_highest_discrepancy(dssVals, enappVals)  ## calculates maximum differences between solutions. first argument should hold keys we want to comapre.
-
+    plot_battery_soc(copfVals=copfVals)
     # # plot_convergence_comparison(copfVals=copfVals,dddpVals=dddpVals,enappVals=enappVals)
     # conv_args = {}
     # if centralized:

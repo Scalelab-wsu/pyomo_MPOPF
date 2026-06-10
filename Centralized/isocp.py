@@ -2,6 +2,7 @@ import numpy as np
 import gurobipy as gp
 from pyomo.environ import (value, Constraint, SolverFactory)
 from Build_Model.store import store_results
+from pyomo.contrib.appsi.base import TerminationCondition as TC
 
 
 def initialize_model_variables(model,prev_sol = None):
@@ -12,7 +13,7 @@ def initialize_model_variables(model,prev_sol = None):
             model.Q[t, i, j, ph].value = prev_sol['Q'][t, i, j, ph] if prev else 0
 
         for (i, j, p, q) in model.branch_phase_pair_set:
-            model.l[t, i, j, p, q].value = prev_sol['l'][t, i, j, p, q] if prev else 0
+            model.l[t, i, j, p, q].value = max(0.0,prev_sol['l'][t, i, j, p, q]) if prev else 0
 
         for (i, ph) in model.bus_phase_set:
             model.v[t, i, ph].value = prev_sol['v'][t, i, ph] if prev else 1
@@ -180,10 +181,10 @@ def reset_isocp_cuts(model):
 # ISOCP inner loop
 # ---------------------------------------------------------------------------
 
-def _solve_isocp(prev_sol, model,solver,gamma=0.9, inner_tol=1e-4, gap_tol=1e-4, max_inner=50):
+def _solve_isocp(prev_sol, model,model_solver,gamma=0.9, inner_tol=1e-4, gap_tol=1e-4, max_inner=15):
 
     e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(model) ## Computing the socp gap
-    # print(f"Max gap without ISOCP:{max_gap:.3e}")
+    print(f"Max gap without ISOCP:{max_gap:.3e}")
     if abs(max_gap) < inner_tol:
         print("  Initial SOCP relaxation already exact ✓")
         return model
@@ -196,17 +197,18 @@ def _solve_isocp(prev_sol, model,solver,gamma=0.9, inner_tol=1e-4, gap_tol=1e-4,
         # n_pos_cmc = sum(1 for v in e_cmc.values() if abs(v) > 0.0) ## Finding no. of cmc directional constraints to be added
         # print(f"  [ISOCP] adding cuts — PVC: {n_pos_pvc}, CMC: {n_pos_cmc}")
 
-        model, dir_pvc = _add_linear_directional_constraints_pvc(model, dir_pvc, e_pvc, lin_pvc, gamma, gap_tol,)
-        model, dir_cmc = _add_linear_directional_constraints_cmc(model, dir_cmc, e_cmc, lin_cmc, gamma, gap_tol,)
+        model, dir_pvc = _add_linear_directional_constraints_pvc(model, dir_pvc, e_pvc, lin_pvc, gamma, gap_tol)
+        model, dir_cmc = _add_linear_directional_constraints_cmc(model, dir_cmc, e_cmc, lin_cmc, gamma, gap_tol)
 
         model = initialize_model_variables(model, prev_sol) ## initializing socp model with previous solution
-        # model, model_solver = apply_trust_region(model, model_solver,lin_pvc,lin_cmc,rho=0.1) ## Applying trust region to the current variables
+        # model, model_solver = apply_trust_region(model, model_solver,lin_pvc,lin_cmc,rho=0.1) ## Applying trust region to the current iteration variables
         # model.write("debug_model_socp_first_iter.lp", io_options={'symbolic_solver_labels': True})
 
-        res = SolverFactory(solver).solve(model, tee=False)
-        tc = getattr(res.solver, "termination_condition", None)
-        if tc is not None and str(tc).lower() not in ("optimal", "locallyoptimal", "feasible"):
+        res = model_solver.solve(model)
+        tc = getattr(res, 'termination_condition', None)
+        if tc != TC.optimal:
             print(f"  [ISOCP] solve failed at iter {k} — termination {tc}")
+
             return model
 
         prev_sol = store_results(model)

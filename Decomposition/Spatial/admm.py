@@ -32,13 +32,6 @@ def process_area(data_areas,area_name,area_info, shared_vars, dual_vars, rho,obj
     for index in model.q_L:
         model.q_L[index].value = data_areas['q_L'][index]
 
-    # # Warm-start from previous solution if available
-    # if prev_solution is not None:
-    #     for var_name, var_values in prev_solution.items():
-    #         var = getattr(model, var_name)
-    #         for index, val in var_values.items():
-    #             var[index].value = val  # Set initial values
-
     model = pyomo_solve(
         model,
         augmented_obj_function,

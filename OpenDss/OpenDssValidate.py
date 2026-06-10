@@ -146,7 +146,7 @@ def collect_opendss_batteryresults(data,openDssVals,t, P_base):
         bus = dss.CktElement.BusNames()[0].split('.')[0]   # e.g., ["bus45", "3"]
         node_order = dss.CktElement.NodeOrder()
         nodes = [x for x in dict.fromkeys(node_order) if x != 0]
-        p = -dss.CktElement.Powers()[0]* 1000 / P_base
+        p = -sum(dss.CktElement.Powers()[::2])* 1000 / P_base
         soc = dss.Storages.puSOC()#*data['b_R'][bus,ph] ## multiplying by rated to match optimization results for comparison
         if 'P_b' in openDssVals:
             openDssVals['P_b'][t, bus] = p
@@ -270,20 +270,17 @@ def set_pv_controls(data, modelVals, t, P_base):
         pv_id = dss.PVsystems.Next()
 
 def set_battery_controls(data, modelVals, t, P_base):
-    phase_map = {1: 'a', 2: 'b', 3: 'c'}
     storage_id = dss.Storages.First()
     while storage_id > 0:
         storage_name = dss.Storages.Name()
         dss.Circuit.SetActiveElement(f"Storage.{storage_name}")
         bus = dss.CktElement.BusNames()[0].split('.')[0]
-        node_order = dss.CktElement.NodeOrder()
-        p_batt = 0
         if 'P_b' in modelVals:
-            p_batt += modelVals['P_b'][t, bus]*P_base/1e3
+            p_batt = modelVals['P_b'][t, bus]*P_base/1e3
         elif 'P_c' in modelVals and 'P_d' in modelVals:
             p_dis = modelVals['P_d'][t, bus]*P_base/1e3
             p_ch = modelVals['P_c'][t, bus]*P_base/1e3
-            p_batt += p_dis - p_ch
+            p_batt = p_dis - p_ch
         # print(f"Time Step {t}: Setting Battery {storage_name} with p_batt={Pnet_batt}")
         dss.Text.Command(f"Edit Storage.{storage_name} kw={p_batt} kvar = 0")
         storage_id = dss.Storages.Next()

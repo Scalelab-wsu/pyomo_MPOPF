@@ -63,7 +63,7 @@ def loss_minimize_with_scd(model, **kwargs):
 
     # SCD penalty only for linear model (to prevent simultaneous charge/discharge)
     if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-        alpha_scd = getattr(model, "alpha_scd", 20)
+        alpha_scd = getattr(model, "alpha_scd", 1e-3)
         scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
                        (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
                        for t in model.Tset for j in model.Bset)
@@ -90,11 +90,28 @@ def cost_minimize_with_scd(model, **kwargs):
         scd_terms = sum((1 - model.eta_c[j]) * model.P_c[t, j] +
                         (((1 / model.eta_d[j]) - 1) if model.eta_d[j] != 0 else 1.0) * model.P_d[t, j]
                         for t in model.Tset for j in model.Bset)
-        return total_cost + alpha_scd * scd_terms
+        total_cost +=  alpha_scd * scd_terms
+
+    if hasattr(model, 'term_dual') and hasattr(model,'term_Pc') and hasattr(model,'term_Pd'):
+        t_local = model.tmax_local
+        if t_local == model.tmax_horizon:
+            penalty_terms = 0
+        else:
+            penalty_terms = sum(model.term_dual[j] * (model.B[t_local, j] + 0.95*model.term_Pc[j] - model.term_Pd[j]/0.95) for j in model.Bset)
+        total_cost += penalty_terms
+
+    if hasattr(model, 'term_B'):
+        t_local = model.tmax_local
+        if t_local == model.tmax_horizon:
+            correction_term = 0  # Last window: no correction needed
+        else:
+            rho = getattr(model, 'rho', 5.0)  # Can be set externally
+            correction_term = rho * sum((model.B[t_local,j] - model.term_B[j])**2 for j in model.Bset)
+        total_cost += correction_term
 
     return total_cost
 
-def pyomo_solve(model, obj_func,**kwargs):
+def pyomo_solve(model, model_solver,obj_func,**kwargs):
     # Store kwargs as attributes on the model
     for key, value in kwargs.items():
         setattr(model, key, value)
@@ -104,20 +121,6 @@ def pyomo_solve(model, obj_func,**kwargs):
     model.obj = Objective(rule=obj_func, sense=minimize)
     solver = getattr(model, "solver", 'gurobi')
     opt = SolverFactory(solver)
-    if solver == 'ipopt':
-        opt.options['linear_solver'] = 'ma97'  # Use HSL MA97 for linear solves
-    # opt.options['tol'] = 1e-6  # loosen from default 1e-8
-    # opt.options['dual_inf_tol'] = 1e-4  # loosen dual tolerance
-    # opt.options['constr_viol_tol'] = 1e-6
-    # opt.options['acceptable_tol'] = 1e-4  # accept near-optimal solution
-    # opt.options['max_iter'] = 1000
-    # opt.options['nlp_scaling_method'] = 'gradient-based'
-    # opt.options['mu_strategy'] = 'adaptive'
-    # opt.set_options('NonConvex=2')  # Allow non-convex problems
-    # opt.options['tol'] = 1e-6  # Set tolerance
-    # opt.options['max_iter'] = 10000  # Set max iterations
-    # opt.options['print_level'] = 5  # Set print level
-    # opt = SolverFactory('scip', executable=r"C:\Program Files\SCIPOptSuite 9.2.0\bin\scip.exe")
     results = opt.solve(model, tee=False)
     if results.solver.status == "ok" and results.solver.termination_condition == "optimal":
         print(f"{GREEN}Solver completed successfully.{RESET}")

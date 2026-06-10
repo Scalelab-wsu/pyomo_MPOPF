@@ -18,14 +18,14 @@ PERSISTENT_SOLVERS = {}  # {stage_idx: solver}
 # =========================================================
 MODEL_CACHE = {}  # {stage_idx: model}
 
-def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def get_or_build_stage(stage_idx, data, obj, alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     """Get cached model or build new one. Also creates persistent solver."""
     global MODEL_CACHE, PERSISTENT_SOLVERS
 
     cache_key = (int(stage_idx), bool(non_linear), bool(p_control), bool(integer),bool(single_battery_variable))
 
     if cache_key not in MODEL_CACHE:
-        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+        MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, alpha_scd,stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
         solver = SolverFactory("gurobi_persistent")
         solver.set_instance(MODEL_CACHE[cache_key])
@@ -38,7 +38,7 @@ def get_or_build_stage(stage_idx, data, obj, non_linear=False, p_control=False, 
 # SDDP solve_stage with cuts
 # =========================================================
 def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
-    m, solver = get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+    m, solver = get_or_build_stage(stage_idx, data, obj, alpha_scd,non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
     t = stage_idx
 
     # Update prev_B_param and battery_dynamics constraints
@@ -80,9 +80,11 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
 
     # Pre-build all stage models (one-time cost)
     print("Building cached models for all stages...")
+    start_time = time.perf_counter()
     for stage_idx in range(1, num_stages + 1):
-        get_or_build_stage(stage_idx, data, obj, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
-    print(f"Built {num_stages} cached models.")
+        get_or_build_stage(stage_idx, data, obj,alpha_scd, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
+    end_time = time.perf_counter()
+    print(f"Built {num_stages} cached models in {end_time - start_time} seconds.")
 
     # Cuts storage: cuts[stage] = list of (alpha, beta) tuples
     cuts = {f'cuts_{i}': [] for i in range(1, num_stages)}
@@ -93,8 +95,10 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
     start_time = time.perf_counter()
     LB_container = []
     UB_container = []
-
+    algo_start_time = time.perf_counter()
     for k in range(1, max_iters + 1):
+        iter_start_time = time.perf_counter()
+        isocp=k>1
         stage_results = {}
         total_obj_value = 0
 
@@ -143,16 +147,14 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
         LB_container.append(LB_k)
         UB_container.append(UB_k)
 
-        if abs(LB_k - prev_LB) < tol:
-            print("SDDP has converged")
-            print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
+        if abs((UB_k - LB_k))/LB_k < tol or abs(LB_k - prev_LB) < tol:
+            algo_end_time = time.perf_counter()
+            print(f"DDDP has converged in Iter {k:02d} with {algo_end_time - algo_start_time:.2f} seconds, LB = {LB_k:.6f} , UB = {UB_k:.6f}")
             print("B1 End:", {j: stage_results[1]['B_end'][j] for j in Bset})
             break
 
-        end_time = time.perf_counter()
-        print(f'time taken: {end_time - start_time:.2f} seconds')
-        print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f}")
-        start_time = time.perf_counter()
+        iter_end_time = time.perf_counter()
+        print(f"Iter {k:02d} LB = {LB_k:.6f} UB = {UB_k:.6f},time taken: {iter_end_time - iter_start_time:.2f} seconds")
         prev_LB = LB_k
 
     return LB_k, cuts, LB_container, UB_container

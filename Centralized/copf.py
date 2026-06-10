@@ -1,7 +1,8 @@
 import math
 import numpy as np
 import gurobipy as gp
-from pyomo.environ import (value, SolverFactory, Constraint)
+from pyomo.environ import (value, SolverFactory, Constraint,Objective,minimize)
+import time
 from Centralized.isocp import _solve_isocp
 from Build_Model.Constraints import build_pyomo_model,get_or_build_model
 from Build_Model.Objective    import pyomo_solve, cost_minimize, loss_minimize, power_flow, cost_minimize_with_scd
@@ -22,11 +23,20 @@ def solve_copf(
     gamma: float = 0.5,
     inner_tol: float = 1e-4,
     gap_tol: float = 1e-4,
-    max_inner: int = 50,
+    max_inner: int = 15,
 ) -> dict:
-
-    model = get_or_build_model(data,obj,stage_idx=None,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
-    pyomo_solve(model, obj_func=obj, solver=solver, alpha_scd=alpha_scd)
+    start_time = time.perf_counter()  # Start timing
+    model,model_solver = get_or_build_model(data,obj,solver=solver,alpha_scd=alpha_scd,stage_idx=None,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
+    end_time = time.perf_counter()
+    # print(f" Centralized Model Built in {end_time - start_time} seconds.")
+    # pyomo_solve(model, obj_func=obj, solver=solver, alpha_scd=alpha_scd)
+    start_time = time.perf_counter()  # Start timing
+    res = model_solver.solve(model)
+    tc = getattr(res, 'termination_condition', None)
+    if tc is not None and tc.name not in ('optimal', 'locallyOptimal', 'globallyOptimal'):
+        raise RuntimeError(f"Centralized solve failed: termination_condition={tc}")
+    end_time = time.perf_counter()
+    # print(f"Centralized Model Solved in {end_time - start_time} seconds.")
     sol = store_results(model)
 
     if isocp:
@@ -34,8 +44,7 @@ def solve_copf(
         print(f"Entering ISOCP iteration")
 
         socp_model = _solve_isocp(
-            prev_sol=sol, model=model,
-            solver=solver,
+            prev_sol=sol, model=model,model_solver=model_solver,
             gamma=gamma,
             inner_tol=inner_tol,
             gap_tol=gap_tol,

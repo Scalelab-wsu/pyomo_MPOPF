@@ -1,11 +1,14 @@
 import math
+import tempfile
+import os
 from pyomo.environ import ConcreteModel, Var, Param,Constraint, ConstraintList, Set, NonNegativeReals, Reals, minimize, sqrt, inequality, Binary, sin, cos,Objective,minimize,Suffix,SolverFactory
-MODEL_CACHE      = {}
+from pyomo.contrib import appsi
+MODEL_CACHE = {}
+SOLVER_CACHE = {}
 
 def _make_cache_key(stage_idx,area_name, non_linear, isocp,p_control, integer,
                     single_battery_variable) -> tuple:
-    return (
-        int(stage_idx) if stage_idx is not None else None,
+    return (stage_idx,
         area_name if area_name is not None else None,
         bool(non_linear), bool(isocp),bool(p_control), bool(integer),
         bool(single_battery_variable),
@@ -13,37 +16,79 @@ def _make_cache_key(stage_idx,area_name, non_linear, isocp,p_control, integer,
 
 
 def get_or_build_model(
-    data, obj,stage_idx=None,area_name=None,
+    data, obj,solver="gurobi",alpha_scd=1e-3,stage_idx=None,area_name=None,
     non_linear=False,isocp=False, p_control=False, integer=False,
     single_battery_variable=False,
 ):
-    global MODEL_CACHE
+    global MODEL_CACHE, SOLVER_CACHE
     key = _make_cache_key(stage_idx, area_name, non_linear,isocp, p_control,
                           integer, single_battery_variable)
 
     if key not in MODEL_CACHE:
         model = build_pyomo_model(
-            data, obj, stage_idx=stage_idx,
+            data, obj, alpha_scd=alpha_scd,stage_idx=stage_idx,
             non_linear=non_linear, isocp=isocp,
             p_control=p_control, integer=integer,
             single_battery_variable=single_battery_variable,
         )
-        MODEL_CACHE[key]       = model
 
-    return MODEL_CACHE[key]
+        MODEL_CACHE[key] = model
+        if solver == "gurobi":
+            s = appsi.solvers.Gurobi()
+            s.config.stream_solver = False
+            s.config.load_solution = True
+            # s._solver_options['QCPDual'] = 1
+            # s._solver_options['NonConvex'] = 2
+            # s.update_config.check_for_new_or_removed_constraints = False
+            # s.update_config.check_for_new_or_removed_vars = False
+            # s.update_config.check_for_new_or_removed_params = False
+            # s.update_config.check_for_new_objective = False
+            # # # s.update_config.update_constraints = False
+            # s.update_config.update_vars = False
+            # s.update_config.update_named_expressions = False
+            # s.update_config.update_objective = False
+            # s.update_config.treat_fixed_vars_as_params = False
+            s._solver_options['OutputFlag'] = 0
+            SOLVER_CACHE[key] = s
+        if solver == "ipopt":
+            s = appsi.solvers.Ipopt()
+            s.config.stream_solver = False ## SAME AS  model_tee = False
+            # s._solver_options['linear_solver'] = 'pardiso'
+            _ipopt_ws = tempfile.mkdtemp(prefix="pyomo_appsi_ipopt_")
+            s.config.filename = os.path.join(_ipopt_ws, "ipopt")
+            SOLVER_CACHE[key] = s
 
-def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
+        SOLVER_CACHE[key].set_instance(model)
+        SOLVER_CACHE[key].config.load_solution = True
+
+    return MODEL_CACHE[key],SOLVER_CACHE[key]
+
+def build_pyomo_model(data, obj, alpha_scd=1e-3,stage_idx = None, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
     model = ConcreteModel()
-    model.dual = Suffix(direction=Suffix.IMPORT)
+    # model.dual = Suffix(direction=Suffix.IMPORT)
 
     # Sets
-    if stage_idx is not None:
-        model.theta = Var(domain=NonNegativeReals)
-        model.Tset = Set(initialize=[stage_idx])
+    if stage_idx is None:
+        local_Tset = list(data['Tset'])
+    elif isinstance(stage_idx, tuple):
+        ws, we = stage_idx
+        local_Tset = list(range(ws, we+1))
     else:
-        model.Tset = data['Tset']
-    model.times = Set(initialize=list(data['Tset']))
-    tmax = max(data['Tset'])
+        model.theta = Var(domain=NonNegativeReals)
+        local_Tset = Set(initialize=[stage_idx])
+
+    model.Tset = local_Tset
+    model.alpha_scd = alpha_scd
+    tmin_local = min(local_Tset)
+    tmax_local = max(local_Tset)  # last timestep of this model's Tset
+    tmax_horizon = 24
+    tmin_horizon = 1
+
+    model.tmin_local = tmin_local
+    model.tmax_local = tmax_local  # last timestep of this model's Tset
+    model.tmax_horizon = tmax_horizon
+    model.tmin_horizon = tmin_horizon
+
     model.Nset = data['Nset']
     model.Lset = data['Lset']
     model.Bset = data['Bset']
@@ -177,6 +222,7 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
     # Real power balance constraint
     def real_power_balance_rule(model, t, j, ph):
         substationBus = data['substationBus']
+        n_j_phases = len(bus_phases[j])
         # Get phases for incoming and outgoing branches at node j
         incoming_pij = 0 if j in substationBus else sum(model.P[t, i, jj, ph] for i, jj in model.Lset if jj == j and ph in branch_phases[(i, jj)])
         outgoing_pij = sum(model.P[t, jj, k, ph] for jj, k in model.Lset if jj == j and ph in branch_phases[(jj, k)])
@@ -185,11 +231,11 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
         p_load = model.p_L[t, j, ph]
         # n_ph = len(bus_phases[j])
         if hasattr(model, 'P_c') and hasattr(model, 'P_d'):
-            P_c = model.P_c[t, j]/3 if j in model.Bset else 0
-            P_d = model.P_d[t, j]/3 if j in model.Bset else 0
+            P_c = model.P_c[t, j]/n_j_phases if j in model.Bset else 0
+            P_d = model.P_d[t, j]/n_j_phases if j in model.Bset else 0
             battery_power = P_d - P_c
         elif hasattr(model, 'P_b'):
-            battery_power = model.P_b[t, j]/3 if j in model.Bset else 0
+            battery_power = model.P_b[t, j]/n_j_phases if j in model.Bset else 0
 
         if non_linear or isocp:
             r = model.r
@@ -306,52 +352,61 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
     model.substation_voltage_magnitude = Constraint(model.Tset, model.substation_phase_set, rule=substation_voltage_magnitude_rule)
 
     # Battery dynamics constraint
-    if stage_idx is not None:
-        model.prev_B = Param(model.Bset, initialize={b: data['b0'][b] for b in data['Bset']}, mutable=True)
-        if single_battery_variable:
-            def battery_dynamics_rule(model, t, j):
-                prev_soc = model.prev_B[j]
+    if stage_idx is None:
+        # Centralized: b0 hardcoded at tmin, pure chain thereafter
+        def battery_dynamics_rule(model, t, j):
+            prev_soc = data['b0'][j] if t == tmin_horizon else model.B[t - 1, j]
+            if single_battery_variable:
                 return model.B[t, j] == prev_soc - model.P_b[t, j]
+            return (model.B[t, j] == prev_soc+ model.P_c[t, j] * 0.95 - model.P_d[t, j] / 0.95)
 
-            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
-        else:
-            def battery_dynamics_rule(model, t, j):
-                n_c = 0.95
-                n_d = 0.95
-                if n_d == 0:
-                    return model.B[t, j] == model.prev_B[j] + model.P_c[t, j] * n_c
-                else:
-                    return model.B[t, j] == model.prev_B[j] + (model.P_c[t, j] * n_c) - (model.P_d[t, j] / n_d)
+    elif isinstance(stage_idx, int):
+        # DDDP: single step, prev_B is the only input SOC
+        model.prev_B = Param(model.Bset,initialize={b: data['b0'][b] for b in data['Bset']},mutable=True)
 
-            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
+        def battery_dynamics_rule(model, t, j):
+            if single_battery_variable:
+                return model.B[t, j] == model.prev_B[j] - model.P_b[t, j]
+            return (model.B[t, j] == model.prev_B[j]+ model.P_c[t, j] * 0.95 - model.P_d[t, j] / 0.95)
+
     else:
-        if single_battery_variable:
-            def battery_dynamics_rule(model, t, j):
-                b0 = data['b0'][j]
-                prev_soc = b0 if t == min(data['Tset']) else model.B[t - 1, j]
+        # OTD window: pure chain. tmin skipped — boundary_soc pins it.
+        model.prev_B = Param(model.Bset,initialize={b: data['b0'][b] for b in data['Bset']},mutable=True)
+        model.term_dual = Param(model.Bset,initialize={b: 0 for b in data['Bset']},mutable=True)
+        model.term_B = Param(model.Bset,initialize={b: data['b0'][b] for b in data['Bset']},mutable=True)
+        model.term_Pc = Param(model.Bset,initialize={b: 0 for b in data['Bset']},mutable=True)
+        model.term_Pd = Param(model.Bset,initialize={b: 0 for b in data['Bset']},mutable=True)
+
+        def battery_dynamics_rule(model, t, j):
+            if t == tmin_horizon:
+                prev_soc = data['b0'][j]
+            elif t == tmin_local:
+                prev_soc = model.prev_B[j]
+            else:
+                prev_soc = model.B[t - 1, j]
+            if single_battery_variable:
                 return model.B[t, j] == prev_soc - model.P_b[t, j]
+            return model.B[t, j] == prev_soc+ model.P_c[t, j] * 0.95 - (model.P_d[t, j] / 0.95)
 
-            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
-        else:
-            def battery_dynamics_rule(model, t, j):
-                b0 = data['b0'][j]
-                prev_soc = b0 if t == min(data['Tset']) else model.B[t - 1, j]
-                n_c = 0.95
-                n_d = 0.95
-                if n_d == 0:
-                    return model.B[t, j] == prev_soc + (model.P_c[t, j] * n_c)
-                else:
-                    return model.B[t, j] == prev_soc + (model.P_c[t, j] * n_c) - (model.P_d[t, j] / n_d)
-
-            model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
+    model.battery_dynamics = Constraint(model.Tset, model.Bset, rule=battery_dynamics_rule)
 
     # Final SOC = initial SOC rule
     def final_soc_rule(model, t, j):
         initial_B = data['b0'][j]
-        if t == tmax:
-            return model.B[t, j] == initial_B
+        # If this is a temporal window (stage_idx is tuple), skip final SOC for non-terminal windows
+        if isinstance(stage_idx, tuple):
+            # Only enforce if this window contains the global final timestep
+            ws, we = stage_idx
+            if we == tmax_horizon and t == tmax_horizon:
+                return model.B[t, j] == initial_B
+            else:
+                return Constraint.Skip
         else:
-            return Constraint.Skip
+            # For centralized or DDDP, apply normally
+            if t == tmax_horizon:
+                return model.B[t, j] == initial_B
+            else:
+                return Constraint.Skip
 
     model.final_soc = Constraint(model.Tset, model.Bset, rule=final_soc_rule)
 
@@ -420,7 +475,7 @@ def build_pyomo_model(data, obj, stage_idx = None, non_linear=False, isocp=False
         model.der_reactive_power_limits = Constraint(model.Tset, model.gen_phase_set, rule=der_reactive_power_rule)
 
     model.stage_cost = obj(model) if callable(obj) else obj
-    if stage_idx is not None:
+    if isinstance(stage_idx, int):
         model.cuts = ConstraintList()
         model.obj = Objective(expr=model.stage_cost + model.theta, sense=minimize)
     else:
