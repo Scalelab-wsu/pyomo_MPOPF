@@ -33,7 +33,7 @@ def solve_stage(m,m_solver,stage_idx, prev_stage_B, cuts_future, isocp=False):
     m_solver.solve(m)
     if isocp:
         solutions = store_results(m)
-        m = _solve_isocp(prev_sol=solutions, model=m,model_solver=m_solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
+        m, _ = _solve_isocp(prev_sol=solutions, model=m,model_solver=m_solver,gamma=0.5,inner_tol=1e-3,gap_tol=1e-3)
 
     # Extract results
     dual_cons = [m.battery_dynamics[t, j] for j in m.Bset]
@@ -47,7 +47,7 @@ def solve_stage(m,m_solver,stage_idx, prev_stage_B, cuts_future, isocp=False):
     return Q, beta, B_end, S_obj
 
 
-def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
+def dddp_solve(data, obj, solver='highs',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, isocp=False,p_control=False, integer=False,single_battery_variable=False):
 
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
@@ -122,7 +122,7 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
 
     return LB_k, cuts, LB_container, UB_container
 
-def collect_converged_solution(data, cuts, obj, *, solver='gurobi',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def collect_converged_solution(data, cuts, obj, *, solver='highs',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
     initial_b = data['b0']

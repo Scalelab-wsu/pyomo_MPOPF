@@ -1,0 +1,549 @@
+% Requires: amsmath, amssymb, booktabs, float, algorithm, algpseudocode, bm
+
+\section{Centralized Multi-Period Optimal Power Flow}
+\label{sec:copf}
+
+We study the day-ahead operation of an unbalanced radial distribution
+network (DN) hosting distributed energy resources (DERs) and battery
+energy storage systems (BESS). Over a scheduling horizon
+$\mathcal{T}=\{1,\dots,T\}$, the operator minimizes the cost of energy
+imported at the substation subject to the network physics and all
+device limits. Because each battery couples consecutive timesteps
+through its state of charge (SOC), the resulting program is a single,
+temporally coupled multi-period OPF. Section~\ref{ssec:notation} fixes
+the notation; Section~\ref{ssec:nonconvex} states the exact non-convex
+model; Section~\ref{ssec:mpisocp} develops the iterative SOCP scheme
+that solves it; and Section~\ref{ssec:linear} gives the linear
+counterpart. These models are the building blocks placed inside each
+temporal window of the decomposition in Section~\ref{sec:dddp}.
+
+\subsection{Notation and Network Model}
+\label{ssec:notation}
+
+The DN is a directed graph $G=(\mathcal{N},\mathcal{E})$ with node set
+$\mathcal{N}$ and branch set $\mathcal{E}$; $\Phi_j$ and $\Phi_{ij}$
+collect the phases present at bus $j$ and branch $(i,j)$, superscript
+$p$ indexes the phase, and $t$ indexes time. For branch $(i,j)$ and
+phase $p$ at time $t$, $P^{pp}_{ij,t}$ and $Q^{pp}_{ij,t}$ are the
+active and reactive power flows. At node $j$, $p^{p}_{L,j,t}$ and
+$q^{p}_{L,j,t}$ are the load demands and $p^{p}_{D,j,t}$, $q^{p}_{D,j,t}$
+the DER injections, bounded by the inverter rating
+$S^{p}_{\mathrm{DR},j}$. The BESS at node $j$ charges and discharges
+with powers $P^{p}_{c,j,t}$, $P^{p}_{d,j,t}$, stores energy (SOC)
+$B^{p}_{j,t}$, has rated power $P_{\mathrm{BR},j}$, efficiencies
+$\eta_c,\eta_d$, and SOC bounds
+$[\mathrm{soc}_{\min},\mathrm{soc}_{\max}]$. We use the squared voltage
+magnitude $\upsilon^{p}_{j,t}=|V^{p}_{j,t}|^2$, the squared current
+magnitude $l^{pp}_{ij,t}=|I^{pp}_{ij,t}|^2$, the cross-phase current
+product $l^{pq}_{ij,t}=|I^{pp}_{ij,t}|\,|I^{qq}_{ij,t}|$, and the
+current-angle difference $\delta^{pq}_{ij,t}$. Line impedance and
+resistance are $z^{pq}_{ij}$, $R^{pq}_{ij}$, and voltages are confined
+to $[V_{\min},V_{\max}]$. Table~\ref{tab:notation} summarizes the
+principal symbols.
+
+\begin{table}[H]
+  \centering
+  \caption{Key Notation}
+  \label{tab:notation}
+  \begin{tabular}{ll}
+    \toprule
+    Symbol & Description \\
+    \midrule
+    \(G=(\mathcal{N},\mathcal{E})\) & Directed graph of nodes and branches \\
+    \(\Phi_j,\,\Phi_{ij}\) & Set of phases at bus \(j\) and branch \((i,j)\) \\
+    \(P^{pp}_{ij,t},\,Q^{pp}_{ij,t}\) & Active/reactive flow on \((i,j)\), phase \(p\), time \(t\) \\
+    \(p^{p}_{L,j,t},\,q^{p}_{L,j,t}\) & Active/reactive demand at node \(j\), phase \(p\) \\
+    \(p^{p}_{D,j,t},\,q^{p}_{D,j,t}\) & DER active/reactive injection at node \(j\) \\
+    \(S^{p}_{\mathrm{DR},j}\) & DER inverter apparent-power rating \\
+    \(P^{p}_{c,j,t},\,P^{p}_{d,j,t}\) & BESS charge/discharge active power \\
+    \(B^{p}_{j,t}\) & BESS state of charge (SOC) \\
+    \(P_{\mathrm{BR},j}\) & BESS rated active-power capacity \\
+    \(\eta_c,\,\eta_d\) & BESS charge/discharge efficiencies \\
+    \(\mathrm{soc}_{\min},\,\mathrm{soc}_{\max}\) & BESS SOC bounds \\
+    \(V^{p}_{j,t}\) & Complex voltage \((|V^{p}_{j,t}|\angle\theta^{p}_{j,t})\) \\[2pt]
+    \(\upsilon^{p}_{j,t}\) & Squared voltage magnitude \((\upsilon^{p}_{j,t}=|V^{p}_{j,t}|^2)\) \\[2pt]
+    \(I^{pp}_{ij,t}\) & Complex current \((|I^{pp}_{ij,t}|\angle\delta^{pp}_{ij,t})\) \\[2pt]
+    \(\delta^{pq}_{ij,t}\) & Current-angle difference \((\delta^{pp}_{ij,t}-\delta^{qq}_{ij,t})\) \\[2pt]
+    \(l^{pp}_{ij,t}\) & Squared current magnitude \((|I^{pp}_{ij,t}|^2)\) \\[2pt]
+    \(l^{pq}_{ij,t}\) & Current-magnitude product \((|I^{pp}_{ij,t}|\,|I^{qq}_{ij,t}|)\) \\[2pt]
+    \(z^{pq}_{ij},\,R^{pq}_{ij}\) & Impedance/resistance of line \((i,j)\), \(pq\in\Phi_{ij}\) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Non-Convex Multi-Period Formulation}
+\label{ssec:nonconvex}
+
+The centralized multi-period three-phase OPF is stated compactly by
+\eqref{eq0}--\eqref{lintermsoc}, and its terms are described immediately
+afterward. The problem reads
+\begin{equation}\label{eq0}
+\small
+    \min_{\mathcal{Y}}\; F(\mathcal{Y}),
+\end{equation}
+\begin{equation}\label{eq1}
+\begin{small}
+\begin{aligned}
+F(\mathcal{Y})=\sum_{t=1}^{T} \Bigg[
+& C_{t}\,P_{subs,t}
++ \alpha \sum_{j \in \mathcal{B}} \left\{ (1 - \eta_c) P_{C_j,t}
++ \left( \tfrac{1}{\eta_d} - 1 \right) P_{D_j,t} \right\}
+\Bigg],
+\end{aligned}
+\end{small}
+\end{equation}
+subject to, for every branch $(i,j)\in\mathcal{E}$, phase
+$p\in\Phi_{ij}$, and time $t\in\mathcal{T}$,
+\begin{equation}\label{eq2}
+\begin{split}
+P_{ij,t}^{pp}
+= \sum_{(j,k)\in E} P_{jk,t}^{pp} + p_{L_j,t}^p
+- p_{D_j,t}^p - P_{d_j,t}^p + P_{c_j,t}^p \\ + \sum_{q \in \Phi_j} l_{ij,t}^{pq}
+\left( r_{ij}^{pq} \cos(\delta_{ij,t}^{pq}) + x_{ij}^{pq} \sin(\delta_{ij,t}^{pq}) \right),
+\end{split}
+\end{equation}
+\begin{equation}\label{eq3}
+\begin{split}
+Q_{ij,t}^{pp}
+= & \sum_{(j,k)\in E} Q_{jk,t}^{pp} + q_{L_j,t}^p - q_{D_j,t}^p \\
+& + \sum_{q \in \Phi_j} l_{ij,t}^{pq}
+\left( x_{ij}^{pq} \cos(\delta_{ij,t}^{pq}) - r_{ij}^{pq} \sin(\delta_{ij,t}^{pq}) \right),
+\end{split}
+\end{equation}
+\begin{equation}\label{eq4}
+\begin{split}
+v_{j,t}^p =  & v_{i,t}^p
+- \sum_{q \in \Phi_j} 2\,\mathbb{R}\!\left[ S_{ij,t}^{pq} \left( z_{ij}^{pq} \right)^* \right]- \\ & \sum_{\substack{q_1, q_2 \in \Phi_j}}
+2\,\mathbb{R}\!\left[ z_{ij}^{pq_1} l_{ij,t}^{q_1 q_2}
+\left( \angle(\delta_{ij,t}^{q_1 q_2}) \right)
+\left( z_{ij}^{pq_2} \right)^* \right],
+\end{split}
+\end{equation}
+\begin{equation}\label{eq5}
+\left( P_{ij,t}^{pp} \right)^2 + \left( Q_{ij,t}^{pp} \right)^2
+= v_{i,t}^p \, l_{ij,t}^{pp},
+\end{equation}
+\begin{equation}\label{eq6}
+\left( l_{ij,t}^{pq} \right)^2 = l_{ij,t}^{pp} \, l_{ij,t}^{qq},
+\end{equation}
+\begin{equation}\label{linqder}
+{ - \sqrt {{{\left( {S_{D\,R_j}^p} \right)}^2} - {{\left( {p_{D_j,t}^p} \right)}^2}} \le q_{D_j,t}^p \le \sqrt {{{\left( {S_{D\,R_j}^p} \right)}^2} - {{\left( {p_{D_j,t}^p} \right)}^2}}},
+\end{equation}
+\begin{equation}\label{linv}
+{\left( {{V_{min}}} \right)^2} \le {\upsilon}_j^p \le {\left( {{V_{max}}} \right)^2},
+\end{equation}
+\begin{equation}\label{linsocevol}
+B_{j,t}^{p} = B_{j,t-1}^{p} + \Delta t\, \eta_c P_{c_j,t}^{p} - \Delta t\, (1/\eta_d) P_{d_j,t}^{p},
+\end{equation}
+\begin{equation}\label{linPch}
+P_{cj,t}^{p} \le P_{BR_j},
+\end{equation}
+\begin{equation}\label{linPdis}
+P_{dj,t}^{p} \le P_{BR_j},
+\end{equation}
+\begin{equation} \label{linsoclim}
+soc_{min}B_{R,j} \le B_{j,t}^p \le  soc_{max}B_{R,j},
+\end{equation}
+\begin{equation}\label{lintermsoc}
+B_{j,0}^{p} = B_{j,T}^{p}.
+\end{equation}
+
+The decision set $\mathcal{Y}$ collects all line flows, voltages, DER
+injections, and BESS variables over the horizon. In the
+objective~\eqref{eq1}, the first term prices substation imports ($C_t$
+in $\$/\mathrm{kWh}$, $P_{subs,t}$ in kW) and the second penalizes BESS
+conversion losses with weight $\alpha>0$; as shown in~\cite{Nazir}, this
+penalty precludes simultaneous charging and discharging without
+introducing binary variables, keeping the model continuous.
+Constraints~\eqref{eq2}--\eqref{eq3} enforce three-phase active and
+reactive nodal balance, the trailing summations accounting for series
+line losses; \eqref{eq4} is the three-phase Kirchhoff voltage law across
+branch $(i,j)$; and \eqref{eq5}--\eqref{eq6} are the exact
+power--voltage--current relation and the cross-phase current-coupling
+identity of the branch-flow model. The DER reactive capability is
+box-bounded by~\eqref{linqder} and bus voltages by~\eqref{linv}. The
+BESS is governed by the SOC recursion~\eqref{linsocevol}, the
+charge/discharge power caps~\eqref{linPch}--\eqref{linPdis}, the energy
+bounds~\eqref{linsoclim}, and the cyclic terminal
+condition~\eqref{lintermsoc}. Crucially, \eqref{linsocevol} is the sole
+inter-temporal coupling: every $B^{p}_{j,t}$ with $t\ge1$ is a decision
+variable, while at the first step $t=1$ the preceding state is fixed to
+the given initial SOC, $B^{p}_{j,0}$, which anchors the entire horizon,
+and \eqref{lintermsoc} restores that level at $t=T$.
+
+The formulation is non-convex on two counts. Treating the current
+angles $\delta^{pq}_{ij,t}$ as variables makes
+\eqref{eq2}--\eqref{eq4} strongly nonlinear; however, in distribution
+networks these angles deviate only marginally from their base-case
+values~\cite{XX}, so we fix $\delta^{pq}_{ij,t}$ to the angles obtained
+from a base-case OpenDSS power flow, held constant over all timesteps.
+This renders \eqref{eq2}--\eqref{eq4} linear. The only residual
+non-convexities are then the equalities~\eqref{eq5}--\eqref{eq6}, whose
+bilinear right-hand sides are addressed next.
+
+\subsection{MPISOCP: Iterative SOCP Convexification}
+\label{ssec:mpisocp}
+
+We convexify the remaining non-convex equalities by a Multi-Period
+Iterative Second-Order Cone Programming (MPISOCP) scheme, whose
+ingredients are collected in \eqref{eqpvc}--\eqref{eqdircmc} and
+explained thereafter. The equalities~\eqref{eq5}--\eqref{eq6} are first
+relaxed into second-order cones,
+\begin{equation}\label{eqpvc}
+\left( P_{ij,t}^{pp} \right)^2 + \left( Q_{ij,t}^{pp} \right)^2
+\leq v_{i,t}^p \, l_{ij,t}^{pp},
+\end{equation}
+\begin{equation}\label{eqcmc}
+\left( l_{ij,t}^{pq} \right)^2 \leq l_{ij,t}^{pp} \, l_{ij,t}^{qq},
+\end{equation}
+their (non-positive) relaxation gaps are quantified by the residuals
+\begin{equation}\label{erroreqpvc}
+\left( E1_{ij,t}^{pp} \right) = \left( P_{ij,t}^{pp} \right)^2 + \left( Q_{ij,t}^{pp} \right)^2
+- v_{i,t}^p \, l_{ij,t}^{pp},
+\end{equation}
+\begin{equation}\label{erroreqcmc}
+\left( E2_{ij,t}^{pq} \right) = \left( l_{ij,t}^{pq} \right)^2 - l_{ij,t}^{pp} \, l_{ij,t}^{qq},
+\end{equation}
+these residuals are driven toward zero across iterations by
+\begin{equation}\label{erroreqpvcred}
+(E1_{ij,t}^{pp})^{m+1} \geq \tau\, (E1_{ij,t}^{pp})^{m},
+\end{equation}
+\begin{equation}\label{erroreqcmcred}
+(E2_{ij,t}^{pq})^{m+1} \geq \tau\, (E2_{ij,t}^{pq})^{m},
+\end{equation}
+and, after a first-order Taylor expansion about the iterate-$m$
+operating point, the tractable directional cuts are
+\begin{equation}\label{eqdirpvc}
+\begin{split}
+2P_{ij,t}^{pp(m)} P_{ij,t}^{pp(m+1)}
+&+ 2Q_{ij,t}^{pp(m)} Q_{ij,t}^{pp(m+1)}
+- l_{ij,t}^{pp(m)} v_{i,t}^{p(m+1)} \\&
+- v_{i,t}^{p(m)} l_{ij,t}^{pp(m+1)}
+\geq (\tau + 1)\, E1_{ij,t}^{pp(m)},
+\end{split}
+\end{equation}
+\begin{equation}\label{eqdircmc}
+\begin{split}
+2l_{ij,t}^{pq(m)}  l_{ij,t}^{pq(m+1)}
+- l_{ij,t}^{pp(m)}  l_{ij,t}^{qq(m+1)}
+- l_{ij,t}^{qq(m)}  l_{ij,t}^{pp(m+1)} \\
+\geq (\tau + 1)\, E2_{ij,t}^{pq(m)}.
+\end{split}
+\end{equation}
+
+The inequalities~\eqref{eqpvc}--\eqref{eqcmc} enlarge the feasible set
+and make each stage a convex conic program; the relaxation is exact only
+when both cones are tight, i.e.\ when the residuals
+\eqref{erroreqpvc}--\eqref{erroreqcmc} vanish. Since these residuals are
+non-positive by construction, \eqref{erroreqpvcred}--\eqref{erroreqcmcred}
+require each one at iteration $m{+}1$ to reach at least a fraction
+$\tau\in[0,1]$ of its previous value, pushing it toward zero; the
+right-hand sides are constants known after iteration $m$, but the
+left-hand sides remain bilinear. Linearizing them yields the linear
+directional cuts~\eqref{eqdirpvc}--\eqref{eqdircmc}, which steer the
+conic solution onto the exact manifold and shrink the gap monotonically.
+Algorithm~\ref{alg:isocp} iterates this process: it solves the SOCP
+relaxation with the current cuts, re-linearizes at the new iterate, and
+terminates once the maximum residual falls below $\varepsilon$ or the
+iteration cap $M_{\max}$ is reached.
+
+\begin{algorithm}[t]
+\caption{Multi-Period Iterative SOCP (MPISOCP).}
+\label{alg:isocp}
+\begin{algorithmic}[1]
+\Require $\tau\!\in\![0,1]$, tolerance $\varepsilon$, cap $M_{\max}$.
+\State Solve the SOCP relaxation
+\eqref{eq0}--\eqref{eq4},\,\eqref{eqpvc},\,\eqref{eqcmc}, \eqref{linqder}--\eqref{lintermsoc}; obtain
+$\mathcal{Y}^{(0)}\!=\!(P^{(0)},Q^{(0)},v^{(0)},l^{(0)})$.
+\State Compute $E1^{pp(0)}_{ij,t}$, $E2^{pq(0)}_{ij,t}$
+from~\eqref{erroreqpvc}--\eqref{erroreqcmc} and
+$E^{(0)}\!\leftarrow\!\max\{|E1^{pp(0)}|,|E2^{pq(0)}|\}$.
+\For{$m=0,1,\dots,M_{\max}\!-\!1$}
+    \If{$E^{(m)}\!\le\!\varepsilon$} \Return $\mathcal{Y}^{(m)}$. \EndIf
+        \State Linearize the residuals at $\mathcal{Y}^{(m)}$ to form the
+directional cuts~\eqref{eqdirpvc}--\eqref{eqdircmc}.
+\State Solve \eqref{eq0}--\eqref{eq4},\,\eqref{eqpvc},\,\eqref{eqcmc},\eqref{linqder}--\eqref{lintermsoc}, augmented with the cuts~\eqref{eqdirpvc}--\eqref{eqdircmc}; obtain
+$\mathcal{Y}^{(m+1)}$ and update $E^{(m+1)}$.
+\EndFor
+\State \Return $\mathcal{Y}^{(M_{\max})}$.
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Linear Multi-Period Formulation}
+\label{ssec:linear}
+
+When speed is favored over loss accuracy, the quadratic loss terms are
+dropped, yielding a fully linear multi-period OPF. It retains the
+objective~\eqref{eq1} and the DER/BESS
+constraints~\eqref{linqder}--\eqref{lintermsoc}, and replaces
+\eqref{eq2}--\eqref{eq4} by their loss-free counterparts
+\begin{equation}\label{linPij}
+P_{ij,t}^{pp} = \sum_{(j,k)\in E} {P_{jk,t}^{pp}} + p_{{L_j,t}}^p - p_{D_j,t}^p - P_{d_j,t}^p + P_{c_j,t}^p,
+\end{equation}
+\begin{equation}\label{linQij}
+Q_{ij,t}^{pp} = \sum_{(j,k)\in E} {Q_{jk,t}^{pp}} + q_{{L_j,t}}^p - q_{Dj,t}^p,
+\end{equation}
+\begin{equation}\label{linkvl}
+{\upsilon }_{j,t}^p = {\upsilon}_{i,t}^p - \sum\limits_{q \in {\phi _j}} {2\left[ {S_{ij,t}^{pq}\left( {z_{ij}^{pq}} \right)^*} \right]}.
+\end{equation}
+Equations~\eqref{linPij}--\eqref{linQij} are the lossless nodal balances
+and \eqref{linkvl} the lossless voltage drop. This model has no bilinear
+terms, needs no convexification, and is solved directly as a single
+linear program; it is the fast alternative to MPISOCP inside the
+temporal decomposition of Section~\ref{sec:dddp}.
+
+\section{Deterministic Dual Dynamic Programming (DDDP)}
+\label{sec:dddp}
+
+The centralized problem of Section~\ref{sec:copf} solves the whole
+horizon $\mathcal{T}=\{1,\dots,T\}$ as one program, whose timesteps are
+tied together solely by the SOC recursion~\eqref{linsocevol}. Even this
+single coupling makes the monolithic solve time grow super-linearly with
+$T$, which is prohibitive for long-horizon, feeder-scale studies. We
+therefore decompose the horizon in time: the schedule is split into a
+chain of shorter window sub-problems that communicate only across their
+boundaries, and the centralized optimum is recovered by a parallel
+chained Benders scheme we call Deterministic Dual Dynamic Programming
+(DDDP).
+
+The windows couple through one state variable---the boundary SOC---but
+DDDP exchanges information about it in two passes. The \emph{forward}
+pass carries the SOC value: each window hands its terminal SOC to the
+next as an initial condition. The \emph{backward} pass carries a Benders
+cut: each window returns to its predecessor a linear under-estimate of
+the downstream cost incurred by that SOC. Because both passes read only
+quantities from the \emph{previous} iteration, all $P$ windows are solved
+simultaneously.
+
+\subsection{Window Construction and Boundary Variables}
+\label{ssec:windows}
+
+We partition $\mathcal{T}$ into $P$ \emph{disjoint} contiguous windows
+$\{\mathcal{W}_i\}_{i=1}^{P}$ of length $b$, where window $i$ spans
+$\mathcal{W}_i=\{w^{s}_i,\dots,w^{e}_i\}$ with
+\begin{equation}
+\label{eq:windows}
+w^{s}_i = (i\!-\!1)b+1, \qquad w^{e}_i = ib,
+\qquad w^{s}_1 = 1,\; w^{e}_P = T .
+\end{equation}
+The windows carry no look-ahead overlap; the influence of future stages
+is captured exactly through Benders cuts, which later makes the stitched
+primal cost exact (Section~\ref{ssec:bounds}). The only primal variable
+coupling adjacent windows is the terminal SOC of window $i$, defined over
+the battery buses $\mathcal{B}$ as
+\begin{equation}
+\label{eq:state_definition}
+\bm{x}_i \;\triangleq\; \big(B^{p}_{j,\,w^{e}_i}\big)_{j\in\mathcal{B},\,p\in\Phi_j},
+\qquad
+\bm{x}_0 \;\triangleq\; \big(B^{p}_{j,0}\big)_{j\in\mathcal{B},\,p\in\Phi_j}.
+\end{equation}
+The forward pass propagates the \emph{value} of $\bm{x}_i$, handed to
+window $i{+}1$ as its fixed initial SOC; the backward pass propagates
+\emph{dual information} about the same $\bm{x}_i$, delivered as the
+Benders cut of Section~\ref{ssec:cuts}. For the first window the initial
+SOC is $\bm{x}_0$, the given value that anchors the centralized horizon
+and never changes.
+
+\subsection{Window Sub-Problem}
+\label{ssec:subproblem}
+
+Each window $i$ solves the chosen centralized OPF---the MPISOCP model of
+Section~\ref{ssec:mpisocp} or the linear model of
+Section~\ref{ssec:linear}---over the reduced horizon $\mathcal{W}_i$,
+augmented by a scalar epigraph variable $\theta_i\ge0$ that bounds the
+optimal cost of the downstream windows $i{+}1,\dots,P$. Let
+$\mathcal{Y}_i$ be the local decision vector, $F(\mathcal{Y}_i)$ the
+centralized objective~\eqref{eq1} summed over $t\in\mathcal{W}_i$, and
+$\mathcal{F}_i(\hat{\bm{x}}_{i-1})$ the window feasible set parameterized
+by the incoming SOC. That incoming SOC is a fixed \emph{parameter},
+distinguished from the decision variable $\bm{x}_{i-1}$ by a hat; at
+outer iteration $k$ it takes the trial value
+\begin{equation}
+\label{eq:trial}
+\hat{\bm{x}}_{i-1}^{(k)} \;\triangleq\; \bm{x}_{i-1}^{(k-1)},
+\end{equation}
+the terminal SOC produced by window $i{-}1$ at the previous iteration
+(with $\hat{\bm{x}}_0^{(k)}\equiv\bm{x}_0$ for all $k$). The window-$i$
+sub-problem at iteration $k$, denoted $[\mathrm{SP}_i^{(k)}]$, is
+\begin{subequations}
+\label{eq:subproblem}
+\begin{align}
+V_i^{(k)}\big(\hat{\bm{x}}_{i-1}^{(k)}\big) \;\triangleq\;
+\min_{\mathcal{Y}_i,\,\theta_i}\;\;
+& F(\mathcal{Y}_i)\;+\;\theta_i
+\label{eq:sub_obj}\\[2pt]
+\text{s.t.}\quad
+& \mathcal{Y}_i \,\in\, \mathcal{F}_i(\hat{\bm{x}}_{i-1}^{(k)}),
+\label{eq:sub_feas}\\[2pt]
+& \theta_i \;\ge\; \alpha_i^{(\ell)} \;+\; \bm{\beta}_i^{(\ell)\top}\, \bm{x}_i,
+   \quad \ell = 1,\dots,k{-}1,
+\label{eq:sub_cuts}\\[2pt]
+& \theta_i \;\ge\; 0 .
+\label{eq:sub_thpos}
+\end{align}
+\end{subequations}
+The augmented objective~\eqref{eq:sub_obj} is the window value function:
+the local operating cost plus the value-to-go, evaluated at the trial
+point $\hat{\bm{x}}_{i-1}^{(k)}$. Constraint~\eqref{eq:sub_feas} is the
+complete MPISOCP or linear model over $\mathcal{W}_i$, so the SOC
+recursion~\eqref{linsocevol} holds for every $t\in\mathcal{W}_i$;
+and~\eqref{eq:sub_cuts} is the pool of $k{-}1$ optimality cuts received
+from window $i{+}1$, written in the terminal-SOC \emph{variable}
+$\bm{x}_i$, with $\theta_P\equiv0$ for the last window.
+
+The trial SOC enters $[\mathrm{SP}_i^{(k)}]$ only through the initial
+condition of the recursion~\eqref{linsocevol}: window $i$ fixes its
+pre-window state at $t=w^{s}_i$ to $\hat{\bm{x}}_{i-1}^{(k)}$, exactly as
+the centralized problem fixes its pre-horizon state to $\bm{x}_0$ at
+$t=1$. Consequently the dual multiplier of this fixed initial condition
+equals the gradient of the value function at the trial point,
+\begin{equation}
+\label{eq:dual_sens}
+\bm{\beta}_i^{(k)} \;=\;
+\frac{\partial V_i^{(k)}}{\partial \bm{x}_{i-1}}\bigg|_{\hat{\bm{x}}_{i-1}^{(k)}} ,
+\end{equation}
+the sensitivity used to build the backward Benders cut of
+Section~\ref{ssec:cuts}.
+
+\subsection{Cut Generation: A Walk-Through of Window~$i$}
+\label{ssec:cuts}
+
+To make the two-pass exchange concrete, we trace one outer iteration $k$
+for an interior window $i\in\{2,\dots,P{-}1\}$; the boundary windows
+differ only in that window $1$ uses the fixed trial
+$\hat{\bm{x}}_0^{(k)}\equiv\bm{x}_0$ and window $P$ has
+$\theta_P\equiv0$. Window $i$ executes five steps.
+\begin{enumerate}\itemsep2pt
+\item[\textbf{S1.}] \emph{Receive forward state.} Fix the incoming SOC
+to the trial value $\hat{\bm{x}}_{i-1}^{(k)}$ of~\eqref{eq:trial}, the
+terminal SOC delivered by window $i{-}1$ at iteration $k{-}1$.
+\item[\textbf{S2.}] \emph{Receive backward cut.} Append the optimality
+cut generated by window $i{+}1$ at iteration $k{-}1$ to the
+pool~\eqref{eq:sub_cuts}.
+\item[\textbf{S3.}] \emph{Solve.} Solve $[\mathrm{SP}_i^{(k)}]$ for the
+value $V_i^{(k)}$, the primal $\mathcal{Y}_i^{(k)}$ (which contains the
+new terminal SOC $\bm{x}_i^{(k)}$), and the boundary dual
+$\bm{\beta}_i^{(k)}$ of~\eqref{eq:dual_sens}.
+\item[\textbf{S4.}] \emph{Emit forward state.} Pass $\bm{x}_i^{(k)}$ to
+window $i{+}1$ as its next trial $\hat{\bm{x}}_i^{(k+1)}$.
+\item[\textbf{S5.}] \emph{Emit backward cut.} Return to window $i{-}1$ an
+optimality cut on its value-to-go variable $\theta_{i-1}$, written in
+that window's terminal-SOC variable $\bm{x}_{i-1}$,
+\begin{equation}
+\label{eq:cut_build}
+\theta_{i-1} \;\ge\;
+\underbrace{V_i^{(k)} - \bm{\beta}_i^{(k)\top}\hat{\bm{x}}_{i-1}^{(k)}}_{\alpha_{i-1}^{(k)}}
+\;+\;
+\underbrace{\bm{\beta}_i^{(k)\top}}_{\bm{\beta}_{i-1}^{(k)\top}}\,
+\bm{x}_{i-1}.
+\end{equation}
+\end{enumerate}
+The cut~\eqref{eq:cut_build} is the supporting hyperplane of the
+downstream value function $V_i$ at the trial point: its slope is the
+sensitivity $\bm{\beta}_i^{(k)}$ of~\eqref{eq:dual_sens} and its
+intercept anchors it to $(\hat{\bm{x}}_{i-1}^{(k)},V_i^{(k)})$. Since
+$V_i$ is convex in its boundary argument under the SOCP relaxation, the
+cut is a valid under-estimator of $\theta_{i-1}$, and the accumulated
+cuts form a piecewise-linear surrogate that tightens monotonically.
+Because every window reads only trial states and cuts from the previous
+iteration (S1--S2), the $P$ sub-problems are decoupled within an
+iteration and solved in parallel, exchanging just one forward SOC vector
+$\bm{x}_i$ and one cut $(\alpha,\bm{\beta})$ per window per iteration. The
+complete procedure is summarized in Algorithm~\ref{alg:dddp}.
+
+\subsection{Global Bounds and Convergence}
+\label{ssec:bounds}
+
+Because the windows are disjoint and exhaustive, each outer iteration
+$k$ exposes a global lower and upper bound at negligible cost,
+\begin{align}
+\underline{Z}^{(k)} \;&\triangleq\; V_1^{(k)}
+\;=\; F(\mathcal{Y}_1^{(k)}) + \theta_1^{(k)},
+\label{eq:LB}\\[2pt]
+\overline{Z}^{(k)} \;&\triangleq\; \sum_{i=1}^{P} F(\mathcal{Y}_i^{(k)}),
+\label{eq:UB}
+\end{align}
+and convergence is declared when either of the two criteria
+\begin{align}
+\textbf{(C1)}\;\;\;
+\frac{\overline{Z}^{(k)} - \underline{Z}^{(k)}}
+     {\max(1,|\overline{Z}^{(k)}|)} &\;<\; \varepsilon_{\text{gap}},
+\label{eq:cv_gap}\\[2pt]
+\textbf{(C2)}\;\;\;
+\max\!\Big\{\!
+\tfrac{|\underline{Z}^{(k)}{-}\underline{Z}^{(k-1)}|}{\max(1,|\underline{Z}^{(k)}|)},\;
+\tfrac{|\underline{Z}^{(k-1)}{-}\underline{Z}^{(k-2)}|}{\max(1,|\underline{Z}^{(k)}|)}\!
+\Big\} &\;<\; \varepsilon_{\text{lb}}
+\label{eq:cv_lb}
+\end{align}
+is met. In~\eqref{eq:LB}, $\underline{Z}^{(k)}$ is a global lower bound
+on the centralized optimum $Z^\star$: $\theta_1$ under-estimates the
+true value-to-go of windows $2,\dots,P$, so $V_1^{(k)}\le Z^\star$ for
+all $k$ and is non-decreasing under standard Benders
+monotonicity~\cite{XX}. In~\eqref{eq:UB}, $\overline{Z}^{(k)}$ is the
+\emph{exact} primal cost of the stitched trajectory: with zero overlap
+each timestep is optimized by exactly one window, so the stage costs add
+up with no double-counting. Of the two rules, (C1) is the classical
+Benders duality gap, while (C2) is a two-step lower-bound stability test
+that guards against the mild primal degeneracy at window
+boundaries---which makes $\overline{Z}^{(k)}$ oscillate by a few cuts
+even after the lower bound has plateaued---and empirically triggers
+first on feeders with many co-located batteries.
+
+\begin{algorithm}[t]
+\caption{Parallel DDDP.}
+\label{alg:dddp}
+\begin{algorithmic}[1]
+\Require horizon $T$, partitions $P$, initial SOC $\bm{x}_0$,
+         tolerances $\varepsilon_{\text{gap}},\varepsilon_{\text{lb}}$,
+         max iterations $K$.
+\State Build disjoint windows $\{\mathcal{W}_i\}_{i=1}^{P}$
+       via~\eqref{eq:windows}.
+\State Spawn $P$ persistent workers; each builds its local model
+       $[\mathrm{SP}_i^{(0)}]$ once with an empty cut-pool.
+\State Initialize $\hat{\bm{x}}_i^{(1)}\leftarrow\bm{x}_0$ and cut inbox
+       $\mathcal{C}_i\leftarrow\emptyset$ for all $i$.
+\For{$k = 1, 2, \dots, K$}
+   \State \textbf{(Parallel solve)}\;
+          \textbf{parfor} $i = 1, \dots, P$ \textbf{do}
+   \State \quad drain inbox: append cuts $\mathcal{C}_i$ to the pool of
+          $[\mathrm{SP}_i^{(k)}]$, then set $\mathcal{C}_i\leftarrow\emptyset$
+   \State \quad solve $[\mathrm{SP}_i^{(k)}]$ at $\hat{\bm{x}}_{i-1}^{(k)}$,
+          obtaining $V_i^{(k)},\bm{x}_i^{(k)},\bm{\beta}_i^{(k)}$
+   \State \textbf{end parfor}
+   \State \textbf{(Cut assembly)} \For{$i = 2, \dots, P$}
+       \State $\alpha \leftarrow V_i^{(k)} -
+              \bm{\beta}_i^{(k)\top}\hat{\bm{x}}_{i-1}^{(k)}$;\;\;
+              $\bm{\beta} \leftarrow \bm{\beta}_i^{(k)}$
+       \State $\mathcal{C}_{i-1} \leftarrow \mathcal{C}_{i-1}\cup\{(\alpha,\bm{\beta})\}$
+   \EndFor
+   \State \textbf{(Forward pass)} for $i=1,\dots,P{-}1$:
+          $\hat{\bm{x}}_{i}^{(k+1)} \leftarrow \bm{x}_i^{(k)}$
+   \State $\underline{Z}^{(k)} \leftarrow V_1^{(k)}$;\;\;
+          $\overline{Z}^{(k)} \leftarrow \sum_{i=1}^{P} F(\mathcal{Y}_i^{(k)})$
+   \If{(C1) in \eqref{eq:cv_gap} or (C2) in \eqref{eq:cv_lb} holds}
+       \State \textbf{break}
+   \EndIf
+\EndFor
+\State Shut down workers; merge per-window primals into the global trajectory.
+\State \Return $\{\mathcal{Y}_i^{(k)}\}_{i=1}^P,\;
+                \underline{Z}^{(k)},\;\overline{Z}^{(k)}$.
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Discussion}
+\label{ssec:discussion}
+
+Three properties distinguish DDDP from overlapping-Schwarz temporal
+decomposition and from textbook SDDP. First, the windows are strictly
+disjoint, which renders the upper bound $\overline{Z}$ exact rather than
+an inner approximation and removes any overlap weight to tune. Second,
+the multi-cut, multi-window dual-passing structure generalizes
+two-stage Benders to a chain of $P$ stages while remaining fully
+parallel within each iteration---unlike SDDP, which sweeps forward and
+backward sequentially. Third, the entire temporal coupling is captured
+by the boundary dual $\bm{\beta}_i$ of a single fixed initial SOC, so the
+cut machinery is agnostic to the OPF model inside the window: any convex
+relaxation of the branch-flow or bus-injection formulation---including
+the MPISOCP and linear models of Section~\ref{sec:copf}---drops into
+$\mathcal{F}_i$ unchanged.

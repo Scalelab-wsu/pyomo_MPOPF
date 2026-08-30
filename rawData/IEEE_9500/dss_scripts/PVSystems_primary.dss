@@ -1,177 +1,666 @@
-New PVsystem.pv_1075 bus1=L2673319.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1073 bus1=L3197641.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1087 bus1=L3160106.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1037 bus1=L2729428.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1169 bus1=L2673317.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1107 bus1=L3082992.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1001 bus1=L3216348.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1071 bus1=L2841627.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1053 bus1=L2710544.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1147 bus1=L2822867.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1023 bus1=L3254214.2 Phases=1 kV=7.2 kVA=9.73 pmpp=9.73
-New PVsystem.pv_1105 bus1=L2785513.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1137 bus1=L2841616.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1013 bus1=L2710543.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1047 bus1=L3104155.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1005 bus1=L3045895.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1119 bus1=L2786274.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1027 bus1=L2674051.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1149 bus1=L2992657.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1095 bus1=L2767409.2 Phases=1 kV=7.2 kVA=9.73 pmpp=9.73
-New PVsystem.pv_1121 bus1=L3217064.2 Phases=1 kV=7.2 kVA=9.73 pmpp=9.73
-New PVsystem.pv_1131 bus1=L2955077.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1125 bus1=L3160862.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1017 bus1=L2861197.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1021 bus1=L2955005.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1097 bus1=L3067478.1 Phases=1 kV=7.2 kVA=13.3 pmpp=13.3
-New PVsystem.pv_1161 bus1=L2730149.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1111 bus1=L3233412.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
-New PVsystem.pv_1183 bus1=L2990098.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
-New PVsystem.pv_1155 bus1=L3252336.2 Phases=1 kV=7.2 kVA=14.59 pmpp=14.59
-New PVsystem.pv_1041 bus1=L2803199.2 Phases=1 kV=7.2 kVA=19.45 pmpp=19.45
-!New PVsystem.pv_1179 bus1=L3215203.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
-!New PVsystem.pv_1113 bus1=L3215203.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
-New PVsystem.pv_1117 bus1=L2897768.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1035 bus1=L2935551.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1083 bus1=L3179650.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1127 bus1=L2936214.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1143 bus1=L2973148.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1043 bus1=L2804272.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1003 bus1=L2673331.2 Phases=1 kV=7.2 kVA=19.45 pmpp=19.45
-New PVsystem.pv_1057 bus1=L3160113.2 Phases=1 kV=7.2 kVA=9.73 pmpp=9.73
-New PVsystem.pv_1173 bus1=L2897789.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1015 bus1=L3085410.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1159 bus1=L3104144.1 Phases=1 kV=7.2 kVA=3.55 pmpp=3.55
-New PVsystem.pv_1153 bus1=L2748143.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1167 bus1=L2897792.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1103 bus1=L2785538.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1091 bus1=L3254231.1 Phases=1 kV=7.2 kVA=3.55 pmpp=3.55
-New PVsystem.pv_1059 bus1=L2673318.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1025 bus1=L3048965.2 Phases=1 kV=7.2 kVA=14.59 pmpp=14.59
-New PVsystem.pv_1055 bus1=L2839305.1 Phases=1 kV=7.2 kVA=5.33 pmpp=5.33
-New PVsystem.pv_1171 bus1=L3198347.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1139 bus1=L3011293.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
-New PVsystem.pv_1051 bus1=L3048937.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1079 bus1=L2891575.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1061 bus1=L2992556.1 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1093 bus1=L2936279.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1039 bus1=L2766721.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1123 bus1=L2805036.2 Phases=1 kV=7.2 kVA=3.89 pmpp=3.89
-New PVsystem.pv_1009 bus1=L2691946.2 Phases=1 kV=7.2 kVA=5.85 pmpp=5.85
-New PVsystem.pv_1045 bus1=L3216347.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1065 bus1=L2785523.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1175 bus1=L2691951.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1181 bus1=L2879076.3 Phases=1 kV=7.2 kVA=4.07 pmpp=4.07
-New PVsystem.pv_1007 bus1=L3104126.3 Phases=1 kV=7.2 kVA=4.07 pmpp=4.07
-New PVsystem.pv_1011 bus1=L3010565.3 Phases=1 kV=7.2 kVA=4.07 pmpp=4.07
-New PVsystem.pv_1099 bus1=L2691945.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1133 bus1=L2954350.2 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1151 bus1=L3101194.1 Phases=1 kV=7.2 kVA=30.52 pmpp=30.52
-New PVsystem.pv_1145 bus1=L3235243.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1089 bus1=L3143999.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1165 bus1=L3197637.3 Phases=1 kV=7.2 kVA=4.07 pmpp=4.07
-New PVsystem.pv_1135 bus1=L2804283.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1033 bus1=L2710510.3 Phases=1 kV=7.2 kVA=4.07 pmpp=4.07
-New PVsystem.pv_1067 bus1=L2841638.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_1157 bus1=L2710521.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1031 bus1=L3178981.2 Phases=1 kV=7.2 kVA=9.73 pmpp=9.73
-New PVsystem.pv_1129 bus1=L3104134.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1085 bus1=L2897772.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1077 bus1=L2991943.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1141 bus1=L2766750.3 Phases=1 kV=7.2 kVA=15.26 pmpp=15.26
-New PVsystem.pv_1109 bus1=L3178997.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-New PVsystem.pv_2 bus1=M2000402.1 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_4 bus1=M2000403.1 Phases=1 kV=7.2 kVA=12.56 pmpp=12.56
-New PVsystem.pv_6 bus1=M2000404.1 Phases=1 kV=7.2 kVA=9.71 pmpp=9.71
-New PVsystem.pv_8 bus1=M2000405.1 Phases=1 kV=7.2 kVA=14.93 pmpp=14.93
-New PVsystem.pv_10 bus1=M2000406.1 Phases=1 kV=7.2 kVA=12.6 pmpp=12.6
-New PVsystem.pv_12 bus1=M2000407.1 Phases=1 kV=7.2 kVA=11.92 pmpp=11.92
-New PVsystem.pv_14 bus1=M2000408.1 Phases=1 kV=7.2 kVA=12.44 pmpp=12.44
-New PVsystem.pv_16 bus1=M2000409.1 Phases=1 kV=7.2 kVA=12.98 pmpp=12.98
-New PVsystem.pv_18 bus1=M2000410.1 Phases=1 kV=7.2 kVA=14.49 pmpp=14.49
-New PVsystem.pv_20 bus1=M2000411.1 Phases=1 kV=7.2 kVA=9.98 pmpp=9.98
-New PVsystem.pv_22 bus1=M2000412.1 Phases=1 kV=7.2 kVA=19.62 pmpp=19.62
-New PVsystem.pv_24 bus1=M2000413.1 Phases=1 kV=7.2 kVA=10.63 pmpp=10.63
-New PVsystem.pv_26 bus1=M2000414.1 Phases=1 kV=7.2 kVA=10.59 pmpp=10.59
-New PVsystem.pv_28 bus1=M2000415.1 Phases=1 kV=7.2 kVA=10.77 pmpp=10.77
-New PVsystem.pv_30 bus1=M2000702.2 Phases=1 kV=7.2 kVA=10.52 pmpp=10.52
-New PVsystem.pv_32 bus1=M2000703.2 Phases=1 kV=7.2 kVA=9.54 pmpp=9.54
-New PVsystem.pv_34 bus1=M2000704.2 Phases=1 kV=7.2 kVA=10.22 pmpp=10.22
-New PVsystem.pv_36 bus1=M2000705.2 Phases=1 kV=7.2 kVA=9.67 pmpp=9.67
-New PVsystem.pv_38 bus1=M2000706.2 Phases=1 kV=7.2 kVA=11.79 pmpp=11.79
-New PVsystem.pv_40 bus1=M2000707.2 Phases=1 kV=7.2 kVA=9.9 pmpp=9.9
-New PVsystem.pv_42 bus1=M2000708.2 Phases=1 kV=7.2 kVA=12.22 pmpp=12.22
-New PVsystem.pv_44 bus1=M2000709.2 Phases=1 kV=7.2 kVA=8.71 pmpp=8.71
-New PVsystem.pv_46 bus1=M2000710.2 Phases=1 kV=7.2 kVA=10.45 pmpp=10.45
-New PVsystem.pv_48 bus1=M2000711.2 Phases=1 kV=7.2 kVA=7.04 pmpp=7.04
-New PVsystem.pv_50 bus1=M2000712.2 Phases=1 kV=7.2 kVA=11.2 pmpp=11.2
-New PVsystem.pv_52 bus1=M2000713.2 Phases=1 kV=7.2 kVA=12.78 pmpp=12.78
-New PVsystem.pv_54 bus1=M2000714.2 Phases=1 kV=7.2 kVA=9.05 pmpp=9.05
-New PVsystem.pv_56 bus1=M2000715.2 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_58 bus1=M2000902.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_60 bus1=M2000903.3 Phases=1 kV=7.2 kVA=12.56 pmpp=12.56
-New PVsystem.pv_62 bus1=M2000904.3 Phases=1 kV=7.2 kVA=9.71 pmpp=9.71
-New PVsystem.pv_64 bus1=M2000905.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_66 bus1=M2000906.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_68 bus1=M2000907.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_70 bus1=M2000908.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_72 bus1=M2000909.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_74 bus1=M2000910.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_76 bus1=M2000911.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_78 bus1=M2000912.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_80 bus1=M2000913.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_82 bus1=M2000914.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_84 bus1=M2000915.3 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_86 bus1=M2001002.2 Phases=1 kV=7.2 kVA=11.25 pmpp=11.25
-New PVsystem.pv_88 bus1=M2001003.2 Phases=1 kV=7.2 kVA=12.56 pmpp=12.56
-New PVsystem.pv_90 bus1=M2001004.2 Phases=1 kV=7.2 kVA=9.71 pmpp=9.71
-New PVsystem.pv_92 bus1=M2001005.2 Phases=1 kV=7.2 kVA=11.08 pmpp=11.08
-New PVsystem.pv_94 bus1=M2001006.2 Phases=1 kV=7.2 kVA=9.76 pmpp=9.76
-New PVsystem.pv_96 bus1=M2001007.2 Phases=1 kV=7.2 kVA=9.36 pmpp=9.36
-New PVsystem.pv_98 bus1=M2001008.2 Phases=1 kV=7.2 kVA=12.72 pmpp=12.72
-New PVsystem.pv_100 bus1=M2001009.2 Phases=1 kV=7.2 kVA=13.97 pmpp=13.97
-New PVsystem.pv_102 bus1=M2001010.2 Phases=1 kV=7.2 kVA=16.9 pmpp=16.9
-New PVsystem.pv_104 bus1=M2001011.2 Phases=1 kV=7.2 kVA=7.48 pmpp=7.48
-New PVsystem.pv_106 bus1=M2001012.2 Phases=1 kV=7.2 kVA=13.75 pmpp=13.75
-New PVsystem.pv_108 bus1=M2001013.2 Phases=1 kV=7.2 kVA=17.57 pmpp=17.57
-New PVsystem.pv_110 bus1=M2001014.2 Phases=1 kV=7.2 kVA=28.33 pmpp=28.33
-New PVsystem.pv_112 bus1=M2001015.2 Phases=1 kV=7.2 kVA=24.22 pmpp=24.22
-New PVsystem.pv_114 bus1=M2001202.3 Phases=1 kV=7.2 kVA=12.43 pmpp=12.43
-New PVsystem.pv_116 bus1=M2001203.3 Phases=1 kV=7.2 kVA=16.02 pmpp=16.02
-New PVsystem.pv_118 bus1=M2001204.3 Phases=1 kV=7.2 kVA=12.95 pmpp=12.95
-New PVsystem.pv_120 bus1=M2001205.3 Phases=1 kV=7.2 kVA=8.56 pmpp=8.56
-New PVsystem.pv_122 bus1=M2001206.3 Phases=1 kV=7.2 kVA=10.53 pmpp=10.53
-New PVsystem.pv_124 bus1=M2001207.3 Phases=1 kV=7.2 kVA=8.85 pmpp=8.85
-New PVsystem.pv_126 bus1=M2001208.3 Phases=1 kV=7.2 kVA=11.89 pmpp=11.89
-New PVsystem.pv_128 bus1=M2001209.3 Phases=1 kV=7.2 kVA=13.93 pmpp=13.93
-New PVsystem.pv_130 bus1=M2001210.3 Phases=1 kV=7.2 kVA=13.44 pmpp=13.44
-New PVsystem.pv_132 bus1=M2001211.3 Phases=1 kV=7.2 kVA=23.42 pmpp=23.42
-New PVsystem.pv_134 bus1=M2001212.3 Phases=1 kV=7.2 kVA=17.88 pmpp=17.88
-New PVsystem.pv_136 bus1=M2001213.3 Phases=1 kV=7.2 kVA=18.08 pmpp=18.08
-New PVsystem.pv_138 bus1=M2001214.3 Phases=1 kV=7.2 kVA=16.87 pmpp=16.87
-New PVsystem.pv_140 bus1=M2001215.3 Phases=1 kV=7.2 kVA=21.39 pmpp=21.39
-New PVsystem.pv_142 bus1=M2001302.1 Phases=1 kV=7.2 kVA=8.82 pmpp=8.82
-New PVsystem.pv_144 bus1=M2001303.1 Phases=1 kV=7.2 kVA=12.91 pmpp=12.91
-New PVsystem.pv_146 bus1=M2001304.1 Phases=1 kV=7.2 kVA=9.62 pmpp=9.62
-New PVsystem.pv_148 bus1=M2001305.1 Phases=1 kV=7.2 kVA=10.86 pmpp=10.86
-New PVsystem.pv_150 bus1=M2001306.1 Phases=1 kV=7.2 kVA=9.47 pmpp=9.47
-New PVsystem.pv_152 bus1=M2001307.1 Phases=1 kV=7.2 kVA=13.99 pmpp=13.99
-New PVsystem.pv_154 bus1=M2001308.1 Phases=1 kV=7.2 kVA=14.65 pmpp=14.65
-New PVsystem.pv_156 bus1=M2001309.1 Phases=1 kV=7.2 kVA=8.25 pmpp=8.25
-New PVsystem.pv_158 bus1=M2001310.1 Phases=1 kV=7.2 kVA=18.15 pmpp=18.15
-New PVsystem.pv_160 bus1=M2001311.1 Phases=1 kV=7.2 kVA=16.04 pmpp=16.04
-New PVsystem.pv_162 bus1=M2001312.1 Phases=1 kV=7.2 kVA=14.54 pmpp=14.54
-New PVsystem.pv_164 bus1=M2001313.1 Phases=1 kV=7.2 kVA=22.37 pmpp=22.37
-New PVsystem.pv_166 bus1=M2001314.1 Phases=1 kV=7.2 kVA=21.45 pmpp=21.45
-New PVsystem.pv_168 bus1=M2001315.1 Phases=1 kV=7.2 kVA=19.93 pmpp=19.93
-New PVsystem.pv_170 bus1=M2001400.3 Phases=1 kV=7.2 kVA=40.52 pmpp=40.52
-New PVsystem.pv_1101 bus1=L3104132.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
-New PVsystem.pv_1029 bus1=L2804252.1 Phases=1 kV=7.2 kVA=8.87 pmpp=8.87
-New PVsystem.pv_1019 bus1=L2841636.2 Phases=1 kV=7.2 kVA=5.84 pmpp=5.84
-New PVsystem.pv_1177 bus1=L2673308.2 Phases=1 kV=7.2 kVA=14.59 pmpp=14.59
-New PVsystem.pv_1081 bus1=L2897767.3 Phases=1 kV=7.2 kVA=10.17 pmpp=10.17
-New PVsystem.pv_1115 bus1=L3728043.1 Phases=1 kV=7.2 kVA=13.3 pmpp=13.3
-New PVsystem.pv_1069 bus1=L3216368.3 Phases=1 kV=7.2 kVA=6.1 pmpp=6.1
-!New PVsystem.pv_1049 bus1=L2814529.3 Phases=1 kV=7.2 kVA=20.34 pmpp=20.34
-!New PVsystem.pv_1063 bus1=L2814529.1 Phases=1 kV=7.2 kVA=17.74 pmpp=17.74
-New PVsystem.pv_1163 bus1=L2879078.1 Phases=1 kV=7.2 kVA=5.32 pmpp=5.32
+! PV systems for IEEE_9500 primary (reduced) feeder.
+! 660 single-phase PVsystems on the top 50% highest-load buses.
+! Each pmpp = 45% of the node load.
+! Feeder peak load: 13668.99 kW   Total installed PV: 4239.01 kW
+! Generated by add_pv_battery_9500.py
+
+New PVsystem.pv_L2879092_c        bus1=L2879092.3 Phases=1 kV=7.2 kVA=27.0765 pmpp=27.0765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141411_c        bus1=L3141411.3 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3172805_a        bus1=L3172805.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216350_a        bus1=L3216350.1 Phases=1 kV=7.2 kVA=8.3027 pmpp=8.3027 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841631_c        bus1=L2841631.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141402_c        bus1=L3141402.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048221_a        bus1=L3048221.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3047058_a        bus1=L3047058.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3065696_a        bus1=L3065696.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3178982_a        bus1=L3178982.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2859391_b        bus1=L2859391.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673323_c        bus1=L2673323.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710525_c        bus1=L2710525.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2746587_c        bus1=L2746587.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991933_c        bus1=L2991933.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122837_c        bus1=L3122837.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048222_c        bus1=L3048222.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710542_b        bus1=L2710542.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729430_b        bus1=L2729430.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254234_b        bus1=L3254234.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104114_b        bus1=L3104114.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954338_b        bus1=L2954338.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254206_b        bus1=L3254206.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160108_b        bus1=L3160108.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729409_b        bus1=L2729409.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991927_b        bus1=L2991927.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3251806_b        bus1=L3251806.2 Phases=1 kV=7.2 kVA=5.9768 pmpp=5.9768 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804245_b        bus1=L2804245.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691938_b        bus1=L2691938.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216338_b        bus1=L3216338.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973146_b        bus1=L2973146.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991901_b        bus1=L2991901.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2911069_b        bus1=L2911069.2 Phases=1 kV=7.2 kVA=5.9886 pmpp=5.9886 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2948732_b        bus1=L2948732.2 Phases=1 kV=7.2 kVA=7.0784 pmpp=7.0784 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3231269_b        bus1=L3231269.2 Phases=1 kV=7.2 kVA=5.9600 pmpp=5.9600 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691939_b        bus1=L2691939.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822858_b        bus1=L2822858.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3177881_c        bus1=L3177881.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122818_c        bus1=L3122818.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160102_b        bus1=L3160102.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085398_b        bus1=L3085398.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197634_b        bus1=L3197634.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729408_b        bus1=L2729408.2 Phases=1 kV=7.2 kVA=4.9353 pmpp=4.9353 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766720_a        bus1=L2766720.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122816_b        bus1=L3122816.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954347_b        bus1=L2954347.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2935556_b        bus1=L2935556.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691944_a        bus1=L2691944.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216361_b        bus1=L3216361.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673313_b        bus1=L2673313.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785522_b        bus1=L2785522.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254213_b        bus1=L3254213.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766744_b        bus1=L2766744.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785543_b        bus1=L2785543.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2731712_b        bus1=L2731712.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710515_c        bus1=L2710515.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766746_c        bus1=L2766746.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104118_c        bus1=L3104118.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748126_c        bus1=L2748126.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235267_c        bus1=L3235267.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841645_c        bus1=L2841645.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066829_c        bus1=L3066829.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235268_c        bus1=L3235268.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235241_c        bus1=L3235241.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691941_c        bus1=L2691941.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879089_c        bus1=L2879089.3 Phases=1 kV=7.2 kVA=8.2170 pmpp=8.2170 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916607_c        bus1=L2916607.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2726983_a        bus1=L2726983.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3140238_a        bus1=L3140238.1 Phases=1 kV=7.2 kVA=5.4856 pmpp=5.4856 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2935557_a        bus1=L2935557.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2820528_c        bus1=L2820528.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2745799_c        bus1=L2745799.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822871_b        bus1=L2822871.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785546_c        bus1=L2785546.3 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3010585_c        bus1=L3010585.3 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2821010_c        bus1=L2821010.3 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197646_b        bus1=L3197646.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785529_c        bus1=L2785529.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841639_a        bus1=L2841639.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3120376_a        bus1=L3120376.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216337_a        bus1=L3216337.1 Phases=1 kV=7.2 kVA=5.5399 pmpp=5.5399 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3270814_a        bus1=L3270814.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954357_a        bus1=L2954357.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235254_c        bus1=L3235254.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649297_a        bus1=L3649297.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649298_a        bus1=L3649298.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649300_a        bus1=L3649300.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649301_a        bus1=L3649301.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649302_a        bus1=L3649302.1 Phases=1 kV=7.2 kVA=7.3350 pmpp=7.3350 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649304_a        bus1=L3649304.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3649306_a        bus1=L3649306.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216345_b        bus1=L3216345.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3645809_c        bus1=L3645809.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3645810_c        bus1=L3645810.3 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3645811_c        bus1=L3645811.3 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3645812_c        bus1=L3645812.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785521_c        bus1=L2785521.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3103822_c        bus1=L3103822.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3253995_c        bus1=L3253995.3 Phases=1 kV=7.2 kVA=16.2450 pmpp=16.2450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2878848_c        bus1=L2878848.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766499_c        bus1=L2766499.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897554_c        bus1=L2897554.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729207_c        bus1=L2729207.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729206_c        bus1=L2729206.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104123_c        bus1=L3104123.3 Phases=1 kV=7.2 kVA=20.7450 pmpp=20.7450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822866_b        bus1=L2822866.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3178972_c        bus1=L3178972.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2983432_a        bus1=L2983432.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954345_c        bus1=L2954345.3 Phases=1 kV=7.2 kVA=20.7450 pmpp=20.7450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2895449_c        bus1=L2895449.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804255_b        bus1=L2804255.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3176656_a        bus1=L3176656.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841621_c        bus1=L2841621.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122814_c        bus1=L3122814.3 Phases=1 kV=7.2 kVA=29.7450 pmpp=29.7450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066812_a        bus1=L3066812.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879067_a        bus1=L2879067.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879068_b        bus1=L2879068.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973152_b        bus1=L2973152.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3178975_b        bus1=L3178975.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066811_b        bus1=L3066811.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860483_b        bus1=L2860483.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141397_b        bus1=L3141397.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085397_b        bus1=L3085397.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2935553_b        bus1=L2935553.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785512_b        bus1=L2785512.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122810_b        bus1=L3122810.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822860_b        bus1=L2822860.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860480_b        bus1=L2860480.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710514_b        bus1=L2710514.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048203_b        bus1=L3048203.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160117_b        bus1=L3160117.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215549_b        bus1=L3215549.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2989432_b        bus1=L2989432.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066830_b        bus1=L3066830.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197660_b        bus1=L3197660.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710512_b        bus1=L2710512.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954346_b        bus1=L2954346.2 Phases=1 kV=7.2 kVA=5.3490 pmpp=5.3490 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748124_b        bus1=L2748124.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3159037_b        bus1=L3159037.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3234185_b        bus1=L3234185.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3065750_b        bus1=L3065750.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2690941_b        bus1=L2690941.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710504_b        bus1=L2710504.2 Phases=1 kV=7.2 kVA=7.9155 pmpp=7.9155 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216344_b        bus1=L3216344.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860501_b        bus1=L2860501.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066815_c        bus1=L3066815.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954353_a        bus1=L2954353.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897777_c        bus1=L2897777.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822869_a        bus1=L2822869.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729410_c        bus1=L2729410.3 Phases=1 kV=7.2 kVA=22.5765 pmpp=22.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254217_c        bus1=L3254217.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973161_a        bus1=L2973161.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235258_c        bus1=L3235258.3 Phases=1 kV=7.2 kVA=2.7450 pmpp=2.7450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235258_b        bus1=L3235258.2 Phases=1 kV=7.2 kVA=7.9155 pmpp=7.9155 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235258_a        bus1=L3235258.1 Phases=1 kV=7.2 kVA=3.7440 pmpp=3.7440 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729414_c        bus1=L2729414.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729414_b        bus1=L2729414.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729414_a        bus1=L2729414.1 Phases=1 kV=7.2 kVA=3.9915 pmpp=3.9915 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197639_a        bus1=L3197639.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122820_a        bus1=L3122820.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973157_a        bus1=L2973157.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254216_a        bus1=L3254216.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3091052_a        bus1=L3091052.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691949_b        bus1=L2691949.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104127_b        bus1=L3104127.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197636_b        bus1=L3197636.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235252_b        bus1=L3235252.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804258_b        bus1=L2804258.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766722_b        bus1=L2766722.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879071_b        bus1=L2879071.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3029504_b        bus1=L3029504.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3046854_b        bus1=L3046854.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785547_b        bus1=L2785547.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3139086_b        bus1=L3139086.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710546_b        bus1=L2710546.2 Phases=1 kV=7.2 kVA=8.0716 pmpp=8.0716 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254214_b        bus1=L3254214.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160104_b        bus1=L3160104.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973180_b        bus1=L2973180.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991915_b        bus1=L2991915.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673320_b        bus1=L2673320.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048209_b        bus1=L3048209.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841634_b        bus1=L2841634.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991916_b        bus1=L2991916.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2913406_b        bus1=L2913406.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954349_b        bus1=L2954349.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085391_b        bus1=L3085391.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822877_b        bus1=L2822877.2 Phases=1 kV=7.2 kVA=6.0649 pmpp=6.0649 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897801_a        bus1=L2897801.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785514_a        bus1=L2785514.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785513_a        bus1=L2785513.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766741_a        bus1=L2766741.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991905_a        bus1=L2991905.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122812_b        bus1=L3122812.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2935549_b        bus1=L2935549.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3029518_b        bus1=L3029518.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766749_b        bus1=L2766749.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066810_c        bus1=L3066810.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897769_c        bus1=L2897769.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3778577_c        bus1=L3778577.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141395_c        bus1=L3141395.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710543_c        bus1=L2710543.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2925506_c        bus1=L2925506.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104155_c        bus1=L3104155.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104154_c        bus1=L3104154.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748128_c        bus1=L2748128.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197627_c        bus1=L3197627.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216343_c        bus1=L3216343.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897770_c        bus1=L2897770.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085393_c        bus1=L3085393.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2935550_c        bus1=L2935550.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897766_c        bus1=L2897766.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048228_c        bus1=L3048228.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048205_c        bus1=L3048205.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804250_c        bus1=L2804250.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048968_c        bus1=L3048968.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3045895_c        bus1=L3045895.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2875754_c        bus1=L2875754.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2786274_c        bus1=L2786274.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2861218_c        bus1=L2861218.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2917328_b        bus1=L2917328.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3068944_b        bus1=L3068944.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879753_b        bus1=L2879753.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2955055_b        bus1=L2955055.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3142098_b        bus1=L3142098.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2805031_c        bus1=L2805031.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2842379_a        bus1=L2842379.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2730163_c        bus1=L2730163.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3030199_c        bus1=L3030199.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2955074_a        bus1=L2955074.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879794_a        bus1=L2879794.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2917330_a        bus1=L2917330.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2861222_a        bus1=L2861222.1 Phases=1 kV=7.2 kVA=7.3350 pmpp=7.3350 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160868_b        bus1=L3160868.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2767409_b        bus1=L2767409.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3217064_b        bus1=L3217064.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2861219_b        bus1=L2861219.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2711226_b        bus1=L2711226.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2692655_c        bus1=L2692655.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104853_c        bus1=L3104853.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3217052_c        bus1=L3217052.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3067507_c        bus1=L3067507.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2692660_a        bus1=L2692660.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2955077_c        bus1=L2955077.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160872_c        bus1=L3160872.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3198348_a        bus1=L3198348.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048962_a        bus1=L3048962.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3552667_c        bus1=L3552667.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104850_c        bus1=L3104850.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3251799_a        bus1=L3251799.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3214071_c        bus1=L3214071.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3214069_c        bus1=L3214069.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104796_c        bus1=L3104796.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2917255_c        bus1=L2917255.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3123452_c        bus1=L3123452.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3029055_b        bus1=L3029055.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2767341_c        bus1=L2767341.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3030126_c        bus1=L3030126.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254870_c        bus1=L3254870.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3150961_c        bus1=L3150961.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048887_b        bus1=L3048887.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216988_b        bus1=L3216988.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3179607_b        bus1=L3179607.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2767340_c        bus1=L2767340.3 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2767340_b        bus1=L2767340.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2767340_a        bus1=L2767340.1 Phases=1 kV=7.2 kVA=11.9700 pmpp=11.9700 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3067478_a        bus1=L3067478.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3233412_a        bus1=L3233412.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2821087_a        bus1=L2821087.1 Phases=1 kV=7.2 kVA=11.9700 pmpp=11.9700 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2990098_a        bus1=L2990098.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3027671_a        bus1=L3027671.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2802481_a        bus1=L2802481.1 Phases=1 kV=7.2 kVA=11.9700 pmpp=11.9700 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3214549_a        bus1=L3214549.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2708744_b        bus1=L2708744.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2690187_b        bus1=L2690187.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3027670_b        bus1=L3027670.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2802480_b        bus1=L2802480.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3252336_b        bus1=L3252336.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3233413_b        bus1=L3233413.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3102286_b        bus1=L3102286.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2952003_b        bus1=L2952003.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2803199_c        bus1=L2803199.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2803199_b        bus1=L2803199.2 Phases=1 kV=7.2 kVA=10.1025 pmpp=10.1025 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2803199_a        bus1=L2803199.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254237_a        bus1=L3254237.1 Phases=1 kV=7.2 kVA=4.4891 pmpp=4.4891 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215203_c        bus1=L3215203.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215203_b        bus1=L3215203.2 Phases=1 kV=7.2 kVA=10.1025 pmpp=10.1025 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215203_a        bus1=L3215203.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2915542_c        bus1=L2915542.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2915542_b        bus1=L2915542.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2915542_a        bus1=L2915542.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2728247_c        bus1=L2728247.3 Phases=1 kV=7.2 kVA=3.1815 pmpp=3.1815 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2728247_b        bus1=L2728247.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2728247_a        bus1=L2728247.1 Phases=1 kV=7.2 kVA=1.5975 pmpp=1.5975 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2896685_c        bus1=L2896685.3 Phases=1 kV=7.2 kVA=2.7450 pmpp=2.7450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2896685_b        bus1=L2896685.2 Phases=1 kV=7.2 kVA=2.6280 pmpp=2.6280 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2896685_a        bus1=L2896685.1 Phases=1 kV=7.2 kVA=3.7440 pmpp=3.7440 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2990826_c        bus1=L2990826.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2990826_b        bus1=L2990826.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2990826_a        bus1=L2990826.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841619_c        bus1=L2841619.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785515_c        bus1=L2785515.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673306_c        bus1=L2673306.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897768_c        bus1=L2897768.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108410_b        bus1=M1108410.2 Phases=1 kV=7.2 kVA=24.9422 pmpp=24.9422 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108404_c        bus1=M1108404.3 Phases=1 kV=7.2 kVA=15.0035 pmpp=15.0035 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108404_b        bus1=M1108404.2 Phases=1 kV=7.2 kVA=17.4325 pmpp=17.4325 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108404_a        bus1=M1108404.1 Phases=1 kV=7.2 kVA=12.5306 pmpp=12.5306 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108405_c        bus1=M1108405.3 Phases=1 kV=7.2 kVA=16.2689 pmpp=16.2689 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108405_b        bus1=M1108405.2 Phases=1 kV=7.2 kVA=13.2124 pmpp=13.2124 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108405_a        bus1=M1108405.1 Phases=1 kV=7.2 kVA=10.2468 pmpp=10.2468 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108403_c        bus1=M1108403.3 Phases=1 kV=7.2 kVA=9.6861 pmpp=9.6861 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108403_b        bus1=M1108403.2 Phases=1 kV=7.2 kVA=11.8182 pmpp=11.8182 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108403_a        bus1=M1108403.1 Phases=1 kV=7.2 kVA=13.5996 pmpp=13.5996 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108407_b        bus1=M1108407.2 Phases=1 kV=7.2 kVA=17.5881 pmpp=17.5881 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108406_b        bus1=M1108406.2 Phases=1 kV=7.2 kVA=11.8243 pmpp=11.8243 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M1108406_a        bus1=M1108406.1 Phases=1 kV=7.2 kVA=10.5891 pmpp=10.5891 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973791_a        bus1=L2973791.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3232902_a        bus1=L3232902.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2730106_c        bus1=L2730106.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3065665_a        bus1=L3065665.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235946_a        bus1=L3235946.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3101782_a        bus1=L3101782.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748781_a        bus1=L2748781.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3179646_b        bus1=L3179646.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2674027_b        bus1=L2674027.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2692633_c        bus1=L2692633.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2955006_c        bus1=L2955006.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2692600_c        bus1=L2692600.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235945_c        bus1=L3235945.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2842330_c        bus1=L2842330.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3086002_c        bus1=L3086002.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2730107_c        bus1=L2730107.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3179608_c        bus1=L3179608.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2936213_b        bus1=L2936213.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141394_b        bus1=L3141394.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804277_c        bus1=L2804277.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235242_c        bus1=L3235242.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141393_c        bus1=L3141393.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3118855_c        bus1=L3118855.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3231255_c        bus1=L3231255.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2820535_b        bus1=L2820535.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785534_b        bus1=L2785534.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2783231_b        bus1=L2783231.2 Phases=1 kV=7.2 kVA=6.0157 pmpp=6.0157 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673331_b        bus1=L2673331.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973171_b        bus1=L2973171.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235273_b        bus1=L3235273.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3082983_b        bus1=L3082983.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2801902_b        bus1=L2801902.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916619_b        bus1=L2916619.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954361_b        bus1=L2954361.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254228_b        bus1=L3254228.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897791_b        bus1=L2897791.2 Phases=1 kV=7.2 kVA=7.9155 pmpp=7.9155 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197653_b        bus1=L3197653.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785535_b        bus1=L2785535.2 Phases=1 kV=7.2 kVA=10.7999 pmpp=10.7999 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2726974_b        bus1=L2726974.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916618_b        bus1=L2916618.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160113_b        bus1=L3160113.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804269_b        bus1=L2804269.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916617_b        bus1=L2916617.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991929_b        bus1=L2991929.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3102793_b        bus1=L3102793.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691966_b        bus1=L2691966.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085410_b        bus1=L3085410.2 Phases=1 kV=7.2 kVA=5.8749 pmpp=5.8749 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860499_b        bus1=L2860499.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254229_b        bus1=L3254229.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066826_b        bus1=L3066826.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160115_b        bus1=L3160115.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897790_c        bus1=L2897790.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2935566_c        bus1=L2935566.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3008237_c        bus1=L3008237.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3251854_a        bus1=L3251854.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766738_c        bus1=L2766738.3 Phases=1 kV=7.2 kVA=22.5765 pmpp=22.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916620_c        bus1=L2916620.3 Phases=1 kV=7.2 kVA=3.1815 pmpp=3.1815 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916620_b        bus1=L2916620.2 Phases=1 kV=7.2 kVA=3.1005 pmpp=3.1005 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916620_a        bus1=L2916620.1 Phases=1 kV=7.2 kVA=1.5975 pmpp=1.5975 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785538_a        bus1=L2785538.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066804_a        bus1=L3066804.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197654_a        bus1=L3197654.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748157_a        bus1=L2748157.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841632_b        bus1=L2841632.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104129_a        bus1=L3104129.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3178979_c        bus1=L3178979.3 Phases=1 kV=7.2 kVA=24.8670 pmpp=24.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3010568_a        bus1=L3010568.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3029505_c        bus1=L3029505.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673318_c        bus1=L2673318.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085401_a        bus1=L3085401.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048965_b        bus1=L3048965.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160871_c        bus1=L3160871.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3030203_c        bus1=L3030203.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2992656_a        bus1=L2992656.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2730187_a        bus1=L2730187.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2692661_a        bus1=L2692661.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3086098_a        bus1=L3086098.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3030205_c        bus1=L3030205.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2898515_c        bus1=L2898515.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2861223_b        bus1=L2861223.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3234149_c        bus1=L3234149.3 Phases=1 kV=7.2 kVA=45.7650 pmpp=45.7650 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3234149_b        bus1=L3234149.2 Phases=1 kV=7.2 kVA=43.7670 pmpp=43.7670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3234149_a        bus1=L3234149.1 Phases=1 kV=7.2 kVA=39.9060 pmpp=39.9060 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3179674_b        bus1=L3179674.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3142099_b        bus1=L3142099.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3011293_c        bus1=L3011293.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3011293_b        bus1=L3011293.2 Phases=1 kV=7.2 kVA=10.4105 pmpp=10.4105 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3011293_a        bus1=L3011293.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3217056_a        bus1=L3217056.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2786204_a        bus1=L2786204.1 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2861157_c        bus1=L2861157.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2806553_c        bus1=L2806553.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254873_c        bus1=L3254873.3 Phases=1 kV=7.2 kVA=4.5406 pmpp=4.5406 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048890_c        bus1=L3048890.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048889_c        bus1=L3048889.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2767343_c        bus1=L2767343.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2970804_c        bus1=L2970804.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2952007_c        bus1=L2952007.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2861158_c        bus1=L2861158.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3179637_c        bus1=L3179637.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2745811_c        bus1=L2745811.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3027124_c        bus1=L3027124.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3253570_c        bus1=L3253570.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2937757_c        bus1=L2937757.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3067448_c        bus1=L3067448.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2763407_c        bus1=L2763407.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2711234_b        bus1=L2711234.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3198358_b        bus1=L3198358.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2936279_c        bus1=L2936279.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766721_a        bus1=L2766721.1 Phases=1 kV=7.2 kVA=6.7197 pmpp=6.7197 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3047289_c        bus1=L3047289.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3047289_b        bus1=L3047289.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3047289_a        bus1=L3047289.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215385_c        bus1=L3215385.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215385_b        bus1=L3215385.2 Phases=1 kV=7.2 kVA=10.1025 pmpp=10.1025 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3215385_a        bus1=L3215385.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841628_a        bus1=L2841628.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104125_b        bus1=L3104125.2 Phases=1 kV=7.2 kVA=6.1785 pmpp=6.1785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3029502_a        bus1=L3029502.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729405_b        bus1=L2729405.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2786273_b        bus1=L2786273.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3179699_b        bus1=L3179699.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973144_c        bus1=L2973144.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2724120_c        bus1=L2724120.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673309_c        bus1=L2673309.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841629_c        bus1=L2841629.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841630_c        bus1=L2841630.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954352_c        bus1=L2954352.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691951_c        bus1=L2691951.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3263051_c        bus1=L3263051.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785525_c        bus1=L2785525.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691950_c        bus1=L2691950.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916609_c        bus1=L2916609.3 Phases=1 kV=7.2 kVA=4.5450 pmpp=4.5450 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897775_c        bus1=L2897775.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691945_c        bus1=L2691945.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235251_a        bus1=L3235251.1 Phases=1 kV=7.2 kVA=4.4615 pmpp=4.4615 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235266_c        bus1=L3235266.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141399_a        bus1=L3141399.1 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085400_a        bus1=L3085400.1 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897776_c        bus1=L2897776.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122819_c        bus1=L3122819.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3232301_a        bus1=L3232301.1 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2763811_a        bus1=L2763811.1 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2763812_a        bus1=L2763812.1 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2951995_a        bus1=L2951995.1 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3101194_a        bus1=L3101194.1 Phases=1 kV=7.2 kVA=15.0840 pmpp=15.0840 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2862616_a        bus1=L2862616.1 Phases=1 kV=7.2 kVA=13.7340 pmpp=13.7340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2970258_a        bus1=L2970258.1 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2803194_c        bus1=L2803194.3 Phases=1 kV=7.2 kVA=8.2170 pmpp=8.2170 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3047073_c        bus1=L3047073.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2690868_c        bus1=L2690868.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2821770_a        bus1=L2821770.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2915534_a        bus1=L2915534.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235243_c        bus1=L3235243.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3125349_c        bus1=L3125349.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748129_a        bus1=L2748129.1 Phases=1 kV=7.2 kVA=7.3350 pmpp=7.3350 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2785519_a        bus1=L2785519.1 Phases=1 kV=7.2 kVA=5.7915 pmpp=5.7915 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104122_a        bus1=L3104122.1 Phases=1 kV=7.2 kVA=5.7915 pmpp=5.7915 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766718_c        bus1=L2766718.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197628_c        bus1=L3197628.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710521_a        bus1=L2710521.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066818_b        bus1=L3066818.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3178981_b        bus1=L3178981.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897784_b        bus1=L2897784.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691959_b        bus1=L2691959.2 Phases=1 kV=7.2 kVA=17.5050 pmpp=17.5050 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048231_b        bus1=L3048231.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2729407_b        bus1=L2729407.2 Phases=1 kV=7.2 kVA=4.9069 pmpp=4.9069 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254211_b        bus1=L3254211.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916625_b        bus1=L2916625.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3139598_b        bus1=L3139598.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748130_b        bus1=L2748130.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254212_b        bus1=L3254212.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860490_a        bus1=L2860490.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104134_c        bus1=L3104134.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254219_c        bus1=L3254219.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254220_c        bus1=L3254220.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991923_a        bus1=L2991923.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860491_b        bus1=L2860491.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860491_a        bus1=L2860491.1 Phases=1 kV=7.2 kVA=2.9475 pmpp=2.9475 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897780_b        bus1=L2897780.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216370_c        bus1=L3216370.3 Phases=1 kV=7.2 kVA=1.8315 pmpp=1.8315 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216370_b        bus1=L3216370.2 Phases=1 kV=7.2 kVA=3.1005 pmpp=3.1005 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216370_a        bus1=L3216370.1 Phases=1 kV=7.2 kVA=2.9475 pmpp=2.9475 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3010569_a        bus1=L3010569.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673346_c        bus1=L2673346.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254238_b        bus1=L3254238.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048230_c        bus1=L3048230.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991943_c        bus1=L2991943.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991921_c        bus1=L2991921.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254205_c        bus1=L3254205.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2841637_c        bus1=L2841637.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_293471_c          bus1=293471.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_293471_b          bus1=293471.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_293471_a          bus1=293471.1 Phases=1 kV=7.2 kVA=3.9915 pmpp=3.9915 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104157_c        bus1=L3104157.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2766750_c        bus1=L2766750.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2691954_b        bus1=L2691954.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897779_c        bus1=L2897779.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000402_a        bus1=M2000402.1 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000403_a        bus1=M2000403.1 Phases=1 kV=7.2 kVA=5.6532 pmpp=5.6532 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000404_a        bus1=M2000404.1 Phases=1 kV=7.2 kVA=4.3693 pmpp=4.3693 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000405_a        bus1=M2000405.1 Phases=1 kV=7.2 kVA=6.7171 pmpp=6.7171 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000406_a        bus1=M2000406.1 Phases=1 kV=7.2 kVA=5.6690 pmpp=5.6690 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000407_a        bus1=M2000407.1 Phases=1 kV=7.2 kVA=5.3630 pmpp=5.3630 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000408_a        bus1=M2000408.1 Phases=1 kV=7.2 kVA=5.5982 pmpp=5.5982 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000409_a        bus1=M2000409.1 Phases=1 kV=7.2 kVA=5.8415 pmpp=5.8415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000410_a        bus1=M2000410.1 Phases=1 kV=7.2 kVA=6.5213 pmpp=6.5213 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000411_a        bus1=M2000411.1 Phases=1 kV=7.2 kVA=4.4917 pmpp=4.4917 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000412_a        bus1=M2000412.1 Phases=1 kV=7.2 kVA=8.8277 pmpp=8.8277 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000413_a        bus1=M2000413.1 Phases=1 kV=7.2 kVA=4.7846 pmpp=4.7846 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000414_a        bus1=M2000414.1 Phases=1 kV=7.2 kVA=4.7646 pmpp=4.7646 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000415_a        bus1=M2000415.1 Phases=1 kV=7.2 kVA=4.8481 pmpp=4.8481 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000702_b        bus1=M2000702.2 Phases=1 kV=7.2 kVA=4.7357 pmpp=4.7357 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000704_b        bus1=M2000704.2 Phases=1 kV=7.2 kVA=4.6009 pmpp=4.6009 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000705_b        bus1=M2000705.2 Phases=1 kV=7.2 kVA=4.3526 pmpp=4.3526 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000706_b        bus1=M2000706.2 Phases=1 kV=7.2 kVA=5.3038 pmpp=5.3038 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000707_b        bus1=M2000707.2 Phases=1 kV=7.2 kVA=4.4528 pmpp=4.4528 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000708_b        bus1=M2000708.2 Phases=1 kV=7.2 kVA=5.4993 pmpp=5.4993 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000710_b        bus1=M2000710.2 Phases=1 kV=7.2 kVA=4.7034 pmpp=4.7034 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000712_b        bus1=M2000712.2 Phases=1 kV=7.2 kVA=5.0397 pmpp=5.0397 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000713_b        bus1=M2000713.2 Phases=1 kV=7.2 kVA=5.7506 pmpp=5.7506 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000715_b        bus1=M2000715.2 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000902_c        bus1=M2000902.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000903_c        bus1=M2000903.3 Phases=1 kV=7.2 kVA=5.6532 pmpp=5.6532 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000904_c        bus1=M2000904.3 Phases=1 kV=7.2 kVA=4.3693 pmpp=4.3693 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000905_c        bus1=M2000905.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000906_c        bus1=M2000906.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000907_c        bus1=M2000907.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000908_c        bus1=M2000908.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000909_c        bus1=M2000909.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000910_c        bus1=M2000910.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000911_c        bus1=M2000911.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000912_c        bus1=M2000912.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000913_c        bus1=M2000913.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000914_c        bus1=M2000914.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2000915_c        bus1=M2000915.3 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001002_b        bus1=M2001002.2 Phases=1 kV=7.2 kVA=5.0610 pmpp=5.0610 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001003_b        bus1=M2001003.2 Phases=1 kV=7.2 kVA=5.6532 pmpp=5.6532 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001004_b        bus1=M2001004.2 Phases=1 kV=7.2 kVA=4.3693 pmpp=4.3693 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001005_b        bus1=M2001005.2 Phases=1 kV=7.2 kVA=4.9861 pmpp=4.9861 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001006_b        bus1=M2001006.2 Phases=1 kV=7.2 kVA=4.3911 pmpp=4.3911 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001008_b        bus1=M2001008.2 Phases=1 kV=7.2 kVA=5.7233 pmpp=5.7233 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001009_b        bus1=M2001009.2 Phases=1 kV=7.2 kVA=6.2868 pmpp=6.2868 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001010_b        bus1=M2001010.2 Phases=1 kV=7.2 kVA=7.6046 pmpp=7.6046 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001012_b        bus1=M2001012.2 Phases=1 kV=7.2 kVA=6.1917 pmpp=6.1917 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001013_b        bus1=M2001013.2 Phases=1 kV=7.2 kVA=7.9043 pmpp=7.9043 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001014_b        bus1=M2001014.2 Phases=1 kV=7.2 kVA=12.7471 pmpp=12.7471 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001015_b        bus1=M2001015.2 Phases=1 kV=7.2 kVA=10.8969 pmpp=10.8969 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001202_c        bus1=M2001202.3 Phases=1 kV=7.2 kVA=5.5909 pmpp=5.5909 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001203_c        bus1=M2001203.3 Phases=1 kV=7.2 kVA=7.2109 pmpp=7.2109 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001204_c        bus1=M2001204.3 Phases=1 kV=7.2 kVA=5.8255 pmpp=5.8255 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001206_c        bus1=M2001206.3 Phases=1 kV=7.2 kVA=4.7391 pmpp=4.7391 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001208_c        bus1=M2001208.3 Phases=1 kV=7.2 kVA=5.3475 pmpp=5.3475 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001209_c        bus1=M2001209.3 Phases=1 kV=7.2 kVA=6.2687 pmpp=6.2687 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001210_c        bus1=M2001210.3 Phases=1 kV=7.2 kVA=6.0472 pmpp=6.0472 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001211_c        bus1=M2001211.3 Phases=1 kV=7.2 kVA=10.5373 pmpp=10.5373 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001212_c        bus1=M2001212.3 Phases=1 kV=7.2 kVA=8.0461 pmpp=8.0461 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001213_c        bus1=M2001213.3 Phases=1 kV=7.2 kVA=8.1357 pmpp=8.1357 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001214_c        bus1=M2001214.3 Phases=1 kV=7.2 kVA=7.5958 pmpp=7.5958 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001215_c        bus1=M2001215.3 Phases=1 kV=7.2 kVA=9.6232 pmpp=9.6232 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001303_a        bus1=M2001303.1 Phases=1 kV=7.2 kVA=5.8130 pmpp=5.8130 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001304_a        bus1=M2001304.1 Phases=1 kV=7.2 kVA=4.3315 pmpp=4.3315 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001305_a        bus1=M2001305.1 Phases=1 kV=7.2 kVA=4.8851 pmpp=4.8851 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001307_a        bus1=M2001307.1 Phases=1 kV=7.2 kVA=6.2916 pmpp=6.2916 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001308_a        bus1=M2001308.1 Phases=1 kV=7.2 kVA=6.5886 pmpp=6.5886 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001310_a        bus1=M2001310.1 Phases=1 kV=7.2 kVA=8.1667 pmpp=8.1667 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001311_a        bus1=M2001311.1 Phases=1 kV=7.2 kVA=7.2195 pmpp=7.2195 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001312_a        bus1=M2001312.1 Phases=1 kV=7.2 kVA=6.5420 pmpp=6.5420 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001313_a        bus1=M2001313.1 Phases=1 kV=7.2 kVA=10.0673 pmpp=10.0673 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001314_a        bus1=M2001314.1 Phases=1 kV=7.2 kVA=9.6497 pmpp=9.6497 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001315_a        bus1=M2001315.1 Phases=1 kV=7.2 kVA=8.9687 pmpp=8.9687 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_M2001400_c        bus1=M2001400.3 Phases=1 kV=7.2 kVA=18.2340 pmpp=18.2340 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3235275_b        bus1=L3235275.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122825_a        bus1=L3122825.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085402_a        bus1=L3085402.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048214_a        bus1=L3048214.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804252_a        bus1=L2804252.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048210_a        bus1=L3048210.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104130_b        bus1=L3104130.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2763072_b        bus1=L2763072.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2860488_b        bus1=L2860488.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991902_b        bus1=L2991902.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822859_b        bus1=L2822859.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673300_b        bus1=L2673300.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3141390_b        bus1=L3141390.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2710537_b        bus1=L2710537.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085389_b        bus1=L3085389.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954339_b        bus1=L2954339.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216339_b        bus1=L3216339.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3225319_b        bus1=L3225319.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3048201_b        bus1=L3048201.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804247_b        bus1=L2804247.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2801895_b        bus1=L2801895.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991918_b        bus1=L2991918.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897764_b        bus1=L2897764.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2804260_b        bus1=L2804260.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3197643_b        bus1=L3197643.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3029507_b        bus1=L3029507.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122823_b        bus1=L3122823.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2876798_b        bus1=L2876798.2 Phases=1 kV=7.2 kVA=6.1785 pmpp=6.1785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216342_b        bus1=L3216342.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2879063_b        bus1=L2879063.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3216367_b        bus1=L3216367.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2991939_b        bus1=L2991939.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2673308_b        bus1=L2673308.2 Phases=1 kV=7.2 kVA=6.5655 pmpp=6.5655 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066809_c        bus1=L3066809.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2954344_c        bus1=L2954344.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2897767_c        bus1=L2897767.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254208_c        bus1=L3254208.3 Phases=1 kV=7.2 kVA=5.9265 pmpp=5.9265 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2933120_c        bus1=L2933120.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104117_c        bus1=L3104117.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2745806_c        bus1=L2745806.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2748125_c        bus1=L2748125.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3104119_a        bus1=L3104119.1 Phases=1 kV=7.2 kVA=8.3405 pmpp=8.3405 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3254209_c        bus1=L3254209.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3010560_b        bus1=L3010560.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3177665_a        bus1=L3177665.1 Phases=1 kV=7.2 kVA=7.3350 pmpp=7.3350 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3122821_b        bus1=L3122821.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3729297_a        bus1=L3729297.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3729298_a        bus1=L3729298.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3727709_a        bus1=L3727709.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3727710_a        bus1=L3727710.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3728037_a        bus1=L3728037.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3728039_a        bus1=L3728039.1 Phases=1 kV=7.2 kVA=7.2630 pmpp=7.2630 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3728040_a        bus1=L3728040.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3728042_a        bus1=L3728042.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3728043_a        bus1=L3728043.1 Phases=1 kV=7.2 kVA=5.9850 pmpp=5.9850 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2822872_b        bus1=L2822872.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3160109_b        bus1=L3160109.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2820531_b        bus1=L2820531.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3189188_c        bus1=L3189188.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2851933_c        bus1=L2851933.3 Phases=1 kV=7.2 kVA=6.8670 pmpp=6.8670 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2851933_b        bus1=L2851933.2 Phases=1 kV=7.2 kVA=4.3785 pmpp=4.3785 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2851933_a        bus1=L2851933.1 Phases=1 kV=7.2 kVA=3.9915 pmpp=3.9915 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3207907_c        bus1=L3207907.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3207907_b        bus1=L3207907.2 Phases=1 kV=7.2 kVA=13.1310 pmpp=13.1310 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3207907_a        bus1=L3207907.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2916610_b        bus1=L2916610.2 Phases=1 kV=7.2 kVA=5.7285 pmpp=5.7285 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2814529_c        bus1=L2814529.3 Phases=1 kV=7.2 kVA=9.1530 pmpp=9.1530 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2814529_b        bus1=L2814529.2 Phases=1 kV=7.2 kVA=8.7525 pmpp=8.7525 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2814529_a        bus1=L2814529.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L2973166_c        bus1=L2973166.3 Phases=1 kV=7.2 kVA=4.5765 pmpp=4.5765 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3085403_a        bus1=L3085403.1 Phases=1 kV=7.2 kVA=5.3415 pmpp=5.3415 %Cutin=0.1 %Cutout=0.1
+New PVsystem.pv_L3066817_a        bus1=L3066817.1 Phases=1 kV=7.2 kVA=7.9830 pmpp=7.9830 %Cutin=0.1 %Cutout=0.1

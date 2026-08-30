@@ -71,7 +71,7 @@ class DSSParser:
                 flag = self.dss.PDElements.Next()
                 continue
 
-            if element_type == "line" and self.dss.Lines.IsSwitch():
+            if element_type == "line" and self.dss.Properties.Value("Switch").lower() in ("yes", "true"):
                 element_type = "switch"
                 switch_status = (
                     "OPEN"
@@ -227,11 +227,12 @@ class DSSParser:
         power_data = []
         while flag:
             element_type = self.dss.CktElement.Name().lower().split(".")[0]
-            is_open = [
-                self.dss.CktElement.IsOpen(0, ph)
-                for ph in range(self.dss.CktElement.NumPhases())
-            ]
-            if all(is_open):
+            # IsOpen(terminal, phase): terminal is 1-based; phase=0 checks all phases.
+            is_open = (
+                self.dss.CktElement.IsOpen(1, 0)
+                and self.dss.CktElement.IsOpen(2, 0)
+            )
+            if is_open:
                 flag = self.dss.PDElements.Next()
                 continue
             s_out = self._get_powers() * 1000 / self.s_base
@@ -279,46 +280,61 @@ class DSSParser:
 
         return power_df
 
+    def _parse_dss_tril_matrix(self, mat_str: str, n: int) -> np.ndarray:
+        """Parse an OpenDSS lower-triangular matrix property string to a full symmetric n×n matrix.
+
+        OpenDSS stores symmetric matrices in compact lower-triangular form:
+        ``[[r11 |r21 r22 |r31 r32 r33 ]]`` (rows separated by ``|``).
+        """
+        inner = mat_str.strip().strip("[]").strip()
+        values: list[float] = []
+        for row in inner.split("|"):
+            for v in row.split():
+                if v:
+                    values.append(float(v))
+        mat = np.zeros((n, n))
+        idx = 0
+        for i in range(n):
+            for j in range(i + 1):
+                mat[i, j] = values[idx]
+                mat[j, i] = values[idx]
+                idx += 1
+        return mat
+
     def _get_line_zmatrix(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the z_matrix of a specified line element.
+
+        Uses ``dss.Properties.Value()`` instead of the Lines API because the
+        Lines API active-element pointer is **not** synchronised with the
+        PDElements iterator – reading ``Lines.RMatrix()`` etc. inside a
+        PDElements loop silently returns data for the wrong line.
 
         Returns:
             real z_matrix, imag z_matrix (np.ndarray, np.ndarray): 3x3 numpy array of the z_matrix corresponding to the each of the phases(real,imag)
         """
-        n_phases = self.dss.Lines.Phases()
+        n_phases = int(self.dss.Properties.Value("Phases"))
+        length = float(self.dss.Properties.Value("Length"))
+
+        r_mat_n = self._parse_dss_tril_matrix(self.dss.Properties.Value("RMatrix"), n_phases) * length
+        x_mat_n = self._parse_dss_tril_matrix(self.dss.Properties.Value("XMatrix"), n_phases) * length
 
         z_matrix_real = np.zeros((3, 3))
         z_matrix_imag = np.zeros((3, 3))
-        if n_phases > 3:
-            pass
-        if (len(self.dss.CktElement.BusNames()[0].split(".")) == 4) or (
-            len(self.dss.CktElement.BusNames()[0].split(".")) == 1) or (
-            len(self.dss.CktElement.BusNames()[0].split(".")) == 5):
 
-            # this is the condition check for three phase since three phase is either represented by bus_name.1.2.3 or bus_name
-            z_matrix = (
-                np.array(self.dss.Lines.RMatrix())
-                + 1j * np.array(self.dss.Lines.XMatrix())
-            ) * self.dss.Lines.Length()
-            z_matrix = z_matrix.reshape(3, 3)
-            return np.real(z_matrix), np.imag(z_matrix)
+        if n_phases >= 3:
+            z_matrix_real[:3, :3] = r_mat_n
+            z_matrix_imag[:3, :3] = x_mat_n
         else:
-            # for other than 3 phases
+            # Single/two-phase: place values in the correct 3×3 positions
             active_phases = [
                 int(phase) for phase in self.dss.CktElement.BusNames()[0].split(".")[1:]
             ]
-            z_matrix = np.zeros((3, 3), dtype=complex)
-            r_matrix = self.dss.Lines.RMatrix()
-            x_matrix = self.dss.Lines.XMatrix()
-            counter = 0
-            for _, row in enumerate(active_phases):
-                for _, col in enumerate(active_phases):
-                    z_matrix[row - 1, col - 1] = (
-                        complex(r_matrix[counter], x_matrix[counter])
-                        * self.dss.Lines.Length()
-                    )
-                    counter = counter + 1
-            return np.real(z_matrix), np.imag(z_matrix)
+            for i_idx, i_ph in enumerate(active_phases):
+                for j_idx, j_ph in enumerate(active_phases):
+                    z_matrix_real[i_ph - 1, j_ph - 1] = r_mat_n[i_idx, j_idx]
+                    z_matrix_imag[i_ph - 1, j_ph - 1] = x_mat_n[i_idx, j_idx]
+
+        return z_matrix_real, z_matrix_imag
 
     def _get_reactor_zmatrix(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns the z_matrix of a specified reactor element.
@@ -388,78 +404,42 @@ class DSSParser:
                 flag = self.dss.PDElements.Next()
                 continue
             if element_type == "transformer":
-                is_delta = self.dss.Transformers.IsDelta()
-                n_windings = self.dss.Transformers.NumWindings()
                 r_xfmr = 0
                 x_xfmr = 0
                 n_phases = self.dss.CktElement.NumPhases()
-                n_terminals = self.dss.CktElement.NumTerminals()
-                y_prime_flat = np.array(self.dss.CktElement.YPrim())
-                y_prim = y_prime_flat[::2] + 1j * y_prime_flat[1::2]
-                y_shape = int(np.sqrt(len(y_prim)))
-                y_prim = np.reshape(y_prim, (y_shape, y_shape))
-                n_y11 = int(y_shape / 2)
-                v_all = np.array(self.dss.CktElement.Voltages())
-                v_all = v_all[::2] + 1j * v_all[1::2]
-                v1 = v_all[: len(v_all) // 2]
-                v2 = v_all[len(v_all) // 2 :]
-                i_all = np.array(self.dss.CktElement.Currents())
-                i_all = i_all[::2] + 1j * i_all[1::2]
-                i1 = i_all[: len(i_all) // 2]
-                i2 = i_all[len(i_all) // 2 :]
-                self.dss.Transformers.Wdg(1)
-                # v1 = np.array(self.dss.Transformers.WdgVoltages())
-                # v1 = v1[::2] + 1j * v1[1::2]
-                kv_h = self.dss.Transformers.kV()
-                self.dss.Transformers.Wdg(2)
-                # v2 = np.array(self.dss.Transformers.WdgVoltages())
-                # v2 = v2[::2] + 1j * v2[1::2]
-                kv_l = self.dss.Transformers.kV()
-                n = kv_h / kv_l
-                y11 = y_prim[:n_y11, :n_y11] * n**2
-                y12 = y_prim[:n_y11, n_y11:] * n
-                y21 = y_prim[n_y11:, :n_y11]
-                y22 = y_prim[n_y11:, n_y11:]
-                y_prim_l = np.r_[np.c_[y11, y12], np.c_[y21, y22]]
-                # z_prim_l = np.linalg.inv(y_prim_l)
-                # z11 = z_prim_l[:n_y11, :n_y11]
-                # z12 = z_prim_l[:n_y11, n_y11:]
-                # z21 = z_prim_l[n_y11:, :n_y11]
-                # z22 = z_prim_l[n_y11:, n_y11:]
-                i_all = np.array(self.dss.Transformers.WdgCurrents())
-                i_in = i_all[::2]
-                i_all = i_all[::2] + i_all[1::2] * 1j
-                i_in = i_all[::2]
-                i_out = i_all[1::2]
-                # i1_in = i_in[::2]
-                # i2_in = i_in[1::2]
-                # i2_out = i_out[1::2]
-                # zabc = (v1[:n_phases] / n - v2[:n_phases]) / -i2[:n_phases]
-                # TODO: tranformer model may be wrong but the 13bus results look better with it.
-                # if is_delta:
-                #     raise Warning("Delta transformer not implemented")
-                # if n_windings != 2:
-                #
-                # for i_wdg in range(1, n_windings + 1):
-                # self.dss.Transformers.Wdg(i_wdg)
-                v_base_xfmr = self.dss.Transformers.kV() / np.sqrt(3) * 1000
-                s_base_xfmr = self.dss.Transformers.kVA() * 1000 / 3
+                # Read transformer properties directly from the active CktElement
+                # via dss.Properties.Value().  This avoids the Transformers API
+                # synchronization bug where Transformers.Wdg()/kV()/kVA()/Xhl()
+                # return values for the last transformer accessed via the
+                # Transformers iterator, NOT the current PDElement.
+                kVs_str = self.dss.Properties.Value('kVs')
+                kVs = [float(v) for v in kVs_str.strip('[]').split(',') if v.strip()]
+                kVA = float(self.dss.Properties.Value('kVA'))
+                xhl_pct = float(self.dss.Properties.Value('Xhl'))
+                r_pct = float(self.dss.Properties.Value('%R'))
+                kv_l = kVs[1]  # LV winding kV (line-to-line for 3-ph wye)
+                # Physical leakage impedance referred to LV winding.
+                v_base_xfmr = kv_l / np.sqrt(3) * 1000  # line-to-neutral, V
+                s_base_xfmr = kVA * 1000 / 3             # per-phase VA
                 z_base_xfmr = v_base_xfmr**2 / s_base_xfmr
-
-                x_xfmr = self.dss.Transformers.Xhl() / 100 * z_base_xfmr
-                r_xfmr = self.dss.Transformers.R() / 100 * z_base_xfmr * 2
-                z_matrix_real[0, 0] = r_xfmr
-                z_matrix_real[1, 1] = r_xfmr
-                z_matrix_real[2, 2] = r_xfmr
-                z_matrix_imag[0, 0] = x_xfmr
-                z_matrix_imag[1, 1] = x_xfmr
-                z_matrix_imag[2, 2] = x_xfmr
+                x_xfmr = xhl_pct / 100 * z_base_xfmr
+                r_xfmr = r_pct / 100 * z_base_xfmr * 2  # both windings
+                # Fill z_matrix only for active phases (important for single-phase
+                # transformer banks where 3 units share the same bus pair).
+                if n_phases >= 3:
+                    active_ph = [0, 1, 2]
+                else:
+                    bus_nodes = self.dss.CktElement.BusNames()[0].split(".")[1:]
+                    active_ph = [int(p) - 1 for p in bus_nodes if p.isdigit()]
+                for ph in active_ph:
+                    z_matrix_real[ph, ph] = r_xfmr
+                    z_matrix_imag[ph, ph] = x_xfmr
                 pass
             if element_type == "line":
-                element_name = self.dss.Lines.Name()
+                element_name = self.dss.CktElement.Name().split(".")[1]
                 z_matrix_real, z_matrix_imag = self._get_line_zmatrix()
 
-                if self.dss.Lines.IsSwitch():
+                if self.dss.Properties.Value("Switch").lower() in ("yes", "true"):
                     element_type = "switch"
                     switch_status = (
                         "OPEN"
@@ -469,6 +449,9 @@ class DSSParser:
                         )
                         else "CLOSED"
                     )
+                    if switch_status == "OPEN":
+                        flag = self.dss.PDElements.Next()
+                        continue
             if element_type == "reactor":
                 element_name = self.dss.Reactors.Name()
                 z_matrix_real, z_matrix_imag = self._get_reactor_zmatrix()
@@ -971,7 +954,8 @@ class DSSParser:
         reg_names = []
         if len(reg_control_names) != 0:
             dss_reg_df = self.dss.utils.regcontrols_to_dataframe()
-            reg_names = dss_reg_df.Transformer.to_list()
+            if not dss_reg_df.empty and "Transformer" in dss_reg_df.columns:
+                reg_names = dss_reg_df.Transformer.to_list()
         flag = self.dss.Transformers.First()
         while flag:
             element_type = self.dss.CktElement.Name().lower().split(".")[0]

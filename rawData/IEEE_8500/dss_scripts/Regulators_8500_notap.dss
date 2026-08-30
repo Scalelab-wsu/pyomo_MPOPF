@@ -1,0 +1,17 @@
+! Regulator transformer elements only — RegControl removed (not modelled in optimization)
+! Physical 1:1 transformers kept to preserve network topology/connectivity
+
+! Regulator No. 2
+New Transformer.VREG2_A phases=1  windings=2  bank=VREG2  buses=(regxfmr_190-8593.1, 190-8593.1)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+New Transformer.VREG2_B phases=1  windings=2  bank=VREG2  buses=(regxfmr_190-8593.2, 190-8593.2)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+New Transformer.VREG2_C phases=1  windings=2  bank=VREG2  buses=(regxfmr_190-8593.3, 190-8593.3)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+
+! Regulator No. 3
+New Transformer.VREG3_A phases=1  windings=2  bank=VREG3  buses=(regxfmr_190-8581.1, 190-8581.1)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+New Transformer.VREG3_B phases=1  windings=2  bank=VREG3  buses=(regxfmr_190-8581.2, 190-8581.2)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+New Transformer.VREG3_C phases=1  windings=2  bank=VREG3  buses=(regxfmr_190-8581.3, 190-8581.3)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+
+! Regulator No. 4
+New Transformer.VREG4_A phases=1  windings=2  bank=VREG4  buses=(regxfmr_190-7361.1, 190-7361.1)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+New Transformer.VREG4_B phases=1  windings=2  bank=VREG4  buses=(regxfmr_190-7361.2, 190-7361.2)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 
+New Transformer.VREG4_C phases=1  windings=2  bank=VREG4  buses=(regxfmr_190-7361.3, 190-7361.3)  conns=(wye, wye)  kvs=(7.2, 7.2)  kvas=(10000, 10000)  xhl=0.1 %loadloss=.01 Wdg=2 Maxtap=1.1 Mintap=0.9 ppm=0 

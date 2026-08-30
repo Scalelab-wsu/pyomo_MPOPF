@@ -8,7 +8,7 @@ from collections import defaultdict
 
 def parse_all_data_phase_aware(bus, branch, gen=None, bat=None, loadshape=None, pvshape=None, price=None,start_step = 1, n_steps = 24):
     T = n_steps
-    Tset = np.arange(start_step, start_step + n_steps)
+    Tset = list(range(start_step, start_step + n_steps))
     phases = ['a', 'b', 'c']
 
     ## parsing profiles_data
@@ -80,7 +80,7 @@ def parse_all_data_phase_aware(bus, branch, gen=None, bat=None, loadshape=None, 
         tb = row.to_name
 
         # We know the order of columns in the DataFrame. Suppose they are:
-        #    [from_name, to_name, raa, rab, rac, rbb, rbc, rcc, xaa, xab, xac, xbb, xbc, xcc]
+        # [from_name, to_name, raa, rab, rac, rbb, rbc, rcc, xaa, xab, xac, xbb, xbc, xcc]
         real_values = (row.raa, row.rab, row.rac, row.rbb, row.rbc, row.rcc)
         imag_values = (row.xaa, row.xab, row.xac, row.xbb, row.xbc, row.xcc)
 

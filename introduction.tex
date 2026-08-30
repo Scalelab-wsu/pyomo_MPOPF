@@ -1,0 +1,191 @@
+% =====================================================================
+%  Introduction — Multi-Period OPF with Parallel Temporal Decomposition
+%  Drop-in section for an IEEE Transactions paper.
+%  Requires: amsmath, amssymb, cite (or natbib)
+% =====================================================================
+
+\section{Introduction}
+\label{sec:intro}
+
+The rapid proliferation of distributed photovoltaic (PV) generation and battery
+energy storage systems (BESS) in distribution networks has fundamentally changed
+the nature of the optimal power flow (OPF) problem faced by distribution system
+operators. When batteries are co-located with PV, each battery's state of charge
+(SOC) at the end of one hour determines the feasible operating range at the next,
+coupling consecutive timesteps and converting what was a sequence of independent
+single-period problems into a single temporally coupled multi-period program.
+Day-ahead scheduling of a feeder that hosts hundreds of DER–BESS pairs over a
+24-hour horizon at hourly resolution requires solving this coupled program in its
+entirety: truncating the horizon, ignoring future prices, or approximating the
+coupling with a short look-ahead window sacrifices the energy-arbitrage opportunity
+that the battery was installed to exploit. The challenge is therefore to solve
+the full-horizon, temporally coupled multi-period OPF accurately and fast enough
+to be operationally useful on realistic, large-scale unbalanced three-phase feeders.
+
+\subsection*{Background and related work}
+
+\paragraph{Convex relaxations for three-phase distribution OPF.}
+The branch-flow model (BFM) of Baran and Wu~\cite{BaWu89} casts the power-flow
+equations in terms of branch currents and complex voltages, exposing a
+second-order cone structure that Jabr~\cite{Jabr06} and Farivar and
+Low~\cite{FaLo13} exploit to obtain a tractable convex relaxation.
+For balanced radial networks the SOCP relaxation is exact under mild
+conditions~\cite{FaLo13}; its linearization, LinDistFlow~\cite{BaWu89}, trades
+loss accuracy for a simple linear program. These single-phase results have been
+extended to the full unbalanced three-phase BFM~\cite{GaLo14,ZhLo16}, giving
+operators a hierarchy of convex surrogates: a lossless LP at the bottom, an
+SOCP relaxation in the middle, and the non-convex AC model at the top.
+None of these models, however, is used in isolation for multi-period scheduling:
+the SOCP relaxation may be inexact for unbalanced networks with mutual coupling,
+and the non-convex AC model is intractable for large feeders over a full day's
+horizon.
+
+\paragraph{Iterative SOCP for AC-accurate solutions.}
+A line of work addresses the relaxation gap by iteratively tightening the conic
+constraints until an AC-consistent operating point is
+recovered~\cite{NiGr16,BoBu19}. The key idea is to add directional cuts that
+penalize or exclude the infeasible portion of the cone after each solve, so the
+sequence of SOCP iterates converges to the boundary of the feasibility set.
+Our prior work formulated such an iterative SOCP (MPISOCP) for the multi-period
+three-phase BFM, establishing that the scheme converges in a small number of
+iterations (8--9 on the IEEE 123-bus feeder) and that its objective matches the
+full nonlinear AC solution to within \$0.14 over a 24-hour
+horizon~\cite{OurISCOPRef}. The MPISOCP is the OPF engine used inside each
+temporal window of the decomposition proposed in this paper.
+
+\paragraph{Multi-period OPF with BESS in distribution networks.}
+Incorporating BESS into multi-period OPF introduces the SOC recursion as the
+sole inter-temporal coupling, but that coupling is enough to make the monolithic
+program grow super-linearly with the horizon length. Nazir and
+Racherla~\cite{NaRa20} solve the multi-period three-phase OPF on unbalanced
+feeders using an SOCP relaxation, dispatching batteries to minimize losses
+over a day. Crucially, they adopt a \emph{receding-horizon} (model-predictive
+control) strategy: at each hour a short look-ahead window is optimized, only
+the first step is executed, and the window shifts forward. This is operationally
+simple but inherently myopic — the battery cannot plan more than a few hours
+ahead, so it forfeits the global energy-arbitrage opportunity that spans the
+full midday PV surplus and the late-afternoon price peak. Avramidis and
+Capitanescu~\cite{AvCa20} develop a comprehensive multi-period OPF framework for
+low-voltage distribution networks with storage, but their centralized formulation
+does not scale beyond relatively small feeders.
+Blasi \textit{et al.}~\cite{BlFe22} and similar works solve multi-period active
+distribution network OPF centrally for moderate-size test systems, without
+addressing the scalability barrier that arises on large, heavily unbalanced
+feeders.
+
+\paragraph{Temporal decomposition for multi-period power system optimization.}
+The idea of breaking a long-horizon optimization into shorter, coupled sub-problems
+traces back to Benders decomposition~\cite{Be62} and its multi-stage
+generalization, stochastic dual dynamic programming (SDDP)~\cite{PePi91}.
+In SDDP, each stage is a two-stage problem: it receives a forward state (here the
+SOC) from its predecessor and returns a piecewise-linear cost-to-go cut to its
+successor. The cuts are valid globally because each stage's value function is
+convex in its initial state. This sequential backward-then-forward sweep has been
+applied to battery scheduling in microgrids~\cite{BhKh16}, and Lan
+\textit{et al.}~\cite{LaZh22} develop a fast SDDP for economic dispatch in
+distribution systems with storage. However, these works adopt simplified
+linearized or single-phase network models and do not address the three-phase
+unbalanced AC physics that govern realistic distribution feeders. Giuntoli
+\textit{et al.}~\cite{GiSu21} apply a nested Benders scheme to multi-period OPF
+for distribution grids with BESS, but their formulation is sequential — each
+stage must wait for all upstream cuts — and is tested only on small systems.
+Agarwal and Pileggi~\cite{AgPi21} use differential dynamic programming (DDP) to
+decompose large-scale multi-period OPF with energy storage, demonstrating
+scalability at bulk-system scale; their formulation targets balanced, largely
+transmission-scale networks and does not incorporate unbalanced three-phase
+distribution physics.
+
+Beyond temporal decomposition, spatial ADMM-based methods have been widely
+studied for multi-area distribution OPF~\cite{PeLo16,ErPa14}. These decompose
+across network areas (spatial decomposition) rather than across time, and
+they do not address the temporal coupling introduced by BESS. A combined
+spatial–temporal ADMM approach~\cite{PiBe20} has been explored on a small
+33-bus low-voltage feeder but does not recover global optimality guarantees and
+does not scale to nearly 10,000-node systems.
+
+\paragraph{The gap.}
+The literature reveals three orthogonal capabilities that have never been
+combined in a single framework:
+
+\begin{enumerate}
+  \item \textbf{AC-accurate three-phase unbalanced physics.} Receding-horizon
+        and centralized SOCP works~\cite{NaRa20,AvCa20} handle the full network
+        model but sacrifice global optimality or scalability.
+  \item \textbf{Provably optimal temporal decomposition.} SDDP-style and nested
+        Benders works~\cite{LaZh22,GiSu21,AgPi21} provide optimality guarantees
+        but restrict the network model to single-phase, linearized, or balanced
+        formulations.
+  \item \textbf{Parallel dispatch of all temporal windows.} Classical SDDP and
+        nested Benders sweep the window chain sequentially; the potential to
+        solve all windows simultaneously per iteration — and thereby reduce
+        wall-clock time proportionally to the available cores — is unexploited
+        in the distribution OPF context.
+\end{enumerate}
+
+\noindent The barriers to combining them are non-trivial. The nonconvex
+three-phase BFM makes each window subproblem hard; the ISOCP tightening that
+recovers AC accuracy requires multiple inner iterations and, if repeated at every
+outer Benders iteration, would dominate the total runtime. Parallel dispatch
+requires all windows to be self-sufficient at each outer iteration, using only
+information available from the previous iteration (forward SOC states and
+backward dual cuts), so no window may block on a neighbor within an iteration.
+The present paper resolves all three issues simultaneously.
+
+\subsection*{Contributions}
+
+This paper presents \emph{DDDP--OTD}, a Parallel Dual Dynamic Decomposition
+over Time for multi-period OPF on unbalanced three-phase distribution networks
+with DERs and BESS. The specific contributions are as follows.
+
+\begin{enumerate}
+
+\item \textbf{Parallel multi-cut Benders temporal decomposition (DDDP--OTD).}
+The 24-hour scheduling horizon is partitioned into $P$ disjoint contiguous
+windows. Within each outer iteration, all $P$ window subproblems are solved
+simultaneously: each consumes the terminal SOC forwarded by its predecessor and
+the optimality cut emitted by its successor at the \emph{previous} iteration,
+so no in-iteration synchronization is required. A monotone-nondecreasing global
+lower bound and an \emph{exact} primal upper bound are available at every
+iteration, and the gap between them closes at a rate independent of $P$.
+
+\item \textbf{Deferred AC tightening.}
+Each window subproblem is solved by the MPISOCP scheme, but the full
+iterative cone tightening is \emph{not} rerun at every outer Benders iteration.
+Instead, each iteration admits only a fixed number of cheap inner SOCP cuts,
+and the residual conic gap is closed by a single complete ISOCP sweep once
+DDDP--OTD has converged. This amortizes the costly AC recovery over the entire
+horizon rather than paying it per window per Benders iteration, so a near-exact
+AC-OPF schedule is obtained for essentially the cost of a single pass through the
+relaxed decomposition.
+
+\item \textbf{Demonstrated scalability on large unbalanced feeders.}
+On the IEEE 123-bus feeder, DDDP--OTD reduces the centralized ISOCP solve time
+from $23.8$~s to $11.4$~s ($2.1\times$) at $P\!=\!8$ with an optimality gap
+below $0.002\%$ and an objective that matches the nonlinear AC solution to
+\$0.14. On a 2752-bus reduction of the nearly 10,000-node IEEE 9500-node feeder,
+the centralized solve of $977.6$~s ($16.3$~min) is reduced to $272.3$~s
+($3.6\times$) at $P\!=\!6$, with a gap below $0.006\%$ --- the first parallel
+temporal decomposition of an AC-accurate multi-period OPF demonstrated at this
+scale on an unbalanced feeder.
+
+\item \textbf{End-to-end validation against unbalanced power flow.}
+Every recovered schedule is replayed hour-by-hour through a full unbalanced
+OpenDSS power flow. The ISOCP-within-DDDP schedule matches OpenDSS to within
+$3.1$~kW and $16.5$~kVAr at the substation and $1.3\times10^{-4}$~p.u.\ in
+voltage on the 9500-node feeder, confirming that the schedule is physically
+deliverable at scale.
+
+\end{enumerate}
+
+\subsection*{Paper organization}
+
+The remainder of the paper is organized as follows.
+Section~\ref{sec:copf} formulates the centralized multi-period three-phase OPF,
+presents the nonlinear and linear models, and develops the MPISOCP convexification
+scheme. Section~\ref{sec:dddp} introduces the DDDP--OTD decomposition: window
+construction, the forward–backward exchange of SOC states and dual cuts, global
+bound tracking, and the parallel algorithm.
+Section~\ref{sec:results} reports results on the IEEE 123-bus and 9500-node
+feeders, including the $\gamma$-parameter study, OpenDSS validation, and the
+partition-count trade-off.
+Section~\ref{sec:conclusion} concludes with directions for future work.

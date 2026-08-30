@@ -4,7 +4,7 @@ New Reactor.HVMV_Sub_HSB  bus1=SourceBus  bus2=HVMV115_HSB1  r=0  x=(1.051 0.88 
 
 ! HV/MV Substation connected Delta/grounded-wye
 New Transformer.HVMV115_69Sub  phases=3  windings=2  buses=(HVMV115_HSB2, regxfmr_HVMV69sub1_LSB1.1.2.3.0)  
-~ conns=(delta wye)  
+~ conns=(wye wye)  
 ~ kvs=(115, 69)  kvas=(75000, 75000)  
 ~ xhl=7.05 
 ~ wdg=1  %r=0.67

@@ -1,5 +1,4 @@
 
-import gurobipy as gp
 from pyomo.environ import value, SolverFactory, Constraint
 from Build_Model.Constraints_delta import build_delta_pyomo_model
 from Build_Model.Constraints       import build_pyomo_model

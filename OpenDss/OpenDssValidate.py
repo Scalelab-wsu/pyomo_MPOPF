@@ -3,15 +3,32 @@ import opendssdirect as dss
 import os
 import math
 def collect_opendss_substationpower(openDssVals,t,P_base):
-    ## for some reason this is not working
-    dss.Circuit.SetActiveElement("Vsource.source")  # Use actual Vsource name
-    vs_powers = dss.CktElement.Powers()
-    for idx in range(dss.CktElement.NumPhases()):
-        ph = ['a', 'b', 'c'][idx]
-        p = -vs_powers[2 * idx] * 1000 / P_base
-        q = -vs_powers[2 * idx + 1] * 1000 / P_base
-        openDssVals['P_subs'][t, ph] = p
-        openDssVals['Q_subs'][t, ph] = q
+    # IEEE_123 (and similar) test feeders often instantiate more than one
+    # Vsource at the head bus (the auto-created Vsource.source from
+    # `New Circuit ...` plus an explicit `New Vsource.src ...`). The two run in
+    # parallel and their internal impedances both dissipate, so reading only
+    # one undercounts substation injection by the other source's contribution
+    # and breaks the power balance against `Circuit.Losses()`.
+    # Sum over every Vsource per phase.
+    p_per_ph = {'a': 0.0, 'b': 0.0, 'c': 0.0}
+    q_per_ph = {'a': 0.0, 'b': 0.0, 'c': 0.0}
+    node_to_ph = {1: 'a', 2: 'b', 3: 'c'}
+    for vs in dss.Vsources.AllNames():
+        dss.Circuit.SetActiveElement(f"Vsource.{vs}")
+        vs_powers = dss.CktElement.Powers()
+        node_order = dss.CktElement.NodeOrder()
+        n_ph = dss.CktElement.NumPhases()
+        # First terminal nodes (in order) tell us which phase each pair belongs to.
+        term1_nodes = node_order[:n_ph]
+        for idx, node in enumerate(term1_nodes):
+            ph = node_to_ph.get(node)
+            if ph is None:
+                continue
+            p_per_ph[ph] += -vs_powers[2 * idx]     * 1000 / P_base
+            q_per_ph[ph] += -vs_powers[2 * idx + 1] * 1000 / P_base
+    for ph in ('a', 'b', 'c'):
+        openDssVals['P_subs'][t, ph] = p_per_ph[ph]
+        openDssVals['Q_subs'][t, ph] = q_per_ph[ph]
 
     return openDssVals
 
@@ -139,26 +156,31 @@ def collect_opendss_pvPowers(openDssVals,t, P_base):
     return openDssVals
 
 def collect_opendss_batteryresults(data,openDssVals,t, P_base):
+    # The OPF models one battery per bus (P_c/P_d/B keyed by bus), while OpenDSS
+    # has one single-phase Storage per bus.phase. When several phase-batteries
+    # share a bus we must ACCUMULATE their terminal power (not overwrite) so the
+    # per-bus total matches the OPF; SOC is averaged across the phase-batteries.
+    soc_by_bus = {}
     bat_id = dss.Storages.First()
     while bat_id > 0:
         batt_name = dss.Storages.Name()
         dss.Circuit.SetActiveElement(f"Storage.{batt_name}")
         bus = dss.CktElement.BusNames()[0].split('.')[0]   # e.g., ["bus45", "3"]
-        node_order = dss.CktElement.NodeOrder()
-        nodes = [x for x in dict.fromkeys(node_order) if x != 0]
         p = -sum(dss.CktElement.Powers()[::2])* 1000 / P_base
         soc = dss.Storages.puSOC()#*data['b_R'][bus,ph] ## multiplying by rated to match optimization results for comparison
         if 'P_b' in openDssVals:
-            openDssVals['P_b'][t, bus] = p
+            openDssVals['P_b'][t, bus] = openDssVals['P_b'].get((t, bus), 0.0) + p
         elif 'P_c' in openDssVals and 'P_d' in openDssVals:
+            openDssVals['P_d'].setdefault((t, bus), 0.0)
+            openDssVals['P_c'].setdefault((t, bus), 0.0)
             if p >= 0:
-                openDssVals['P_d'][t, bus] = p
-                openDssVals['P_c'][t, bus] = 0.0
+                openDssVals['P_d'][t, bus] += p
             else:
-                openDssVals['P_d'][t, bus] = 0.0
-                openDssVals['P_c'][t, bus] = -p
-        openDssVals['B'][t, bus] = soc
+                openDssVals['P_c'][t, bus] += -p
+        soc_by_bus.setdefault(bus, []).append(soc)
         bat_id = dss.Storages.Next()
+    for bus, socs in soc_by_bus.items():
+        openDssVals['B'][t, bus] = sum(socs) / len(socs)
     return openDssVals
 
 def get_opendss_total_circuitloss():
@@ -270,17 +292,34 @@ def set_pv_controls(data, modelVals, t, P_base):
         pv_id = dss.PVsystems.Next()
 
 def set_battery_controls(data, modelVals, t, P_base):
+    # The OPF carries one battery per bus (P_c/P_d keyed by bus) and, in the
+    # power balance, splits its net power EQUALLY across the bus's battery
+    # phases (see Constraints.py: battery_power = (P_d - P_c)/n_bat_ph). OpenDSS
+    # instead has one single-phase Storage per bus.phase, so we must give each
+    # phase-battery the OPF per-bus power DIVIDED by the number of phase-
+    # batteries on that bus — otherwise a multi-phase bus injects n times too
+    # much power.
+    bus_count = {}
+    sid = dss.Storages.First()
+    while sid > 0:
+        dss.Circuit.SetActiveElement(f"Storage.{dss.Storages.Name()}")
+        b = dss.CktElement.BusNames()[0].split('.')[0]
+        bus_count[b] = bus_count.get(b, 0) + 1
+        sid = dss.Storages.Next()
+
     storage_id = dss.Storages.First()
     while storage_id > 0:
         storage_name = dss.Storages.Name()
         dss.Circuit.SetActiveElement(f"Storage.{storage_name}")
         bus = dss.CktElement.BusNames()[0].split('.')[0]
+        n_ph = bus_count.get(bus, 1)
         if 'P_b' in modelVals:
             p_batt = modelVals['P_b'][t, bus]*P_base/1e3
         elif 'P_c' in modelVals and 'P_d' in modelVals:
             p_dis = modelVals['P_d'][t, bus]*P_base/1e3
             p_ch = modelVals['P_c'][t, bus]*P_base/1e3
             p_batt = p_dis - p_ch
+        p_batt = p_batt / n_ph   # per-phase share to match the OPF phase split
         # print(f"Time Step {t}: Setting Battery {storage_name} with p_batt={Pnet_batt}")
         dss.Text.Command(f"Edit Storage.{storage_name} kw={p_batt} kvar = 0")
         storage_id = dss.Storages.Next()
@@ -326,15 +365,20 @@ def initialize_current_angles(data,path, multi=False,start_step=1):
     dss.Text.Command("clear")
     dss.Text.Command(f"Redirect \"{script_path}\"")
 
-    load_profile = [
-        0.677, 0.6256, 0.6087, 0.5833, 0.58028, 0.6025, 0.657, 0.7477,
-        0.832, 0.88, 0.94, 0.989, 0.985, 0.98, 0.9898, 0.999,
-        1, 0.958, 0.936, 0.913, 0.876, 0.876, 0.828, 0.756
-    ]
-    load_mult = ' '.join(map(str, load_profile))
+
+    loadshape = data.get('loadshape', {})
+    if loadshape:
+        load_profile = [loadshape[t] for t in data['Tset']]
+        load_mult = ' '.join(map(str, load_profile))
+    pvshape = data.get('pvshape', {})
+    if pvshape:
+        pv_profile = [pvshape[t] for t in data['Tset']]
+        pv_mult = ' '.join(map(str, pv_profile))
     if multi:
-        dss.Text.Command(f'New Loadshape.loadshape npts=24 interval=1 mult=({load_mult})')
+        dss.Text.Command(f'New Loadshape.loadshape npts={len(load_profile)} interval=1 mult=({load_mult})')
         dss.Text.Command(f"BatchEdit Load..* Daily=loadshape") ## use this as this gives better results
+        dss.Text.Command(f'New Loadshape.pvshape_init npts={len(pv_profile)} interval=1 mult=({pv_mult})')
+        dss.Text.Command("BatchEdit PVSystem..* Daily=pvshape_init")
         dss.Text.Command("Set mode = Daily")
         dss.Text.Command("Set stepsize = 1h")
         dss.Text.Command("Set number = 1")
@@ -363,14 +407,18 @@ def run_opendss_validation(data, modelVals, path,multi=False,start_step=1):
     dss.Text.Command("clear")
     dss.Text.Command(f"Redirect \"{script_path}\"")
 
-    load_profile = [
-        0.677, 0.6256, 0.6087, 0.5833, 0.58028, 0.6025, 0.657, 0.7477,
-        0.832, 0.88, 0.94, 0.989, 0.985, 0.98, 0.9898, 0.999,
-        1, 0.958, 0.936, 0.913, 0.876, 0.876, 0.828, 0.756
-    ]
-    load_mult = ' '.join(map(str, load_profile))
+    # load_profile = [
+    #     0.677, 0.6256, 0.6087, 0.5833, 0.58028, 0.6025, 0.657, 0.7477,
+    #     0.832, 0.88, 0.94, 0.989, 0.985, 0.98, 0.9898, 0.999,
+    #     1, 0.958, 0.936, 0.913, 0.876, 0.876, 0.828, 0.756
+    # ]
+    # load_mult = ' '.join(map(str, load_profile))
+    loadshape = data.get('loadshape', {})
+    if loadshape:
+        load_profile = [loadshape[t] for t in data['Tset']]
+        load_mult = ' '.join(map(str, load_profile))
     if multi:
-        dss.Text.Command(f'New Loadshape.loadshape npts=24 interval=1 mult=({load_mult})')
+        dss.Text.Command(f'New Loadshape.loadshape npts={len(load_profile)} interval=1 mult=({load_mult})')
         dss.Text.Command(f"BatchEdit Load..* Daily=loadshape") ## use this as this gives better results
         dss.Text.Command("Set mode = Daily")
         dss.Text.Command("Set stepsize = 1h")
@@ -458,6 +506,36 @@ def run_opendss_validation(data, modelVals, path,multi=False,start_step=1):
     # print(f"Total Reactive Power:{-dss.Circuit.TotalPower()[1] / 1e3} Mvar")
     print(f"Total Active power loss from openDSS: {total_p_loss/1e3} kW")
     print(f"Total Reactive power loss from openDSS: {total_q_loss/1e3} kVar")
+
+    # Stash aggregates (all in kW / kVAr) so main.py can do a side-by-side
+    # comparison against the OPF energy-balance losses.
+    openDssVals['totals_kw'] = {
+        'P_subs': sum(openDssVals['P_subs'].values()) * 1e3,
+        'Q_subs': sum(openDssVals['Q_subs'].values()) * 1e3,
+        'p_load_circuit': total_load_kw,
+        'q_load_circuit': total_load_kvar,
+        'p_load_nameplate': P,
+        'q_load_nameplate': Q,
+        'p_PV': total_pv_kw,
+        'q_PV': total_pv_kvar,
+        'bat_net_kW': total_bat_real_power,
+        'P_loss': total_p_loss / 1e3,
+        'Q_loss': total_q_loss / 1e3,
+    }
+
+    # Clean kW/kVAr summary
+    tk = openDssVals['totals_kw']
+    print()
+    print("===== OpenDSS aggregate results (kW / kVAr) =====")
+    print(f"  Substation real power      : {tk['P_subs']:>12.2f} kW")
+    print(f"  Substation reactive power  : {tk['Q_subs']:>12.2f} kVAr")
+    print(f"  Load (circuit, served)     : {tk['p_load_circuit']:>12.2f} kW  | {tk['q_load_circuit']:>12.2f} kVAr")
+    print(f"  Load (nameplate)           : {tk['p_load_nameplate']:>12.2f} kW  | {tk['q_load_nameplate']:>12.2f} kVAr")
+    print(f"  PV output                  : {tk['p_PV']:>12.2f} kW  | {tk['q_PV']:>12.2f} kVAr")
+    print(f"  Battery net (injection +)  : {tk['bat_net_kW']:>12.2f} kW")
+    print(f"  Total active power loss    : {tk['P_loss']:>12.2f} kW")
+    print(f"  Total reactive power loss  : {tk['Q_loss']:>12.2f} kVAr")
+    print("=================================================")
     return openDssVals
 
 def all_time_highest_discrepancy(opendss,optimization,multi=False):

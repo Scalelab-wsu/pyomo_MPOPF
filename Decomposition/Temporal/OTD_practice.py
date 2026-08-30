@@ -1,409 +1,387 @@
 """
 OTD-Schwarz: Overlapping Temporal Decomposition (Na et al., 2020)
-Implements Algorithm 1 (Overlapping Schwarz Decomposition Procedure) exactly.
-
-Boundary data per window i at iteration tau:
-    d^tau_i = (x^tau_{m1},  x^tau_{m2},  u^tau_{m2},  lambda^tau_{m2+1})
-
-Paper notation mapping to your code:
-    m1 = ws  (left  extended boundary)
-    m2 = we  (right extended boundary)
-    n_i      = cs  (left  exclusive knot)
-    n_{i+1}  = ce  (right exclusive knot)
-
-The Schwarz terminal cost ~g_{m2} (Eq. 2.3) is built into build_pyomo_model
-via model.B_bar_term, model.u_bar_c/u_bar_d, model.lambda_bar_next, model.rho_otd.
+Bidirectional SOC boundary exchange at core partition edges.
+Parallel via mp.Pool.starmap — mirrors solve_EnAPP commented-out block exactly.
 """
-
-from __future__ import annotations
+ 
 import os
+import sys
 import time
-from typing import Dict
+import pickle
+import tempfile
+import multiprocessing as mp
+ 
+# Add project root to path so Build_Model, Plot, etc. are importable
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from pyomo.environ import value
+# _grb_ca = os.path.expanduser('~/nrel_gurobi_ca.pem')
+# if os.path.exists(_grb_ca):
+#     os.environ['GRB_CAFILE'] = _grb_ca
+# Ensure idaes-installed solvers (ipopt) are on PATH
+_idaes_bin = os.path.join(os.path.expanduser('~'), '.idaes', 'bin')
+if _idaes_bin not in os.environ.get('PATH', ''):
+    os.environ['PATH'] = _idaes_bin + os.pathsep + os.environ.get('PATH', '')
+ 
+# Multiprocessing context. Use 'fork' for IPOPT/HiGHS (fork-safe and fastest).
+# Switch to 'forkserver' if you ever use Gurobi/Mosek — they are not fork-safe.
+# Pre-serialisation of window data (done in solve_OTD) keeps the per-worker
+# IPC overhead small regardless of the context chosen.
+_MP_CTX = mp.get_context('forkserver')
+
 from Build_Model.Constraints import get_or_build_model
 from Build_Model.store import store_results
+from Centralized.isocp import _solve_isocp, reset_isocp_cuts
+from Plot.Plotting import *
+ 
+# ── Window layout ─────────────────────────────────────────────────────────────
+def build_windows(T, partitions, overlap=None):
+    """Build symmetrically overlapping windows (Na et al. Theorem 8).
 
+    Each window spans [ws, we] where:
+      ws = max(cs - overlap, 1)  (left extension damps left-boundary error by rho^overlap)
+      we = min(ce + overlap, T)  (right extension damps right-boundary error by rho^overlap)
 
-# ---------------------------------------------------------------------------
-# Window layout
-# ---------------------------------------------------------------------------
-def _build_windows(T: int, P: int, overlap: int) -> Dict[int, Dict]:
+    With symmetric overlap the Schwarz rate is alpha = 2*Upsilon*rho^overlap < 1
+    once overlap >= ceil(log(2*Upsilon)/log(1/rho)) + 1.  overlap = T//partitions
+    is a safe default; smaller values work in practice.
     """
-    Partition [1..T] into P exclusive intervals, each extended by `overlap`
-    timesteps on both sides to form overlapping windows.
-    """
-    base, rem = T // P, T % P
-    windows, cursor = {}, 1
-    for i in range(1, P + 1):
-        cs = cursor
-        ce = cs + base + (1 if i <= rem else 0) - 1
-        ws = max(1, cs - overlap)
-        we = min(T, ce + overlap)
-        windows[i] = {
-            'idx': i,
-            'ws': ws, 'we': we,
-            'cs': cs, 'ce': ce,
-            'n':  we - ws + 1,
-        }
-        cursor = ce + 1
+    base = T // partitions
+    if overlap is None:
+        overlap = base
+    windows = {}
+    for i in range(partitions):
+        cs = i * base + 1
+        ce = (i + 1) * base
+        ws = max(cs - overlap, 1)  # symmetric left extension
+        we = min(ce + overlap, T)
+        windows[i+1] = {"cs": cs, "ce": ce, "ws": ws, "we": we, "n": we - ws + 1}
     return windows
-
-
-# ---------------------------------------------------------------------------
-# Push Schwarz boundary data d^tau_i into the cached Pyomo model
-# ---------------------------------------------------------------------------
-def _update_schwarz_params(
-    model,
-    left_soc: Dict,       # x^tau_{m1}    -> model.prev_B        (hard BC, Eq 2.2c)
-    right_soc: Dict,      # x^tau_{m2}    -> model.B_bar_term     (Eq 2.3)
-    right_ctrl_c: Dict,   # u^tau_c_{m2}  -> model.u_bar_c        (Eq 2.3)
-    right_ctrl_d: Dict,   # u^tau_d_{m2}  -> model.u_bar_d        (Eq 2.3)
-    right_lambda: Dict,   # lambda^tau_{m2+1} -> model.lambda_bar_next (Eq 2.3)
-) -> None:
+ 
+ 
+# ── Dedicated persistent process for one OTD window ────────────────────
+_IDAES_BIN = os.path.join(os.path.expanduser('~'), '.idaes', 'bin')
+ 
+def _window_worker_process(window_idx, data_path, obj, solver, alpha_scd,
+                            non_linear, isocp, p_control, integer,
+                            single_battery_variable, recv_conn, send_conn):
+    """One process per window. Builds its model ONCE then loops solve/send.
+    Receives a file path instead of the data dict — avoids large IPC pickle
+    overhead on forkserver/spawn. The OS page-cache makes the file load fast.
+    Only tiny boundary dicts (prev_B, term_B) cross the pipe each iteration.
     """
-    Algorithm 1, line 4:
-        d^tau_i = (x^tau_{m1}, x^tau_{m2}, u^tau_{m2}, lambda^tau_{m2+1})
-    """
-    # Left boundary — Eq. (2.2c): x_{m1} = d_{i,1}
-    if hasattr(model, 'prev_B'):
-        for j, v in left_soc.items():
-            model.prev_B[j].set_value(float(v))
+    if _IDAES_BIN not in os.environ.get('PATH', ''):
+        os.environ['PATH'] = _IDAES_BIN + os.pathsep + os.environ.get('PATH', '')
 
-    # Right boundary data for Eq. (2.3) terminal cost (non-last windows only)
-    if hasattr(model, 'B_bar_term'):
-        for j, v in right_soc.items():
-            model.B_bar_term[j].set_value(float(v))
-    if hasattr(model, 'u_bar_c'):
-        for j, v in right_ctrl_c.items():
-            model.u_bar_c[j].set_value(float(v))
-    if hasattr(model, 'u_bar_d'):
-        for j, v in right_ctrl_d.items():
-            model.u_bar_d[j].set_value(float(v))
-    if hasattr(model, 'lambda_bar_next'):
-        for j, v in right_lambda.items():
-            model.lambda_bar_next[j].set_value(float(v))
+    with open(data_path, 'rb') as f:
+        w_data = pickle.load(f)
+
+    model, s = get_or_build_model(
+        w_data, obj, solver=solver, alpha_scd=alpha_scd,
+        stage_idx=(w_data['ws'], w_data['we']),
+        non_linear=non_linear, isocp=isocp,
+        p_control=p_control, integer=integer,
+        single_battery_variable=single_battery_variable,
+    )
+    Bset = list(model.Bset)
+    send_conn.send(None)          # signal: model ready
+
+    while True:
+        msg = recv_conn.recv()
+        if msg is None:           # shutdown
+            break
+        prev_B, term_B, term_dual, run_isocp = msg
+        for j in Bset:
+            model.prev_B[j] = prev_B[j]
+            model.term_B[j] = term_B[j]
+            model.term_dual[j] = term_dual[j]
+
+        if isocp:
+            reset_isocp_cuts(model)
+        s.solve(model)
+        if isocp and run_isocp:
+            # Match the Schwarz outer tol (1e-3) rather than the default 1e-4.
+            model, _ = _solve_isocp(prev_sol=store_results(model), model=model,
+                                    model_solver=s,
+                                    inner_tol=1e-3, gap_tol=1e-3, max_inner=5)
+
+        if hasattr(s, 'get_duals'):
+            dual_cons = [model.battery_dynamics[t, j] for t in model.Tset for j in Bset]
+            duals_raw = s.get_duals(cons_to_load=dual_cons)
+            dual = {(t, j): duals_raw[model.battery_dynamics[t, j]]
+                    for t in model.Tset for j in Bset}
+        elif hasattr(model, 'dual'):
+            dual = {(t, j): model.dual[model.battery_dynamics[t, j]]
+                    for t in model.Tset for j in Bset}
+        else:
+            raise RuntimeError(
+                f"Window {window_idx}: no dual extraction method available.")
+
+        solution = store_results(model)
+        solution['dual'] = dual
+        send_conn.send(solution)
+ 
+# ── Extract core boundary SOCs ────────────────────────────────────────────────
+def _compute_boundary_vals(windows, all_results, window_data_map):
+    B_start, B_end, dual_end = {}, {}, {}
+    for i in windows:
+        B_vals = all_results[i]['B']
+        dual_vals = all_results[i]['dual']
+        Bset   = list(window_data_map[i]['Bset'])
+
+        if i - 1 in windows:
+            tgt_term   = windows[i-1]['we']
+            B_end[i]   = {j: B_vals[tgt_term, j] for j in Bset}
+
+            dual_end[i] = {
+                j: dual_vals.get((tgt_term + 1, j), dual_vals.get((tgt_term, j), 0.0))
+                for j in Bset
+            }
+
+        if i + 1 in windows:
+            tgt_init   = windows[i+1]['ws'] - 1
+            if tgt_init >= 1:  # guard: ws==1 means window uses b0 naturally
+                B_start[i] = {j: B_vals[tgt_init, j] for j in Bset}
+
+    return B_start, B_end, dual_end
+
+# ── Push boundary SOCs into window data ──────────────────────────────────────
+def _update_window_boundaries(windows, window_data_map,
+                               B_start, B_end, dual_end,
+                               b_global_init, partitions):
+    for i, _ in windows.items():
+        # Left BC: use b0 for window 1 or if previous window's B_start wasn't computed
+        # (edge case: when ws==1, battery_dynamics uses b0 anyway via tmin_horizon branch)
+        window_data_map[i]['prev_B'] = (dict(b_global_init)
+                                        if i == 1 or (i - 1) not in B_start
+                                        else dict(B_start[i - 1]))
+        # Right BC: use next window's boundary SOC
+        if i < partitions:
+            window_data_map[i]['term_B'] = dict(B_end[i + 1])
+            window_data_map[i]['term_dual'] = dict(dual_end[i + 1])
+    return window_data_map
 
 
-# ---------------------------------------------------------------------------
-# Extract boundary data from a solved window at time t
-# ---------------------------------------------------------------------------
-def _extract_boundary_data(model, t: int, Bset) -> Dict[str, Dict]:
-    """
-    Read x_{t}, u_{t}, lambda_{t+1} from a solved window.
+def _stitch_results(all_results, windows):
+    out = {}
 
-    x_{t}        = B[t, j]
-    u^c_{t}      = P_c[t, j]
-    u^d_{t}      = P_d[t, j]  (or P_b for single-variable form)
-    lambda_{t+1} = dual of battery_dynamics[t+1, j] if t+1 in Tset,
-                   else dual of battery_dynamics[t, j]
-    """
-    soc = {}; ctrl_c = {}; ctrl_d = {}; ctrl_b = {}; lam = {}
-
-    for j in Bset:
-        soc[j] = float(value(model.B[t, j]))
-
-        if hasattr(model, 'P_c'):
-            ctrl_c[j] = float(value(model.P_c[t, j]))
-        if hasattr(model, 'P_d'):
-            ctrl_d[j] = float(value(model.P_d[t, j]))
-        if hasattr(model, 'P_b'):
-            ctrl_b[j] = float(value(model.P_b[t, j]))
-
-        # lambda_{t+1}: dual of the constraint that produces B[t+1]
-        t_lam = (t + 1) if (t + 1) in list(model.Tset) else t
-        try:
-            c = model.battery_dynamics[t_lam, j]
-            lam[j] = float(value(model.dual[c])) if c in model.dual else 0.0
-        except Exception:
-            lam[j] = 0.0
-
-    return {'soc': soc, 'ctrl_c': ctrl_c, 'ctrl_d': ctrl_d,
-            'ctrl_b': ctrl_b, 'lambda': lam}
-
-
-# ---------------------------------------------------------------------------
-# Compose full-horizon solution from exclusive cores — Algorithm 1, line 7
-# ---------------------------------------------------------------------------
-def _compose_solution(all_results: Dict[int, Dict],
-                      windows: Dict[int, Dict]) -> Dict:
-    """
-    C({~z*_i}): Definition 2.1 of the paper.
-    Keep only timesteps in [cs, ce] (the exclusive core) from each window.
-    """
-    out: Dict = {}
+    # Stitch only core timesteps from each window
     for i, w in windows.items():
-        cs, ce = w['cs'], w['ce']
-        for var, vdict in all_results.get(i, {}).items():
+        cs = w['cs']
+        ce = w['ce']
+
+        for var, vdict in all_results[i].items():
             if var == 'objective_value':
                 continue
+
             if not isinstance(vdict, dict):
                 if i == 1 and var not in out:
                     out[var] = vdict
                 continue
+
             out.setdefault(var, {})
+
             for key, val in vdict.items():
-                if isinstance(key, tuple) and len(key) >= 1:
+                if isinstance(key, tuple):
                     t = key[0]
                     if cs <= t <= ce:
                         out[var][key] = val
     return out
 
-
-# ---------------------------------------------------------------------------
-# Convergence check at exclusive knots n_i  (paper Theorem 2.1 / Eq. 2.4)
-# ---------------------------------------------------------------------------
-def _check_convergence(
-    prev_knot_soc: Dict[int, Dict],
-    curr_knot_soc: Dict[int, Dict],
-    partitions: int,
-) -> float:
-    """
-    max_{i=1..P-1, j} |B^tau_{ce_i, j} - B^{tau-1}_{ce_i, j}|
-
-    We measure at the exclusive right knots ce_i of windows 1..P-1,
-    which are the same as the exclusive left knots cs_{i+1} of windows 2..P.
-    """
-    if partitions <= 1:
-        return 0.0
-    return max(
-        abs(curr_knot_soc[i][j] - prev_knot_soc[i][j])
-        for i in prev_knot_soc
-        for j in prev_knot_soc[i]
-    )
-
-
-# ---------------------------------------------------------------------------
-# Single-window solve worker
-# ---------------------------------------------------------------------------
-def process_window(
-    w_data: Dict, window_idx: int,
-    left_soc: Dict,
-    right_soc: Dict, right_ctrl_c: Dict, right_ctrl_d: Dict, right_lambda: Dict,
-    obj, solver: str, alpha_scd: float,
-    non_linear: bool, isocp: bool, p_control: bool,
-    integer: bool, single_battery_variable: bool,
-):
-    """
-    Retrieve (or build on first call) the Pyomo model for window `window_idx`,
-    push Schwarz boundary data, solve, return results and boundary extractions.
-
-    area_name=window_idx gives each window its own MODEL_CACHE/SOLVER_CACHE slot.
-    """
-    model, s = get_or_build_model(
-        w_data, obj, solver=solver, alpha_scd=alpha_scd,
-        stage_idx=(w_data['ws'], w_data['we']),
-        area_name=window_idx,                   # per-window cache key
-        non_linear=non_linear, isocp=isocp,
-        p_control=p_control, integer=integer,
-        single_battery_variable=single_battery_variable,
-    )
-
-    _update_schwarz_params(
-        model,
-        left_soc=left_soc,
-        right_soc=right_soc,
-        right_ctrl_c=right_ctrl_c,
-        right_ctrl_d=right_ctrl_d,
-        right_lambda=right_lambda,
-    )
-
-    s.solve(model)
-    results = store_results(model)
-
-    Bset = list(w_data['Bset'])
-    bdata_at_we = _extract_boundary_data(model, w_data['we'], Bset)
-    bdata_at_ce = _extract_boundary_data(model, w_data['ce'], Bset)
-
-    return window_idx, results, bdata_at_we, bdata_at_ce
-
-
-# ---------------------------------------------------------------------------
-# True objective on stitched core solution
-# ---------------------------------------------------------------------------
-def eval_actual_obj(
-    stitched_vals: Dict, window_data_map: Dict,
-    alpha_scd: float, cost,
-) -> float:
+def eval_actual_obj(stitched_vals,window_data_map,alpha_scd,cost):
     data0 = window_data_map[1]
-    Bset  = list(data0['Bset'])
-    eta_c = data0.get('eta_c', {})
-    eta_d = data0.get('eta_d', {})
-    obj_val = 0.0
-    if 'P_subs' not in stitched_vals or not stitched_vals['P_subs']:
-        return obj_val
-    T_used = sorted({k[0] for k in stitched_vals['P_subs']})
-    for t in T_used:
-        psubs_t = sum(stitched_vals['P_subs'].get((t, ph), 0.0)
-                      for ph in ['a', 'b', 'c'])
-        obj_val += psubs_t * cost[t - 1]
-    if 'P_c' in stitched_vals and 'P_d' in stitched_vals:
+    Bset = list(data0['Bset'])
+    eta_c = data0['eta_c']
+    eta_d = data0['eta_d']
+
+    obj = 0.0
+
+    if 'P_subs' in stitched_vals and stitched_vals['P_subs']:
+        T_used = sorted({k[0] for k in stitched_vals['P_subs'].keys()})
+
         for t in T_used:
-            for j in Bset:
-                pc = stitched_vals['P_c'].get((t, j), 0.0)
-                pd = stitched_vals['P_d'].get((t, j), 0.0)
-                ec = eta_c[j]
-                ed = eta_d[j] if eta_d[j] != 0 else 1.0
-                obj_val += alpha_scd * ((1 - ec) * pc + (1 / ed - 1) * pd)
-    return obj_val
+            psubs_t = sum(stitched_vals['P_subs'][t, ph] for ph in ['a','b','c'])
+            obj += psubs_t * cost[t-1]
 
+        if 'P_c' in stitched_vals and 'P_d' in stitched_vals:
+            for t in T_used:
+                for j in Bset:
+                    pc = stitched_vals['P_c'][t, j]
+                    pd = stitched_vals['P_d'][t, j]
+                    ec = eta_c[j]
+                    ed = eta_d[j]
 
-# ---------------------------------------------------------------------------
-# Main Schwarz outer loop  — Algorithm 1 of Na et al. (2020)
-# ---------------------------------------------------------------------------
-def solve_OTD(
-    window_data_map: Dict,
-    windows: Dict,
-    b_global_init: Dict,
-    obj,
-    solver: str,
-    alpha_scd: float,
-    non_linear: bool,
-    isocp: bool,
-    p_control: bool,
-    integer: bool,
-    single_battery_variable: bool,
-    max_iters: int = 15,
-    tol: float = 1e-3,
-):
+                    obj += alpha_scd * (
+                        (1 - ec) * pc +
+                        (((1 / ed) - 1) if ed != 0 else 1.0) * pd
+                    )
+    return obj
+
+# ── Main Schwarz loop ─────────────────────────────────────────────────────────
+def solve_OTD(window_data_map, windows, b_global_init,
+              obj, solver, alpha_scd,
+              non_linear, isocp, p_control, integer, single_battery_variable,
+              max_iters=15, tol=1e-3, omega=1.0):
+    """omega : under-relaxation on term_B / term_dual (NOT prev_B). Default
+    1.0 — the rho_prox quadratic in cost_minimize_with_scd is sufficient
+    regularization. rho_prox is hardcoded to 0.3 in Build_Model/Objective.py.
     """
-    Algorithm 1 — Overlapping Schwarz Decomposition Procedure.
+    partitions = len(windows)
+    all_results  = {}
+    converged    = False
+    max_delta    = float('inf')
+    t0           = time.perf_counter()
+    iter_times   = []
+    delta_history = []
 
-    Global iterate z^tau is stored as flat dicts keyed by (t, j):
-        B_global    — SOC at every t in the union of all extended windows
-        Pc_global   — P_c (charging power)
-        Pd_global   — P_d (discharging power)
-        lam_global  — dual of battery_dynamics, used as lambda_bar_next
+    # Pre-serialise each window's data to a temp file (done once in the parent).
+    t_serial_start = time.perf_counter()
+    _tmpdir = tempfile.mkdtemp(prefix='otd_worker_')
+    data_paths = {}
+    for i in windows:
+        path = os.path.join(_tmpdir, f'window_{i}.pkl')
+        with open(path, 'wb') as f:
+            pickle.dump(window_data_map[i], f, protocol=pickle.HIGHEST_PROTOCOL)
+        data_paths[i] = path
+    t_serial = time.perf_counter() - t_serial_start
 
-    Each Schwarz iteration:
-      Line 4  : d^tau_i = (x^tau_{m1}, x^tau_{m2}, u^tau_{m2}, lambda^tau_{m2+1})
-      Line 5  : Solve P_i(d^tau_i) to optimality
-      Line 7  : z^{tau+1} = C({~z*_i(d^tau_i)})
-      Convergence: max ||B^tau_{n_i} - B^{tau-1}_{n_i}|| at knots n_i = ce_i
-    """
-    partitions   = len(windows)
-    Bset0        = list(window_data_map[1]['Bset'])
-    tmin_horizon = min(windows[i]['ws'] for i in windows)
+    # Launch one persistent process per window — all build in parallel
+    send_conns, recv_conns = {}, {}
+    procs = []
+    t_launch_start = time.perf_counter()
+    for i in windows:
+        p_recv, c_send = _MP_CTX.Pipe(duplex=False)   # child → parent
+        c_recv, p_send = _MP_CTX.Pipe(duplex=False)   # parent → child
+        p = _MP_CTX.Process(
+            target=_window_worker_process,
+            args=(i, data_paths[i], obj, solver, alpha_scd,
+                  non_linear, isocp, p_control, integer, single_battery_variable,
+                  c_recv, c_send),
+            daemon=True,
+        )
+        p.start()
+        send_conns[i] = p_send
+        recv_conns[i] = p_recv
+        procs.append(p)
 
-    all_t = sorted({t for w in windows.values()
-                    for t in range(w['ws'], w['we'] + 1)})
+    # Wait until all models are built (processes signal None when ready)
+    print(f"  Launching {partitions} dedicated worker processes...", flush=True)
+    for i in windows:
+        recv_conns[i].recv()
+    t_build = time.perf_counter() - t_launch_start
+    print(f"  All models built in {t_build:.2f}s | starting iterations", flush=True)
 
-    # z^0: SOC = b0 everywhere, controls = 0, duals = 0
-    B_global   = {(t, j): b_global_init[j] for t in all_t for j in Bset0}
-    Pc_global  = {(t, j): 0.0              for t in all_t for j in Bset0}
-    Pd_global  = {(t, j): 0.0              for t in all_t for j in Bset0}
-    lam_global = {(t, j): 0.0              for t in all_t for j in Bset0}
+    B_end    = {i: dict(b_global_init) for i in range(1, partitions+1)}
+    B_start  = {i: dict(b_global_init) for i in range(1, partitions+1)}
+    _bset    = list(window_data_map[1]['Bset'])
+    dual_end = {i: {j: 0.0 for j in _bset} for i in range(1, partitions+1)}
 
-    all_results: Dict[int, Dict] = {}
-    converged = False
-    max_delta = float('inf')
-    t0_wall   = time.perf_counter()
+    try:
+        for k in range(1, max_iters + 1):
+            tk = time.perf_counter()
 
-    for k in range(1, max_iters + 1):
-        tk = time.perf_counter()
+            for i in windows:
+                send_conns[i].send((window_data_map[i]['prev_B'],
+                                    window_data_map[i]['term_B'],
+                                    window_data_map[i]['term_dual'],
+                                    False))
 
-        # Save SOC at exclusive right knots BEFORE this iteration
-        prev_knot_soc = {
-            i: {j: B_global[(windows[i]['ce'], j)] for j in Bset0}
-            for i in range(1, partitions)   # ce_1, ce_2, ..., ce_{P-1}
-        }
+            all_results = {i: recv_conns[i].recv() for i in windows}
 
-        # ------------------------------------------------------------------
-        # Algorithm 1 lines 3-6
-        # ------------------------------------------------------------------
-        for i, w in windows.items():
-            ws, we = w['ws'], w['we']
+            new_B_start, new_B_end, new_dual_end = _compute_boundary_vals(
+                windows, all_results, window_data_map)
 
-            # d_{i,1} = x^tau_{m1}
-            # First window: dynamics already use b0 when tmin_local==tmin_horizon;
-            # we push b_global_init to prev_B for consistency.
-            if ws == tmin_horizon:
-                left_soc = dict(b_global_init)
+            if partitions > 1:
+                delta_end = max(
+                    (abs(new_B_end[i][j] - B_end[i][j])
+                     for i in new_B_end if i in B_end
+                     for j in new_B_end[i]),
+                    default=0.0)
+                delta_start = max(
+                    (abs(new_B_start[i][j] - B_start[i][j])
+                     for i in new_B_start if i in B_start
+                     for j in new_B_start[i]),
+                    default=0.0)
+                max_delta = max(delta_end, delta_start)
             else:
-                left_soc = {j: B_global[(ws, j)] for j in Bset0}
+                max_delta = 0.0
 
-            # d_{i,2:4} = (x^tau_{m2}, u^tau_{m2}, lambda^tau_{m2+1})
-            right_soc    = {j: B_global  [(we, j)] for j in Bset0}
-            right_ctrl_c = {j: Pc_global [(we, j)] for j in Bset0}
-            right_ctrl_d = {j: Pd_global [(we, j)] for j in Bset0}
-            right_lambda = {j: lam_global[(we, j)] for j in Bset0}
+            if isocp:
+                w = omega
+                for i in new_B_end:
+                    B_end[i] = {j: w * new_B_end[i][j] + (1 - w) * B_end[i][j]
+                                for j in new_B_end[i]}
+                for i in new_dual_end:
+                    dual_end[i] = {j: w * new_dual_end[i][j] + (1 - w) * dual_end[i][j]
+                                   for j in new_dual_end[i]}
+                B_start = new_B_start
+            else:
+                B_end = new_B_end
+                B_start = new_B_start
+                dual_end = new_dual_end
 
-            _, res, bdata_we, _ = process_window(
-                w_data=window_data_map[i],
-                window_idx=i,
-                left_soc=left_soc,
-                right_soc=right_soc,
-                right_ctrl_c=right_ctrl_c,
-                right_ctrl_d=right_ctrl_d,
-                right_lambda=right_lambda,
-                obj=obj, solver=solver, alpha_scd=alpha_scd,
-                non_linear=non_linear, isocp=isocp,
-                p_control=p_control, integer=integer,
-                single_battery_variable=single_battery_variable,
-            )
-            all_results[i] = res
+            window_data_map = _update_window_boundaries(
+                windows, window_data_map, B_start, B_end, dual_end,
+                b_global_init, partitions)
 
-            # Update global iterate over this window's full extended range
-            # so that neighbouring windows see the latest x^tau at their
-            # m1 = ws and m2 = we in the NEXT iteration.
-            for (t, jj), v in res.get('B',   {}).items():
-                if jj in Bset0:
-                    B_global[(t, jj)] = v
-            for (t, jj), v in res.get('P_c', {}).items():
-                if jj in Bset0:
-                    Pc_global[(t, jj)] = v
-            for (t, jj), v in res.get('P_d', {}).items():
-                if jj in Bset0:
-                    Pd_global[(t, jj)] = v
+            iter_t = time.perf_counter() - tk
+            iter_times.append(iter_t)
+            delta_history.append(max_delta)
+            print(f"  iter {k:02d} | ΔB = {max_delta:.6f} | t = {iter_t:.2f}s")
 
-            # lambda at m2 extracted from this window's dual of battery_dynamics
-            for j in Bset0:
-                lam_global[(we, j)] = bdata_we['lambda'].get(j, 0.0)
+            if max_delta < tol:
+                converged = True
+                print(f"  Converged | total = {time.perf_counter() - t0:.2f}s")
+                break
 
-        # ------------------------------------------------------------------
-        # Algorithm 1 line 7: z^{tau+1} = C({~z*_i})
-        # ------------------------------------------------------------------
-        composed = _compose_solution(all_results, windows)
-
-        # ------------------------------------------------------------------
-        # Convergence check at exclusive knots
-        # ------------------------------------------------------------------
-        curr_knot_soc = {
-            i: {j: B_global[(windows[i]['ce'], j)] for j in Bset0}
-            for i in range(1, partitions)
-        }
-        max_delta = _check_convergence(prev_knot_soc, curr_knot_soc, partitions)
-
-        print(f"  iter {k:02d} | ΔB_knot = {max_delta:.6f} | "
-              f"t = {time.perf_counter() - tk:.2f}s")
-
-        if max_delta < tol:
-            print(f"  Converged in {k} iters | "
-                  f"total = {time.perf_counter() - t0_wall:.1f}s")
-            converged = True
-            break
-
+        # Final ISOCP refinement pass once Schwarz boundaries have converged.
+        # Each window solves one full convex-iteration loop at the fixed boundary.
+        if isocp:
+            print("  Running final ISOCP refinement...", flush=True)
+            for i in windows:
+                send_conns[i].send((window_data_map[i]['prev_B'],
+                                    window_data_map[i]['term_B'],
+                                    window_data_map[i]['term_dual'],
+                                    True))
+            all_results = {i: recv_conns[i].recv() for i in windows}
+            print("  ISOCP refinement done.", flush=True)
+    finally:
+        # Shut down all worker processes cleanly
+        for i in windows:
+            try: send_conns[i].send(None)
+            except Exception: pass
+        for p in procs:
+            p.join(timeout=5)
     if not converged:
         print(f"  WARNING: not converged after {max_iters} iters. "
-              f"Final ΔB_knot = {max_delta:.6f}")
+              f"Final ΔB = {max_delta:.6f}")
 
-    return composed, converged
-
-
-# ── Entry point ────────────────────────────────────────────────────────────────
+    timing = {
+        'total_s':       time.perf_counter() - t0,
+        'serial_s':      t_serial,
+        'build_s':       t_build,
+        'iter_times':    iter_times,
+        'delta_history': delta_history,
+        'n_iters':       len(iter_times),
+        'avg_iter_s':    sum(iter_times) / len(iter_times) if iter_times else 0.0,
+        'converged':     converged,
+    }
+    return _stitch_results(all_results, windows), B_end, converged, timing
+ 
+ 
+# ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     import pandas as pd
     from Parser.parse_phase_aware import parse_all_data_phase_aware
     from Build_Model.Objective import cost_minimize_with_scd
     from OpenDss.OpenDssValidate import initialize_current_angles
-    from Plot.Plotting import plot_battery_soc
-
-    system_name = 'IEEE_123_other'
-    wd       = os.getcwd()
-    filepath = os.path.join(wd, '..', '..', 'rawData', system_name, 'csvs')
-    dss_path = os.path.join(wd, '..', '..', 'rawData', system_name,
-                            'dss_scripts', 'Master.dss')
-
+ 
+    # system_name = 'IEEE_123'
+    system_name = 'IEEE_9500'
+    wd          = os.path.join(os.path.dirname(__file__), '..', '..')
+    filepath    = os.path.join(wd, 'rawData', system_name, 'csvs')
+    dss_path    = os.path.join(wd, 'rawData', system_name,
+                               'dss_scripts', 'Master.dss')
+ 
     bus_data       = pd.read_csv(os.path.join(filepath, 'bus_data.csv'))
     branch_data    = pd.read_csv(os.path.join(filepath, 'branch_data.csv'))
     gen_data       = pd.read_csv(os.path.join(filepath, 'gen_data.csv'))
@@ -411,32 +389,34 @@ if __name__ == '__main__':
     loadshape_data = pd.read_csv(os.path.join(filepath, 'default_loadshape.csv'))
     pvshape_data   = pd.read_csv(os.path.join(filepath, 'pv_loadshape.csv'))
     price          = 0.15 * loadshape_data['M'] + 0.15
-
-    obj_fn                  = cost_minimize_with_scd
+ 
+    obj                     = cost_minimize_with_scd
     multi                   = True
     non_linear              = False
-    isocp                   = False
+    isocp                   = True
     p_control               = False
     integer                 = False
     single_battery_variable = False
-    solver                  = 'ipopt' if non_linear else 'gurobi'
-    alpha_scd               = 1e-3
+    solver                  = 'gurobi'
+    alpha_scd               = 1e-2
     n_total                 = 24
-    partitions              = 4
-    overlap                 = 2
-    v_min_val, v_max_val    = 0.9, 1.1
-    max_iters               = 15
+    partitions              = 8
+    base                    = n_total // partitions
+    overlap                 = base   # symmetric overlap each side; rate = 2*Υ*ρ^overlap
+    v_min_val, v_max_val    = 0.9, 1.2
+    max_iters               = 100
     tol                     = 1e-3
+    omega                   = 1.0
 
-    windows = _build_windows(n_total, partitions, overlap)
-    print(f"\nOTD-Schwarz | T=1..{n_total} | P={partitions} | overlap={overlap}")
+    windows = build_windows(n_total, partitions, overlap)
+    print(f"\nOTD-Schwarz | T=1..{n_total} | P={partitions} | base={base}"
+          f" | overlap={overlap} | omega={omega}"
+          f" | solver={solver} | isocp={isocp}")
     for i in range(1, partitions + 1):
         w = windows[i]
-        print(f"  Win {w['idx']}: extended=[{w['ws']},{w['we']}]  "
-              f"core=[{w['cs']},{w['ce']}]  "
-              f"left_buf={list(range(w['ws'], w['cs'])) or 'none'}  "
-              f"right_buf={list(range(w['ce'] + 1, w['we'] + 1)) or 'none'}")
+        print(f"  Win {i}: core=[{w['cs']},{w['ce']}]  window=[{w['ws']},{w['we']}]")
 
+    t_parse = time.perf_counter()
     print("\nParsing window data...")
     window_data_map = {}
     for i in range(1, partitions + 1):
@@ -447,23 +427,38 @@ if __name__ == '__main__':
             price=price, start_step=w['ws'], n_steps=w['n'])
         d['v_min'] = {k: v_min_val for k in d['v_min']}
         d['v_max'] = {k: v_max_val for k in d['v_max']}
-        d['ws'] = w['ws'];  d['we'] = w['we']
-        d['cs'] = w['cs'];  d['ce'] = w['ce']
+        d['ws']    = w['ws']
+        d['we']    = w['we']
+        d['prev_B']    = dict(d['b0'])
+        d['term_B']    = dict(d['b0'])
+        d['term_Pc']   = {j: 0 for j in d['Bset']}
+        d['term_Pd']   = {j: 0 for j in d['Bset']}
+        d['term_dual'] = {j: 0 for j in d['Bset']}
+
         if non_linear or isocp:
             angles     = initialize_current_angles(d, dss_path, multi=multi)
             d['I_ang'] = angles['I_ang']
-        window_data_map[w['idx']] = d
+        window_data_map[i] = d
+    t_parse_done = time.perf_counter()
+    print(f"  Parse done in {t_parse_done - t_parse:.2f}s")
 
     b_global_init = dict(window_data_map[1]['b0'])
 
-    t0 = time.time()
-    vals, converged = solve_OTD(
+    t0 = time.perf_counter()
+    vals, B_final, converged, timing = solve_OTD(
         window_data_map, windows, b_global_init,
-        obj_fn, solver, alpha_scd,
+        obj, solver, alpha_scd,
         non_linear, isocp, p_control, integer, single_battery_variable,
-        max_iters=max_iters, tol=tol,
+        max_iters=max_iters, tol=tol, omega=omega,
     )
-    obj_val = eval_actual_obj(vals, window_data_map, alpha_scd, price)
-    print(f"\nDone in {time.time() - t0:.2f}s | Converged: {converged} | "
-          f"Obj: {obj_val:.6f}")
-    plot_battery_soc(OTDVals=vals)
+    t_total = time.perf_counter() - t0
+
+    actual_obj = eval_actual_obj(vals, window_data_map, alpha_scd, price)
+    print(f"\n{'='*55}")
+    print(f"  Solver       : {solver} | isocp={isocp} | P={partitions}")
+    print(f"  Parse time   : {t_parse_done - t_parse:.2f}s")
+    print(f"  OTD total    : {t_total:.2f}s  (parse NOT included)")
+    print(f"  Converged    : {converged}")
+    print(f"  Objective    : {actual_obj:.6f}")
+    print(f"{'='*55}")
+    # plot_battery_soc(OTDVals=vals)

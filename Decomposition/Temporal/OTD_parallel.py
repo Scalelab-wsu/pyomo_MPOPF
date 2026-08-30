@@ -3,35 +3,78 @@ OTD-Schwarz: Overlapping Temporal Decomposition (Na et al., 2020)
 Bidirectional SOC boundary exchange at core partition edges.
 Parallel via mp.Pool.starmap — mirrors solve_EnAPP commented-out block exactly.
 """
-
+ 
 import os
+import sys
 import time
+import pickle
+import tempfile
 import multiprocessing as mp
+ 
+# Add project root to path so Build_Model, Plot, etc. are importable
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
+# _grb_ca = os.path.expanduser('~/nrel_gurobi_ca.pem')
+# if os.path.exists(_grb_ca):
+#     os.environ['GRB_CAFILE'] = _grb_ca
+# Ensure idaes-installed solvers (ipopt) are on PATH
+_idaes_bin = os.path.join(os.path.expanduser('~'), '.idaes', 'bin')
+if _idaes_bin not in os.environ.get('PATH', ''):
+    os.environ['PATH'] = _idaes_bin + os.pathsep + os.environ.get('PATH', '')
+ 
+# Multiprocessing context. Use 'fork' for IPOPT/HiGHS (fork-safe and fastest).
+# Switch to 'forkserver' if you ever use Gurobi/Mosek — they are not fork-safe.
+# Pre-serialisation of window data (done in solve_OTD) keeps the per-worker
+# IPC overhead small regardless of the context chosen.
+_MP_CTX = mp.get_context('forkserver')
+
 from Build_Model.Constraints import get_or_build_model
 from Build_Model.store import store_results
+from Centralized.isocp import _solve_isocp, reset_isocp_cuts
 from Plot.Plotting import *
-
+ 
 # ── Window layout ─────────────────────────────────────────────────────────────
-def build_windows(T, partitions, overlap):
+def build_windows(T, partitions, overlap=None):
+    """Build bidirectional overlapping windows.
+
+    Each window spans [ws, we] where:
+      ws = max(1, cs - overlap)  (left extension into left neighbour's core)
+      we = min(ce + overlap, T)  (right extension into right neighbour's core)
+
+    overlap = T // partitions  gives each window full visibility of both
+    adjacent cores. The left BC (prev_B param) provides the SOC at ws-1,
+    so the left overlap timesteps are modelled from a shared boundary state.
+    """
     base = T // partitions
+    if overlap is None:
+        overlap = base
     windows = {}
     for i in range(partitions):
         cs = i * base + 1
-        ce   = (i + 1) * base
-        ws      = max(cs - overlap, 1)
-        we      = min(ce  + overlap, T)
-        windows[i+1] = {"cs":cs,"ce":ce,"ws": ws, "we": we,"n":we-ws+1}
+        ce = (i + 1) * base
+        ws = max(1, cs - overlap)
+        we = min(ce + overlap, T)
+        windows[i+1] = {"cs": cs, "ce": ce, "ws": ws, "we": we, "n": we - ws + 1}
     return windows
-
-
-# ── Worker — mirrors process_area exactly ─────────────────────────────────────
-def process_window(w_data, window_idx, obj, solver, alpha_scd,
-                   non_linear, isocp, p_control, integer, single_battery_variable):
+ 
+ 
+# ── Dedicated persistent process for one OTD window ────────────────────
+_IDAES_BIN = os.path.join(os.path.expanduser('~'), '.idaes', 'bin')
+ 
+def _window_worker_process(window_idx, data_path, obj, solver, alpha_scd,
+                            non_linear, isocp, p_control, integer,
+                            single_battery_variable, recv_conn, send_conn):
+    """One process per window. Builds its model ONCE then loops solve/send.
+    Receives a file path instead of the data dict — avoids large IPC pickle
+    overhead on forkserver/spawn. The OS page-cache makes the file load fast.
+    Only tiny boundary dicts (prev_B, term_B) cross the pipe each iteration.
     """
-    area_name=window_idx gives each window its own MODEL_CACHE slot.
-    First call: builds model + solver, caches in worker process memory.
-    Subsequent calls: returns cached model, only updates mutable params.
-    """
+    if _IDAES_BIN not in os.environ.get('PATH', ''):
+        os.environ['PATH'] = _IDAES_BIN + os.pathsep + os.environ.get('PATH', '')
+
+    with open(data_path, 'rb') as f:
+        w_data = pickle.load(f)
+
     model, s = get_or_build_model(
         w_data, obj, solver=solver, alpha_scd=alpha_scd,
         stage_idx=(w_data['ws'], w_data['we']),
@@ -39,62 +82,95 @@ def process_window(w_data, window_idx, obj, solver, alpha_scd,
         p_control=p_control, integer=integer,
         single_battery_variable=single_battery_variable,
     )
+    Bset = list(model.Bset)
+    send_conn.send(None)          # signal: model ready
 
-    # Update mutable boundary params
-    for j in model.Bset:
-        model.prev_B[j] = w_data['prev_B'][j]
-        model.term_B[j] = w_data['term_B'][j]
-        model.term_Pc[j] = w_data['term_Pc'][j]
-        model.term_Pd[j] = w_data['term_Pd'][j]
-        model.term_dual[j] = w_data['term_dual'][j]
+    while True:
+        msg = recv_conn.recv()
+        if msg is None:           # shutdown
+            break
+        prev_B, term_B, term_dual, run_isocp = msg
+        for j in Bset:
+            model.prev_B[j] = prev_B[j]
+            model.term_B[j] = term_B[j]
+            model.term_dual[j] = term_dual[j]
 
-    s.solve(model)
-    results = store_results(model)
-    if hasattr(model, 'dual'):
-        results['duals'] = {
-            (t, j): model.dual[model.battery_dynamics[t, j]]
-            for t in model.Tset
-            for j in model.Bset
-        }
-    else:
-        cons = {(t, j): model.battery_dynamics[t, j] for t in model.Tset for j in model.Bset}
-        duals = s.get_duals(cons_to_load=list(cons.values()))
-        results['duals'] = {k: duals[v] for k, v in cons.items()}
-    return window_idx, results
+        if isocp:
+            reset_isocp_cuts(model)
+        s.solve(model)
+        if isocp and run_isocp:
+            # Match the Schwarz outer tol (1e-3) rather than the default 1e-4.
+            model, _ = _solve_isocp(prev_sol=store_results(model), model=model,
+                                    model_solver=s,
+                                    inner_tol=1e-3, gap_tol=1e-3, max_inner=25)
 
+        if hasattr(s, 'get_duals'):
+            dual_cons = [model.battery_dynamics[t, j] for t in model.Tset for j in Bset]
+            duals_raw = s.get_duals(cons_to_load=dual_cons)
+            dual = {(t, j): duals_raw[model.battery_dynamics[t, j]]
+                    for t in model.Tset for j in Bset}
+        elif hasattr(model, 'dual'):
+            dual = {(t, j): model.dual[model.battery_dynamics[t, j]]
+                    for t in model.Tset for j in Bset}
+        else:
+            raise RuntimeError(
+                f"Window {window_idx}: no dual extraction method available.")
+
+        solution = store_results(model)
+        solution['dual'] = dual
+
+        # core-only primal cost (no Schwarz penalty) — mirrors dddp.py stage_cost
+        cs_abs = w_data['cs']
+        ce_abs = w_data['ce']
+        _sc = 0.0
+        for t in range(cs_abs, ce_abs + 1):
+            psubs_t = sum(solution['P_subs'].get((t, ph), 0.0) for ph in ['a', 'b', 'c'])
+            _sc += psubs_t * w_data['costshape'][t]
+            if 'P_c' in solution and 'P_d' in solution:
+                for j in Bset:
+                    ed = w_data['eta_d'][j]
+                    _sc += alpha_scd * (
+                        (1 - w_data['eta_c'][j]) * solution['P_c'].get((t, j), 0.0)
+                        + ((1.0 / ed - 1) if ed != 0 else 1.0) * solution['P_d'].get((t, j), 0.0)
+                    )
+        solution['stage_cost'] = _sc
+        send_conn.send(solution)
+ 
 # ── Extract core boundary SOCs ────────────────────────────────────────────────
 def _compute_boundary_vals(windows, all_results, window_data_map):
-    B_start,B_end,Pc_end,Pd_end,dual_end = {}, {}, {}, {}, {}
+    B_start, B_end, dual_end = {}, {}, {}
     for i in windows:
         B_vals = all_results[i]['B']
-        Pc_vals = all_results[i]['P_c']
-        Pd_vals = all_results[i]['P_d']
-        duals = all_results[i]['duals']
+        dual_vals = all_results[i]['dual']
         Bset   = list(window_data_map[i]['Bset'])
 
         if i - 1 in windows:
-            tgt_term     = windows[i-1]['we']
-            B_end[i]     = {j: B_vals[tgt_term, j] for j in Bset}
-            Pc_end[i] = {j:Pc_vals[tgt_term,j] for j in Bset}
-            Pd_end[i] = {j: Pd_vals[tgt_term, j] for j in Bset}
-            dual_end[i] = {j: duals[tgt_term + 1, j]    for j in Bset}
+            tgt_term   = windows[i-1]['we']
+            B_end[i]   = {j: B_vals[tgt_term, j] for j in Bset}
+
+            dual_end[i] = {j: dual_vals[tgt_term + 1, j] for j in Bset}
 
         if i + 1 in windows:
-            tgt_init     = windows[i+1]['ws'] - 1
-            B_start[i]   = {j: B_vals[tgt_init, j] for j in Bset}
+            tgt_init   = windows[i+1]['ws'] - 1
+            if tgt_init >= 1:  # guard: ws==1 means window uses b0 naturally
+                B_start[i] = {j: B_vals[tgt_init, j] for j in Bset}
 
-    return  B_start,B_end,Pc_end,Pd_end,dual_end
+    return B_start, B_end, dual_end
 
 # ── Push boundary SOCs into window data ──────────────────────────────────────
 def _update_window_boundaries(windows, window_data_map,
-                               B_start,B_end, Pc_end,Pd_end,dual_end,
+                               B_start, B_end, dual_end,
                                b_global_init, partitions):
     for i, _ in windows.items():
-        window_data_map[i]['prev_B'] = (dict(b_global_init) if i == 1 else dict(B_start[i - 1]))
-        window_data_map[i]['b_end'] = (dict(B_end[i + 1]) if i < partitions else {})
-        window_data_map[i]['Pc_end'] = (dict(Pc_end[i + 1]) if i < partitions else {})
-        window_data_map[i]['Pd_end'] = (dict(Pd_end[i + 1]) if i < partitions else {})
-        window_data_map[i]['dual_end'] = (dict(dual_end[i + 1]) if i < partitions else {})
+        # Left BC: use b0 for window 1 or if previous window's B_start wasn't computed
+        # (edge case: when ws==1, battery_dynamics uses b0 anyway via tmin_horizon branch)
+        window_data_map[i]['prev_B'] = (dict(b_global_init)
+                                        if i == 1 or (i - 1) not in B_start
+                                        else dict(B_start[i - 1]))
+        # Right BC: use next window's boundary SOC
+        if i < partitions:
+            window_data_map[i]['term_B'] = dict(B_end[i + 1])
+            window_data_map[i]['term_dual'] = dict(dual_end[i + 1])
     return window_data_map
 
 
@@ -153,92 +229,166 @@ def eval_actual_obj(stitched_vals,window_data_map,alpha_scd,cost):
                     )
     return obj
 
-# ── Main Schwarz loop — mirrors solve_EnAPP commented-out mp.Pool block ───────
+# ── Main Schwarz loop ─────────────────────────────────────────────────────────
 def solve_OTD(window_data_map, windows, b_global_init,
               obj, solver, alpha_scd,
               non_linear, isocp, p_control, integer, single_battery_variable,
-              max_iters=15, tol=1e-3):
-
+              max_iters=15, tol=1e-3, omega=1.0):
     partitions = len(windows)
-    n_workers  = min(partitions, os.cpu_count() or partitions)
-
-    B_end   = {i: dict(b_global_init) for i in range(1,partitions+1)}
-    B_start = {i: dict(b_global_init) for i in range(1,partitions+1)}
     all_results  = {}
     converged    = False
     max_delta    = float('inf')
     t0           = time.perf_counter()
+    iter_times   = []
+    delta_history = []
+    obj_history   = []
 
-    with mp.Pool(processes=n_workers) as pool:
+    # Pre-serialise each window's data to a temp file (done once in the parent).
+    t_serial_start = time.perf_counter()
+    _tmpdir = tempfile.mkdtemp(prefix='otd_worker_')
+    data_paths = {}
+    for i in windows:
+        path = os.path.join(_tmpdir, f'window_{i}.pkl')
+        with open(path, 'wb') as f:
+            pickle.dump(window_data_map[i], f, protocol=pickle.HIGHEST_PROTOCOL)
+        data_paths[i] = path
+    t_serial = time.perf_counter() - t_serial_start
+
+    # Launch one persistent process per window — all build in parallel
+    send_conns, recv_conns = {}, {}
+    procs = []
+    t_launch_start = time.perf_counter()
+    for i in windows:
+        p_recv, c_send = _MP_CTX.Pipe(duplex=False)   # child → parent
+        c_recv, p_send = _MP_CTX.Pipe(duplex=False)   # parent → child
+        p = _MP_CTX.Process(
+            target=_window_worker_process,
+            args=(i, data_paths[i], obj, solver, alpha_scd,
+                  non_linear, isocp, p_control, integer, single_battery_variable,
+                  c_recv, c_send),
+            daemon=True,
+        )
+        p.start()
+        send_conns[i] = p_send
+        recv_conns[i] = p_recv
+        procs.append(p)
+
+    # Wait until all models are built (processes signal None when ready)
+    print(f"  Launching {partitions} dedicated worker processes...", flush=True)
+    for i in windows:
+        recv_conns[i].recv()
+    t_build = time.perf_counter() - t_launch_start
+    print(f"  All models built in {t_build:.2f}s | starting iterations", flush=True)
+
+    B_end    = {i: dict(b_global_init) for i in range(1, partitions+1)}
+    B_start  = {i: dict(b_global_init) for i in range(1, partitions+1)}
+    _bset    = list(window_data_map[1]['Bset'])
+    dual_end = {i: {j: 0.0 for j in _bset} for i in range(1, partitions+1)}
+
+
+
+    try:
         for k in range(1, max_iters + 1):
             tk = time.perf_counter()
 
-            results = pool.starmap(
-                process_window,
-                [
-                    (window_data_map[i], i,
-                     obj, solver, alpha_scd,
-                     non_linear, isocp, p_control, integer, single_battery_variable)
-                    for i, _ in windows.items()
-                ]
-            )
-            all_results = {idx: res for idx, res in results}
+            for i in windows:
+                send_conns[i].send((window_data_map[i]['prev_B'],
+                                    window_data_map[i]['term_B'],
+                                    window_data_map[i]['term_dual'],
+                                    False))
 
-            new_B_start,new_B_end,new_Pc_end,new_Pd_end,new_dual_end = _compute_boundary_vals(
+            all_results = {i: recv_conns[i].recv() for i in windows}
+
+            new_B_start, new_B_end, new_dual_end = _compute_boundary_vals(
                 windows, all_results, window_data_map)
 
             if partitions > 1:
                 delta_end = max(
-                    abs(new_B_end[i][j] - B_end[i][j])
-                    for i in range(2,partitions+1)
-                    for j in new_B_end[i])
+                    (abs(new_B_end[i][j] - B_end[i][j])
+                     for i in new_B_end if i in B_end
+                     for j in new_B_end[i]),
+                    default=0.0)
                 delta_start = max(
-                    abs(new_B_start[i][j] - B_start[i][j])
-                    for i in range(1, partitions)
-                    for j in new_B_start[i])
+                    (abs(new_B_start[i][j] - B_start[i][j])
+                     for i in new_B_start if i in B_start
+                     for j in new_B_start[i]),
+                    default=0.0)
                 max_delta = max(delta_end, delta_start)
             else:
                 max_delta = 0.0
 
-            B_end   = new_B_end
+            B_end = new_B_end
             B_start = new_B_start
-            Pc_end = new_Pc_end
-            Pd_end = new_Pd_end
             dual_end = new_dual_end
 
             window_data_map = _update_window_boundaries(
-                windows, window_data_map, B_start, B_end, Pc_end, Pd_end,dual_end,
+                windows, window_data_map, B_start, B_end, dual_end,
                 b_global_init, partitions)
 
-            print(f"  iter {k:02d} | ΔB = {max_delta:.6f} | "
-                  f"t = {time.perf_counter() - tk:.1f}s")
+            iter_t = time.perf_counter() - tk
+            iter_times.append(iter_t)
+            delta_history.append(max_delta)
+            obj_iter = sum(all_results[i]['stage_cost'] for i in windows) * 1000
+            obj_history.append(obj_iter)
+            print(f"  iter {k:02d} | obj = {obj_iter:.6f} | ΔB = {max_delta:.6f} | t = {iter_t:.2f}s")
 
-            if k > 1 and max_delta < tol:
-                print(f"  Converged in {k} iters | "
-                      f"total = {time.perf_counter() - t0:.1f}s")
+            if max_delta < tol:
                 converged = True
+                print(f"  Converged | total = {time.perf_counter() - t0:.2f}s")
                 break
 
-    if not converged:
-        print(f"  WARNING: not converged after {max_iters} iters. "
-              f"Final ΔB = {max_delta:.6f}")
+        if not converged:
+            print(f"  WARNING: not converged after {max_iters} iters. "
+                  f"Final ΔB = {max_delta:.6f}")
 
-    return _stitch_results(all_results, windows), B_end, converged
+        if isocp:
+            print("  Running final ISOCP refinement...", flush=True)
+            for i in windows:
+                send_conns[i].send((window_data_map[i]['prev_B'],
+                                    window_data_map[i]['term_B'],
+                                    window_data_map[i]['term_dual'],
+                                    True))
+            all_results = {i: recv_conns[i].recv() for i in windows}
+            obj_isocp = sum(all_results[i]['stage_cost'] for i in windows) * 1000
+            if obj_history:
+                obj_history[-1] = obj_isocp
+            print("  ISOCP refinement done.", flush=True)
+    finally:
+        # Shut down all worker processes cleanly
+        for i in windows:
+            try: send_conns[i].send(None)
+            except Exception: pass
+        for p in procs:
+            p.join(timeout=5)
 
-
+    timing = {
+        'total_s':       time.perf_counter() - t0,
+        'serial_s':      t_serial,
+        'build_s':       t_build,
+        'iter_times':    iter_times,
+        'delta_history': delta_history,
+        'obj_history':   obj_history,
+        'n_iters':       len(iter_times),
+        'avg_iter_s':    sum(iter_times) / len(iter_times) if iter_times else 0.0,
+        'converged':     converged,
+    }
+    return _stitch_results(all_results, windows), B_end, converged, timing
+ 
+ 
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     import pandas as pd
     from Parser.parse_phase_aware import parse_all_data_phase_aware
     from Build_Model.Objective import cost_minimize_with_scd
     from OpenDss.OpenDssValidate import initialize_current_angles
-
-    system_name = 'IEEE_123_other'
-    wd          = os.getcwd()
-    filepath    = os.path.join(wd, '..', '..', 'rawData', system_name, 'csvs')
-    dss_path    = os.path.join(wd, '..', '..', 'rawData', system_name,
+ 
+    # system_name = 'IEEE_123'
+    system_name = 'IEEE_9500'
+    wd          = os.path.join(os.path.dirname(__file__), '..', '..')
+    filepath    = os.path.join(wd, 'rawData', system_name, 'csvs')
+    dss_path    = os.path.join(wd, 'rawData', system_name,
                                'dss_scripts', 'Master.dss')
-
+ 
     bus_data       = pd.read_csv(os.path.join(filepath, 'bus_data.csv'))
     branch_data    = pd.read_csv(os.path.join(filepath, 'branch_data.csv'))
     gen_data       = pd.read_csv(os.path.join(filepath, 'gen_data.csv'))
@@ -246,29 +396,34 @@ if __name__ == '__main__':
     loadshape_data = pd.read_csv(os.path.join(filepath, 'default_loadshape.csv'))
     pvshape_data   = pd.read_csv(os.path.join(filepath, 'pv_loadshape.csv'))
     price          = 0.15 * loadshape_data['M'] + 0.15
-
+ 
     obj                     = cost_minimize_with_scd
     multi                   = True
     non_linear              = False
-    isocp                   = False
+    isocp                   = True
     p_control               = False
     integer                 = False
     single_battery_variable = False
-    solver                  = 'ipopt' if non_linear else 'gurobi'
+    solver                  = 'gurobi'
     alpha_scd               = 1e-2
     n_total                 = 24
-    partitions              = 4
-    overlap                 = 2
-    v_min_val, v_max_val    = 0.9, 1.1
-    max_iters               = 15
+    partitions              = 8
+    overlap                 = 1
+    v_min_val, v_max_val    = 0.9, 1.2
+    max_iters               = 100
     tol                     = 1e-3
+    omega                   = 1.0
 
     windows = build_windows(n_total, partitions, overlap)
-    print(f"\nOTD-Schwarz | T=1..{n_total} | P={partitions} | overlap={overlap}")
+    base = n_total // partitions
+    print(f"\nOTD-Schwarz | T=1..{n_total} | P={partitions} | base={base}"
+          f" | overlap={overlap} | omega={omega}"
+          f" | solver={solver} | isocp={isocp}")
     for i in range(1, partitions + 1):
         w = windows[i]
-        print(f"  Win {w}: window=[{w['ws']},{w['we']}]  ")
+        print(f"  Win {i}: core=[{w['cs']},{w['ce']}]  window=[{w['ws']},{w['we']}]")
 
+    t_parse = time.perf_counter()
     print("\nParsing window data...")
     window_data_map = {}
     for i in range(1, partitions + 1):
@@ -281,27 +436,63 @@ if __name__ == '__main__':
         d['v_max'] = {k: v_max_val for k in d['v_max']}
         d['ws']    = w['ws']
         d['we']    = w['we']
-        d['prev_B'] = dict(d['b0'])
-        d['term_B'] = dict(d['b0'])
-        d['term_Pc'] = {j:0 for j in d['Bset']}
-        d['term_Pd'] = {j:0 for j in d['Bset']}
-        d['term_dual'] = {j:0 for j in d['Bset']}
+        d['cs']    = w['cs']
+        d['ce']    = w['ce']
+        d['prev_B']    = dict(d['b0'])
+        d['term_B']    = dict(d['b0'])
+        d['term_Pc']   = {j: 0 for j in d['Bset']}
+        d['term_Pd']   = {j: 0 for j in d['Bset']}
+        d['term_dual'] = {j: 0 for j in d['Bset']}
 
         if non_linear or isocp:
             angles     = initialize_current_angles(d, dss_path, multi=multi)
             d['I_ang'] = angles['I_ang']
         window_data_map[i] = d
+    t_parse_done = time.perf_counter()
+    print(f"  Parse done in {t_parse_done - t_parse:.2f}s")
 
     b_global_init = dict(window_data_map[1]['b0'])
 
-    t0 = time.time()
-    vals, B_final, converged = solve_OTD(
+    t0 = time.perf_counter()
+    vals, B_final, converged, timing = solve_OTD(
         window_data_map, windows, b_global_init,
         obj, solver, alpha_scd,
         non_linear, isocp, p_control, integer, single_battery_variable,
-        max_iters=max_iters, tol=tol,
+        max_iters=max_iters, tol=tol, omega=omega,
     )
-    obj = eval_actual_obj(vals,window_data_map,alpha_scd,price)
-    print(f"\nDone in {time.time()-t0:.2f}s | Converged: {converged} | "
-          f"Obj: {obj}")
-    plot_battery_soc(OTDVals=vals)
+    t_total = time.perf_counter() - t0
+
+    actual_obj = timing['obj_history'][-1] if timing['obj_history'] else float('nan')
+    final_delta = timing['delta_history'][-1] if timing['delta_history'] else float('nan')
+
+    print(f"\n=== OTD-Schwarz summary | P={partitions} ===")
+    print(f"  iterations          : {timing['n_iters']}")
+    print(f"  converged           : {converged}")
+    print(f"  total wall time     : {timing['total_s']:.2f}s")
+    print(f"  build time          : {timing['build_s']:.2f}s")
+    print(f"  avg iter time       : {timing['avg_iter_s']:.2f}s")
+    print(f"  final objective     : {actual_obj:.6f}")
+    print(f"  final ΔB            : {final_delta:.6f}")
+
+    save_dir = os.path.join(wd, 'run_logs')
+    os.makedirs(save_dir, exist_ok=True)
+    save_data = {
+        'system_name':   system_name,
+        'partitions':    partitions,
+        'n_total':       n_total,
+        'isocp':         isocp,
+        'non_linear':    non_linear,
+        'obj_history':   timing['obj_history'],
+        'delta_history': timing['delta_history'],
+        'total_s':       timing['total_s'],
+        'n_iters':       timing['n_iters'],
+        'converged':     converged,
+        'iter_times':    timing['iter_times'],
+    }
+    model_tag = 'isocp' if isocp else ('nonlinear' if non_linear else 'linear')
+    save_path = os.path.join(save_dir,
+                             f'otd_{system_name}_P{partitions}_{model_tag}.pkl')
+    with open(save_path, 'wb') as f:
+        pickle.dump(save_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+    print(f"  Saved → {save_path}")
+    # plot_battery_soc(OTDVals=vals)

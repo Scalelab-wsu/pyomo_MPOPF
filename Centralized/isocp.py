@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import gurobipy as gp
 from pyomo.environ import (value, Constraint, SolverFactory)
@@ -32,8 +33,8 @@ def initialize_model_variables(model,prev_sol = None):
             if hasattr(model, 'P_b'):
                 model.P_b[t, j].value = prev_sol['P_b'][t, j] if prev else 0
             if hasattr(model, 'P_c'):
-                model.P_c[t, j].value = prev_sol['P_c'][t, j] if prev else 0
-                model.P_d[t, j].value = prev_sol['P_d'][t, j] if prev else 0
+                model.P_c[t, j].value = max(0.0, prev_sol['P_c'][t, j]) if prev else 0
+                model.P_d[t, j].value = max(0.0, prev_sol['P_d'][t, j]) if prev else 0
 
     return model
 
@@ -73,6 +74,7 @@ def _compute_gaps(model):
     e_pvc,   e_cmc   = {}, {}
     lin_pvc, lin_cmc = {}, {}
     max_gap = 0.0
+    _zi = getattr(model, 'zero_impedance_diag', ())
 
     for t in model.Tset:
         for (i, j, ph) in model.branch_phase_set:
@@ -87,8 +89,11 @@ def _compute_gaps(model):
             gap = P0**2 + Q0**2 - v0 * lpp0
             e_pvc[t, i, j, ph]   = gap
             lin_pvc[t, i, j, ph] = (P0, Q0, v0, lpp0)
-            max_gap = max(max_gap, abs(gap))
-
+            # Zero-impedance (switch) diagonals have a free lpp with no loss/KVL
+            # effect — skip them so their floating gap doesn't drive ISOCP.
+            if (i, j, ph) not in _zi:
+                max_gap = max(max_gap, abs(gap))
+                           
         for (i, j, p, q) in model.branch_phase_pair_set:
             if p == q:
                 continue
@@ -104,7 +109,18 @@ def _compute_gaps(model):
             gap = lpq0**2 - lpp0 * lqq0
             e_cmc[t, i, j, p, q]   = gap
             lin_cmc[t, i, j, p, q] = (lpq0, lpp0, lqq0)
-            max_gap = max(max_gap, abs(gap))
+            # if not model.l[t, i, j, p, q].is_fixed():
+            #     max_gap = max(max_gap, abs(gap))
+            # Skip when lpq0 < 0.5*sqrt(lpp0*lqq0): cut collapses to
+            # -lqq0*l_pp - lpp0*l_qq >= rhs, which is infeasible for gamma<1.
+            # Must use ratio (not absolute threshold) because scale of lpp0/lqq0 varies.
+            _safe = lpq0 >= 0.5 * np.sqrt(max(lpp0 * lqq0, 0.0))
+            # Skip if either phase has ~zero self-impedance (switch / zero-length
+            # line): its diagonal l is a free variable, so coupling l_pq to it
+            # lets a full step inflate the diagonals. Handle in BOTH PVC and CMC.
+            _anchored = (i, j, p) not in _zi and (i, j, q) not in _zi
+            if not model.l[t, i, j, p, q].is_fixed() and _safe and _anchored:
+                max_gap = max(max_gap, abs(gap))
 
     return e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap
 
@@ -112,8 +128,11 @@ def _compute_gaps(model):
 def _add_linear_directional_constraints_pvc(
         model, dir_pvc, e_pvc, lin_pvc, gamma, gap_tol=1e-4, *, use_persistent: bool = True
 ):
+    _zi = getattr(model, 'zero_impedance_diag', ())
     for t in model.Tset:
         for (i, j, ph) in model.branch_phase_set:
+            if (i, j, ph) in _zi:
+                continue          # switch diagonal: lpp free, do not tighten
             key = (t, i, j, ph)
             gap = e_pvc[key]
 
@@ -142,6 +161,8 @@ def _add_linear_directional_constraints_pvc(
 def _add_linear_directional_constraints_cmc(
         model, dir_cmc, e_cmc, lin_cmc, gamma, gap_tol=1e-4, *, use_persistent: bool = True
 ):
+
+    _zi = getattr(model, 'zero_impedance_diag', ())
     for t in model.Tset:
         for (i, j, p, q) in model.branch_phase_pair_set:
             if p == q:
@@ -149,13 +170,44 @@ def _add_linear_directional_constraints_cmc(
 
             key = (t, i, j, p, q)
             gap = e_cmc[key]
+            lpq0, lpp0, lqq0 = lin_cmc[key]
+
+            # Skip CMC cut when either phase has ~zero self-impedance (switch /
+            # zero-length line): its diagonal l is a free variable, so coupling
+            # l_pq to it lets a full step inflate the diagonals. Same exclusion
+            # as PVC — handle low-impedance branches in BOTH constraints.
+            if (i, j, p) in _zi or (i, j, q) in _zi:
+                if key in dir_cmc:
+                    name, old_con = dir_cmc[key]
+                    model.del_component(name)
+                    del dir_cmc[key]
+                continue
+
+            # Skip CMC cut for zero-coupling pairs (l[p,q] fixed to 0).
+            if model.l[t, i, j, p, q].is_fixed():
+                if key in dir_cmc:
+                    name, old_con = dir_cmc[key]
+                    model.del_component(name)
+                    del dir_cmc[key]
+                continue
+
+            # Skip CMC cut when lpq0 < 0.5*sqrt(lpp0*lqq0): at that scale the cut
+            # degenerates to -lqq0*l_pp - lpp0*l_qq >= rhs, infeasible for gamma<1
+            # (ESSENTIAL for 3-phase 9500 — the optimizer drives most cross-phase
+            # l_pq -> 0). Delete any stale cut: unlike the static _zi/is_fixed
+            # skips above, this ratio can flip between iterations.
+            if lpq0 < 0.5 * np.sqrt(max(lpp0 * lqq0, 0.0)):
+                if key in dir_cmc:   # remove any stale cut from a prior iter
+                    name, old_con = dir_cmc[key]
+                    model.del_component(name)
+                    del dir_cmc[key]
+                continue
 
             if abs(gap) > gap_tol:
                 if key in dir_cmc:
                     name, old_con = dir_cmc[key]
                     model.del_component(name)
                     del dir_cmc[key]
-                lpq0, lpp0, lqq0 = lin_cmc[key]
                 rhs = (gamma + 1) * gap
 
                 new_con = Constraint(expr=(
@@ -181,43 +233,54 @@ def reset_isocp_cuts(model):
 # ISOCP inner loop
 # ---------------------------------------------------------------------------
 
-def _solve_isocp(prev_sol, model,model_solver,gamma=0.9, inner_tol=1e-4, gap_tol=1e-4, max_inner=15):
+def _solve_isocp(prev_sol, model, model_solver, gamma=0.5, inner_tol=1e-4, gap_tol=1e-4, max_inner=15):
 
-    e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(model) ## Computing the socp gap
-    print(f"Max gap without ISOCP:{max_gap:.3e}")
+    e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(model)
+    gap_history = [max_gap]
+
     if abs(max_gap) < inner_tol:
         print("  Initial SOCP relaxation already exact ✓")
-        return model
+        return model, gap_history
 
-    dir_pvc = {}
-    dir_cmc = {}
+    dir_pvc, dir_cmc = {}, {}
+    best_gap, best_sol = max_gap, prev_sol
+    print(f"  [ISOCP] init  max_gap={max_gap:.3e}")
 
-    for k in range(max_inner):
-        # n_pos_pvc = sum(1 for v in e_pvc.values() if abs(v) > 0.0) ## Finding no. of pvc directional constraints to be added
-        # n_pos_cmc = sum(1 for v in e_cmc.values() if abs(v) > 0.0) ## Finding no. of cmc directional constraints to be added
-        # print(f"  [ISOCP] adding cuts — PVC: {n_pos_pvc}, CMC: {n_pos_cmc}")
-
+    for k in range(1, max_inner + 1):
         model, dir_pvc = _add_linear_directional_constraints_pvc(model, dir_pvc, e_pvc, lin_pvc, gamma, gap_tol)
         model, dir_cmc = _add_linear_directional_constraints_cmc(model, dir_cmc, e_cmc, lin_cmc, gamma, gap_tol)
-
-        model = initialize_model_variables(model, prev_sol) ## initializing socp model with previous solution
-        # model, model_solver = apply_trust_region(model, model_solver,lin_pvc,lin_cmc,rho=0.1) ## Applying trust region to the current iteration variables
-        # model.write("debug_model_socp_first_iter.lp", io_options={'symbolic_solver_labels': True})
+        model = initialize_model_variables(model, prev_sol)
 
         res = model_solver.solve(model)
         tc = getattr(res, 'termination_condition', None)
-        if tc != TC.optimal:
-            print(f"  [ISOCP] solve failed at iter {k} — termination {tc}")
-
-            return model
+        tc_str = tc.name if hasattr(tc, 'name') else str(tc)
+        if tc_str not in ('optimal', 'locallyOptimal', 'globallyOptimal', 'unknown'):
+            # CMC cuts may have tipped the model into infeasibility.
+            # Drop all CMC cuts and retry with PVC cuts only.
+            if dir_cmc:
+                print(f"  [ISOCP] infeasible at iter {k} — dropping CMC cuts and retrying")
+                for name, _ in dir_cmc.values():
+                    model.del_component(name)
+                dir_cmc.clear()
+                res = model_solver.solve(model)
+                tc = getattr(res, 'termination_condition', None)
+                tc_str = tc.name if hasattr(tc, 'name') else str(tc)
+            if tc_str not in ('optimal', 'locallyOptimal', 'globallyOptimal', 'unknown'):
+                print(f"  [ISOCP] solve failed at iter {k} — termination {tc}")
+                break
 
         prev_sol = store_results(model)
         e_pvc, e_cmc, lin_pvc, lin_cmc, max_gap = _compute_gaps(model)
-        # print(f"  [ISOCP] iter {k:2d}  max_gap={max_gap:.3e}")
+        gap_history.append(max_gap)
+        print(f"  [ISOCP] iter {k:2d}  max_gap={max_gap:.3e}")
+
+        if max_gap < best_gap:
+            best_gap, best_sol = max_gap, prev_sol
 
         if max_gap < inner_tol:
-            print("  [ISOCP] converged ✓")
-            return model
+            # print("  [ISOCP] converged ✓")
+            return model, gap_history
 
-    print(f"  [ISOCP] reached max_inner={max_inner} without convergence")
-    return model
+    print(f"  [ISOCP] done (best gap={best_gap:.3e})")
+    model = initialize_model_variables(model, best_sol)
+    return model, gap_history

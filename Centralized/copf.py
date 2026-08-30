@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import gurobipy as gp
 from pyomo.environ import (value, SolverFactory, Constraint,Objective,minimize)
 import time
 from Centralized.isocp import _solve_isocp
@@ -13,7 +12,7 @@ def solve_copf(
     data,
     obj,
     stage_idx=None,
-    solver: str = "gurobi",
+    solver: str = "highs",
     alpha_scd: float = 1e-3,
     non_linear: bool = False,
     isocp: bool = False,
@@ -23,7 +22,7 @@ def solve_copf(
     gamma: float = 0.5,
     inner_tol: float = 1e-4,
     gap_tol: float = 1e-4,
-    max_inner: int = 15,
+    max_inner: int = 20,
 ) -> dict:
     start_time = time.perf_counter()  # Start timing
     model,model_solver = get_or_build_model(data,obj,solver=solver,alpha_scd=alpha_scd,stage_idx=None,non_linear=non_linear,isocp=isocp,p_control=p_control,integer=integer,single_battery_variable=single_battery_variable)
@@ -43,13 +42,11 @@ def solve_copf(
         ## Solving Linear model
         print(f"Entering ISOCP iteration")
 
-        socp_model = _solve_isocp(
-            prev_sol=sol, model=model,model_solver=model_solver,
-            gamma=gamma,
-            inner_tol=inner_tol,
-            gap_tol=gap_tol,
-            max_inner=max_inner,
+        socp_model, gap_history = _solve_isocp(
+            prev_sol=sol, model=model, model_solver=model_solver,
+            gamma=gamma, inner_tol=inner_tol, gap_tol=gap_tol, max_inner=max_inner,
         )
         sol = store_results(socp_model)
+        sol['isocp_gap_history'] = gap_history
 
     return sol

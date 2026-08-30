@@ -27,9 +27,11 @@ def get_or_build_stage(stage_idx, data, obj, alpha_scd=1e-3,non_linear=False, p_
     if cache_key not in MODEL_CACHE:
         MODEL_CACHE[cache_key] = build_pyomo_model(data,obj, alpha_scd,stage_idx, non_linear=non_linear, p_control=p_control, integer=integer,single_battery_variable=single_battery_variable)
 
-        solver = SolverFactory("gurobi_persistent")
+        from pyomo.contrib import appsi
+        solver = appsi.solvers.Highs()
+        solver.config.stream_solver = False
+        solver._solver_options['output_flag'] = False
         solver.set_instance(MODEL_CACHE[cache_key])
-        solver.options['OutputFlag'] = 0
         PERSISTENT_SOLVERS[cache_key] = solver
 
     return MODEL_CACHE[cache_key], PERSISTENT_SOLVERS[cache_key]
@@ -45,8 +47,6 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_sc
     for j in m.Bset:
         if m.prev_B[j].value != prev_stage_B[j]:
             m.prev_B[j].set_value(prev_stage_B[j])
-            solver.remove_constraint(m.battery_dynamics[t, j])
-            solver.add_constraint(m.battery_dynamics[t, j])
 
     # Add new cuts (only add cuts not already in model)
     current_num_cuts = len(m.cuts)
@@ -56,10 +56,9 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_sc
             # Cut: theta >= alpha + sum(beta[j] * B[t,j])
             cut_expr = m.theta >= alpha + sum(beta[j] * m.B[t, j] for j in m.Bset)
             new_con = m.cuts.add(cut_expr)
-            solver.add_constraint(new_con)
 
-    # Solve - model is already in Gurobi's memory!
-    solver.solve(m, tee=False, save_results=False)
+    # Solve with HiGHS
+    solver.solve(m)
 
     # Extract results
     beta = {j: m.dual[m.battery_dynamics[t, j]] for j in m.Bset}
@@ -69,7 +68,7 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_sc
     return Q, beta, B_end, S_obj
 
 
-def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def dddp_solve(data, obj, solver='highs',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     global MODEL_CACHE, PERSISTENT_SOLVERS
     MODEL_CACHE.clear()
     PERSISTENT_SOLVERS.clear()
@@ -159,7 +158,7 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
 
     return LB_k, cuts, LB_container, UB_container
 
-def collect_converged_solution(data, cuts, obj, *, solver='gurobi',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def collect_converged_solution(data, cuts, obj, *, solver='highs',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
     initial_b = data['b0']

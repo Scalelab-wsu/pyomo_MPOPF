@@ -1,0 +1,283 @@
+% =============================================================================
+%  Overlapping Temporal Decomposition (OTD) — IEEE Transactions style
+%  Preamble:
+%     \usepackage{amsmath,amssymb,bm}
+%     \usepackage{algorithm}
+%     \usepackage[noend]{algpseudocode}
+% =============================================================================
+
+\section{Overlapping Temporal Decomposition}
+\label{sec:otd}
+
+The multi-period OPF is coupled across time only through the scalar
+state-of-charge (SOC) chain
+\begin{equation}
+\label{eq:soc_chain}
+B_{t,j} = B_{t-1,j} + \eta_{c,j}P^{c}_{t,j} - \eta_{d,j}^{-1}P^{d}_{t,j},
+\;\; t\!\in\!\mathcal{T},\, j\!\in\!\mathcal{B},
+\end{equation}
+with horizon $\mathcal{T}\!=\!\{1,\dots,T\}$ and battery set $\mathcal{B}$.
+We exploit this thin temporal coupling through an \emph{overlapping
+temporal decomposition} (OTD) of Schwarz type: the horizon is partitioned
+into $P$ contiguous cores, each core is enlarged on \emph{both} sides by
+an overlap region, and the resulting subproblems are solved in parallel
+while exchanging only the boundary SOC values and the chain duals.
+
+% -----------------------------------------------------------------------------
+\subsection{Window Construction}
+\label{sec:otd_windows}
+
+Let $b\!=\!\lfloor T/P\rfloor$ and let $\Delta\!\ge\!1$ be a user-chosen
+overlap. Window $i\!\in\!\{1,\dots,P\}$ is described by a core interval
+$[c^{s}_{i},c^{e}_{i}]$ and a solve (extended) interval
+$[w^{s}_{i},w^{e}_{i}]$:
+\begin{equation}
+\label{eq:windows}
+\begin{aligned}
+c^{s}_{i} &= (i\!-\!1)b\!+\!1, & c^{e}_{i} &= ib,\\
+w^{s}_{i} &= \max(c^{s}_{i}\!-\!\Delta,1), & w^{e}_{i} &= \min(c^{e}_{i}\!+\!\Delta,T).
+\end{aligned}
+\end{equation}
+The cores tile $\mathcal{T}$ without gaps, while the extended intervals
+overlap their neighbours by up to $\Delta$ steps on each side. A larger
+$\Delta$ improves boundary contraction and tightens the global optimality
+gap, at a proportional increase in subproblem size; $\Delta\!=\!b$ is a
+robust default.
+
+% -----------------------------------------------------------------------------
+\subsection{Boundary Variables, Exchange, and Termination}
+\label{sec:otd_bc}
+
+In order to solve any local subproblem, the values at its temporal
+boundaries must be pre-specified: at iteration $k\!=\!0$ they are supplied
+by an initialisation, and at $k\!\ge\!1$ they are taken from the most
+recent solutions of the neighbouring windows. Two boundaries are
+\emph{fixed} throughout the Schwarz loop and are not exchanged:
+\begin{equation}
+\label{eq:fixed_bc}
+\widetilde{B}^{\mathrm{L}}_{1,j}\;\equiv\;B_{0,j},
+\qquad
+\widetilde{B}^{\mathrm{R}}_{P,j}\;\equiv\;B_{0,j},
+\end{equation}
+namely the left boundary of window $i\!=\!1$ (the given initial SOC) and
+the right boundary of window $i\!=\!P$ (the cyclic terminal SOC, set equal
+to the initial SOC of window $1$). All remaining interface variables are
+initialised to $B_{0,j}$ (and the dual hint to zero) and refreshed at
+every iteration as described below.
+
+\subsubsection*{Per-window information flow}
+Consider an interior window $i\!\in\!\{2,\dots,P\!-\!1\}$ at iteration
+$k$. Its solve on $[w^{s}_{i},w^{e}_{i}]$ requires three boundary
+parameters from its neighbours and, in turn, produces three quantities
+that its neighbours will consume.
+
+\emph{Parameters received from the upstream window $i\!-\!1$:}
+\begin{equation}
+\label{eq:left_recv}
+\widetilde{B}^{\mathrm{L},(k)}_{i,j}
+\;=\; B^{(i-1),(k)}_{w^{s}_{i},\,j},
+\end{equation}
+that is, the value of the upstream primal SOC trajectory evaluated at the
+time step $t\!=\!w^{s}_{i}$. This time step lies inside the right overlap
+of window $i\!-\!1$, so its value is well-defined.
+
+\emph{Parameters received from the downstream window $i\!+\!1$:}
+\begin{align}
+\widetilde{B}^{\mathrm{R},(k)}_{i,j}
+&= B^{(i+1),(k)}_{w^{e}_{i},\,j},
+\label{eq:right_recv_B}\\
+\lambda^{\mathrm{R},(k)}_{i,j}
+&= \mu^{(i+1),(k)}_{w^{e}_{i}+1,\,j},
+\label{eq:right_recv_lam}
+\end{align}
+i.e., the downstream primal SOC at the right cut $t\!=\!w^{e}_{i}$ and the
+Lagrange multiplier of the SOC chain~\eqref{eq:soc_chain} in window
+$i\!+\!1$ at $t\!=\!w^{e}_{i}\!+\!1$. The latter is the marginal cost,
+according to the downstream subproblem, of one additional unit of SOC
+delivered at the right cut. Injecting~\eqref{eq:right_recv_lam} into the
+objective of window $i$ therefore allows the local solve to ``see'' the
+future cost of its own choice of terminal SOC, mimicking the price
+information that the centralised problem would have propagated.
+
+\emph{Quantities produced and shared after the local solve at $k\!+\!1$:}
+\begin{equation}
+\label{eq:produce}
+\underbrace{B^{(i),(k+1)}_{w^{s}_{i+1},\,j}}_{\text{to }i+1},
+\quad
+\underbrace{B^{(i),(k+1)}_{w^{e}_{i-1},\,j}}_{\text{to }i-1},
+\quad
+\underbrace{\mu^{(i),(k+1)}_{w^{e}_{i-1}+1,\,j}}_{\text{to }i-1}.
+\end{equation}
+The two boundary windows specialise this exchange: window $1$ receives no
+left-side data (its left BC is the constant $B_{0,j}$) and only emits
+data to window $2$; symmetrically, window $P$ emits data to window
+$P\!-\!1$ but receives no right-side data.
+
+\subsubsection*{Boundary update}
+Let $\widehat{B}^{\bullet,(k+1)}_{i,j}$ and
+$\widehat{\lambda}^{\mathrm{R},(k+1)}_{i,j}$ ($\bullet\!\in\!\{\mathrm{L},\mathrm{R}\}$)
+denote the fresh candidate values assembled
+from~\eqref{eq:left_recv}--\eqref{eq:produce} after all $P$ subproblems
+return. The \emph{default} update is full assignment,
+\begin{equation}
+\label{eq:full_update}
+\widetilde{B}^{\bullet,(k+1)}_{i,j} \leftarrow
+\widehat{B}^{\bullet,(k+1)}_{i,j},
+\qquad
+\lambda^{\mathrm{R},(k+1)}_{i,j} \leftarrow
+\widehat{\lambda}^{\mathrm{R},(k+1)}_{i,j},
+\end{equation}
+i.e.\ each window adopts the new boundary values supplied by its
+neighbours. Full assignment is observed to converge on all
+well-conditioned cases. In the rare event that the primal SOC boundary
+\emph{oscillates} between consecutive iterations — a known Schwarz
+failure mode when the local problems exhibit flat directions at the
+cut — a relaxation factor $\alpha\!\in\!(0,1]$ is invoked to dampen the
+update by blending the new and previous values:
+\begin{equation}
+\label{eq:relax}
+\widetilde{B}^{\bullet,(k+1)}_{i,j} =
+\alpha\widehat{B}^{\bullet,(k+1)}_{i,j}
++ (1\!-\!\alpha)\widetilde{B}^{\bullet,(k)}_{i,j}.
+\end{equation}
+The dual hint is always assigned directly, since it acts as a
+terminal-cost predictor rather than a coupled primal iterate. Full
+assignment is recovered for $\alpha\!=\!1$; values $\alpha\!\in\![0.5,0.8]$
+are typical when damping is required.
+
+\subsubsection*{Termination criterion}
+The Schwarz loop terminates when the maximum mismatch between the
+freshly computed candidates and the previous iterate, taken over all
+interfaces, batteries, and sides, falls below a tolerance
+$\varepsilon\!>\!0$:
+\begin{equation}
+\label{eq:term}
+\Delta B^{(k)} \,:=\, \max_{i,j,\,\bullet}
+\big|\widehat{B}^{\bullet,(k+1)}_{i,j} - \widetilde{B}^{\bullet,(k)}_{i,j}\big|
+\;<\; \varepsilon,
+\end{equation}
+with an iteration cap $K_{\max}$ as safeguard. Upon termination, the
+global solution is stitched from the \emph{core} portions of the
+converged windows,
+\begin{equation}
+\label{eq:stitch}
+\bm{x}^{\star}_{t} = \bm{x}^{(i)}_{t},
+\quad t\!\in\![c^{s}_{i},c^{e}_{i}],\; i=1,\dots,P,
+\end{equation}
+so that the overlap timesteps are discarded once they have served their
+information-passing role. Note that the per-iteration message volume
+is $\mathcal{O}(P|\mathcal{B}|)$, independent of $T$ and of the network
+size.
+
+% -----------------------------------------------------------------------------
+\subsection{Local Subproblem}
+\label{sec:otd_obj}
+
+Let $\bm{x}_{i}$ collect the local OPF variables of window $i$ on
+$[w^{s}_{i},w^{e}_{i}]$, and let $\mathcal{X}_{i}$ denote its local
+feasibility set (power balance, branch and voltage limits, SOCP
+relaxation, battery limits, and the SOC chain~\eqref{eq:soc_chain}
+anchored on the left by~\eqref{eq:left_recv} or, for $i\!=\!1$,
+by~\eqref{eq:fixed_bc}). The local economic cost reads
+\begin{equation}
+\label{eq:local_cost}
+f_{i}(\bm{x}_{i}) = \!\!\sum_{t=w^{s}_{i}}^{w^{e}_{i}}\!\!
+   c_{t}\!\!\!\sum_{(b,\phi)\in\mathcal{S}}\!\!\! P^{\mathrm{subs}}_{t,b,\phi}
+ \;+\; \alpha_{\mathrm{scd}}\!\!\sum_{t,j}\!
+   \big(a^{c}_{j}P^{c}_{t,j}+a^{d}_{j}P^{d}_{t,j}\big),
+\end{equation}
+with $c_{t}$ the energy price, $\mathcal{S}$ the substation phase set,
+$a^{c}_{j}\!=\!1\!-\!\eta_{c,j}$, $a^{d}_{j}\!=\!\eta_{d,j}^{-1}\!-\!1$,
+and $\alpha_{\mathrm{scd}}$ a small simultaneous charge--discharge
+regulariser. At Schwarz iteration $k$ window $i$ solves
+\begin{equation}
+\label{eq:otd_sub}
+\bm{x}_{i}^{(k+1)} \in
+\arg\!\min_{\bm{x}_{i}\in\mathcal{X}_{i}}\,
+f_{i}(\bm{x}_{i}) + \phi^{\mathrm{R}}_{i,k}(\bm{x}_{i}),
+\end{equation}
+with the right-boundary augmented-Lagrangian term
+\begin{equation}
+\label{eq:al_term}
+\phi^{\mathrm{R}}_{i,k} \!=\! \sum_{j\in\mathcal{B}}\!
+\Big[\lambda^{\mathrm{R},(k)}_{i,j} B^{(i)}_{w^{e}_{i},j}
+\!+\!\rho\big(B^{(i)}_{w^{e}_{i},j}\!-\!\widetilde{B}^{\mathrm{R},(k)}_{i,j}\big)^{\!2}\Big],
+\end{equation}
+which is suppressed for the terminal window ($i\!=\!P$, whose right SOC
+is hard-fixed by~\eqref{eq:fixed_bc}). The linear term embeds the
+downstream marginal price of energy into the local objective, while the
+quadratic term enforces consensus on the boundary SOC. The penalty
+$\rho\!>\!0$ is the single tuning parameter; $\rho\!=\!\mathcal{O}(1)$
+yields monotone contraction in our experiments, whereas large $\rho$
+over-weights the consensus term and induces oscillation of the AL
+multiplier.
+
+\emph{Remark (ISOCP).} When the SOCP relaxation is tightened iteratively
+(ISOCP), refinement cuts are \emph{not} added inside the Schwarz loop,
+as they perturb the duals $\mu^{(i)}_{t,j}$ between iterations and break
+stationarity. A single ISOCP refinement pass is performed per window
+after the boundaries have converged.
+
+% -----------------------------------------------------------------------------
+\subsection{Parallel Algorithm}
+\label{sec:otd_algo}
+
+The complete procedure is given in Algorithm~\ref{alg:otd}. Each window is
+assigned a dedicated worker process that builds its local OPF model once
+at start-up and thereafter receives only the small boundary tuple at
+each iteration; the per-iteration communication cost is therefore
+negligible relative to the local solve.
+
+\begin{algorithm}[t]
+\caption{Parallel OTD--Schwarz}
+\label{alg:otd}
+\begin{algorithmic}[1]
+\Require horizon $T$, partitions $P$, overlap $\Delta$, penalty $\rho$,
+         tolerance $\varepsilon$, cap $K_{\max}$, initial SOC $B_{0}$.
+\Ensure global solution $\bm{x}^{\star}$.
+
+\vspace{2pt}\Statex \textit{Setup.}
+\State Build windows $\{(c^{s}_{i},c^{e}_{i},w^{s}_{i},w^{e}_{i})\}_{i=1}^{P}$
+       from~\eqref{eq:windows}.
+\State Fix $\widetilde{B}^{\mathrm{L}}_{1}\!=\!\widetilde{B}^{\mathrm{R}}_{P}\!=\!B_{0}$;
+       initialise all other $\widetilde{B}^{\mathrm{L}}_{i},
+       \widetilde{B}^{\mathrm{R}}_{i}\!\leftarrow\!B_{0}$ and
+       $\lambda^{\mathrm{R}}_{i}\!\leftarrow\!\bm{0}$.
+\State \textbf{In parallel}, spawn one worker per window and build the local
+       model~\eqref{eq:otd_sub} from $\mathcal{D}_{i}$.
+
+\vspace{2pt}\Statex \textit{Schwarz loop.}
+\For{$k=1,\dots,K_{\max}$}
+  \State \textbf{Send} the current boundary tuple
+         $(\widetilde{B}^{\mathrm{L}}_{i},\widetilde{B}^{\mathrm{R}}_{i},
+         \lambda^{\mathrm{R}}_{i})$ to every worker.
+  \State \textbf{In parallel}, each worker solves~\eqref{eq:otd_sub}
+         and returns its primal SOC $B^{(i)}_{\cdot,j}$ and chain dual
+         $\mu^{(i)}_{\cdot,j}$.
+  \State \textbf{Assemble} candidate boundaries
+         $\widehat{B}^{\mathrm{L}}_{i},\widehat{B}^{\mathrm{R}}_{i},
+         \widehat{\lambda}^{\mathrm{R}}_{i}$
+         from~\eqref{eq:left_recv}--\eqref{eq:right_recv_lam}.
+  \State \textbf{Check} $\Delta B^{(k)}$ via~\eqref{eq:term};\;
+         \textbf{if} $\Delta B^{(k)}<\varepsilon$ \textbf{then break}.
+  \State \textbf{Update} interface variables: full
+         assignment~\eqref{eq:full_update} by default,\;
+         relaxation~\eqref{eq:relax} with $\alpha\!<\!1$ if oscillation
+         is detected.
+\EndFor
+
+\vspace{2pt}\Statex \textit{Refinement and output.}
+\If{ISOCP enabled}
+  \State \textbf{In parallel}, each worker runs one ISOCP refinement at
+         the frozen boundaries.
+\EndIf
+\State Stitch $\bm{x}^{\star}$ from the core slices via~\eqref{eq:stitch}.
+\State Shut down workers and \Return $\bm{x}^{\star}$.
+\end{algorithmic}
+\end{algorithm}
+
+\noindent The number of Schwarz iterations is essentially independent of
+$T$ and grows mildly with $P$ for $\Delta$ chosen comparable to $b$. The
+wall-clock speed-up over the centralised multi-period OPF therefore
+approaches $P$ as $T$ grows, bounded only by the one-shot model-build
+overhead and the boundary-exchange latency.

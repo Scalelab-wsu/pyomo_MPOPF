@@ -27,14 +27,14 @@ def save_plot(fig, filename, width=700, height=400):
     """
     Save the figure (HTML) to the same directory as this script.
     """
-    fig.update_layout(
-        width=width,  # px width for the figure
-        height=height,  # px height for the figure
-        # margin=dict(l=0.1, r=0.1, t=0.1, b=0.1)
-    )
+    # fig.update_layout(
+    #     width=width,  # px width for the figure
+    #     height=height,  # px height for the figure
+    #     # margin=dict(l=0.1, r=0.1, t=0.1, b=0.1)
+    # )
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, filename)
-    fig.write_image(filepath,format='pdf',scale=4)
+    fig.write_html(filepath)
 
 def save_png(fig, filename, width=3.5, height=2.5, dpi=400):
     """
@@ -44,7 +44,7 @@ def save_png(fig, filename, width=3.5, height=2.5, dpi=400):
     fig: Matplotlib figure to save.
     filename: Filename to save the figure.
     """
-    fig.set_size_inches(width, height)
+    # fig.set_size_inches(width, height)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, filename)
     fig.savefig(filepath, dpi=dpi,format='pdf',bbox_inches='tight')
@@ -125,7 +125,7 @@ def plot_reactive_power_flows(**modelVals_list):
     for scenario_name, mv in modelVals_list.items():
         scenario_label = scenario_name.replace("Vals", "")
         for key in common_q_keys:
-            time, (fb, tb), phase = key
+            time, fb, tb, phase = key
             val = mv['Q'][key]
             data.append({
                 "time": f"t={time}",
@@ -136,8 +136,8 @@ def plot_reactive_power_flows(**modelVals_list):
             })
     df = pd.DataFrame(data)
     df[["fb", "tb"]] = df["branch"].str.split("->", expand=True)
-    df["fb"] = df["fb"].astype(int)
-    df["tb"] = df["tb"].astype(int)
+    df["fb"] = df["fb"]
+    df["tb"] = df["tb"]
     df = df.sort_values(["tb"]).reset_index(drop=True)
     df["branch_label"] = df.apply(lambda row: f"{row['fb']}->{row['tb']}", axis=1)
     branch_order = df["branch_label"].unique().tolist()
@@ -259,7 +259,7 @@ def plot_active_power_flows(**modelVals_list):
     for scenario_name, mv in modelVals_list.items():
         scenario_label = scenario_name.replace("Vals", "")
         for key in common_p_keys:
-            time, (fb, tb), phase = key
+            time, fb, tb, phase = key
             val = mv['P'][key]
             data.append({
                 "time": f"t={time}",
@@ -270,8 +270,8 @@ def plot_active_power_flows(**modelVals_list):
             })
     df = pd.DataFrame(data)
     df[["fb", "tb"]] = df["branch"].str.split("->", expand=True)
-    df["fb"] = df["fb"].astype(int)
-    df["tb"] = df["tb"].astype(int)
+    df["fb"] = df["fb"]
+    df["tb"] = df["tb"]
     df = df.sort_values(["tb"]).reset_index(drop=True)
     df["branch_label"] = df.apply(lambda row: f"{row['fb']}->{row['tb']}", axis=1)
     branch_order = df["branch_label"].unique().tolist()
@@ -595,182 +595,5 @@ def plot_input_profiles(**profiles_dict):
 #     # Show the plot
 #     fig.show()
 
+# plot_network has been moved to Plot/Plotting.py
 
-def plot_network(bus, branch, gen, bat, data_areas=None):
-    """
-    Plots the distribution network with:
-    - Area-specific nodes in the legend.
-    - Generators, batteries, switches with fixed colors.
-    - **Substation marked uniquely** as a **larger black star**.
-    - **Nodes with both a battery & generator assigned a distinct color and shape.**
-    - **No title**, and all nodes have a black border.
-    """
-    # Convert dictionaries to DataFrames
-    bus_df = pd.DataFrame(bus)
-    branch_df = pd.DataFrame(branch)
-    gen_df = pd.DataFrame(gen)
-    battery_df = pd.DataFrame(bat)
-
-    # Identify the substation bus
-    substation_bus = None
-    if not bus_df[bus_df["bus_type"] == "SWING"].empty:
-        substation_bus = bus_df.loc[bus_df["bus_type"] == "SWING", "id"].values[0]
-
-    # Assign each area a unique color
-    if data_areas is None:
-        data_areas = {}
-
-    area_colors = ["green", "purple", "cyan", "magenta", "yellow", "brown", "pink"]
-    all_area_names = list(data_areas.keys())
-    area_color_map = {area_name: area_colors[i % len(area_colors)] for i, area_name in enumerate(all_area_names)}
-
-    # Map nodes to areas
-    node_area_map = {}
-    for area_name, area_info in data_areas.items():
-        color_for_this_area = area_color_map[area_name]
-        for node_id in area_info["Nset"]:
-            node_area_map[node_id] = {"area_name": area_name, "area_color": color_for_this_area}
-
-    # Identify Switch Nodes
-    # switch_nodes = set(branch_df[branch_df["type"] == "switch"]["fb"]).union(
-    #     set(branch_df[branch_df["type"] == "switch"]["tb"])
-    # )
-
-    # Create the Graph
-    G = nx.Graph()
-    bus_positions = {row["id"]: (row["longitude"], row["latitude"]) for _, row in bus_df.iterrows()}
-
-    for bus_id, pos in bus_positions.items():
-        G.add_node(
-            bus_id, pos=pos, bus_type=bus_df.loc[bus_df["id"] == bus_id, "bus_type"].values[0],
-            has_gen=False, has_battery=False, is_switch=False, is_substation=(bus_id == substation_bus)
-        )
-
-    for _, row in gen_df.iterrows():
-        gen_id = row["id"]
-        G.add_node(gen_id, pos=bus_positions.get(gen_id, (0, 0)), has_gen=True, has_battery=False, is_switch=False)
-
-    for _, row in battery_df.iterrows():
-        battery_id = row["id"]
-        if battery_id in G.nodes:
-            G.nodes[battery_id]["has_battery"] = True
-        else:
-            G.add_node(battery_id, pos=bus_positions.get(battery_id, (0, 0)), has_gen=False, has_battery=True, is_switch=False)
-
-    # for switch_id in switch_nodes:
-    #     if switch_id in G.nodes:
-    #         G.nodes[switch_id]["is_switch"] = True
-
-    for _, row in branch_df.iterrows():
-        if row["fb"] in G.nodes and row["tb"] in G.nodes:
-            G.add_edge(row["fb"], row["tb"], branch_type=row["type"])
-
-    # Prepare Edge Data
-    edge_x, edge_y = [], []
-    for u, v in G.edges:
-        x0, y0 = G.nodes[u]["pos"]
-        x1, y1 = G.nodes[v]["pos"]
-        edge_x.extend([x0, x1, None])
-        edge_y.extend([y0, y1, None])
-
-    # Prepare Node Data
-    node_x, node_y, node_text, node_colors, node_shapes, node_sizes = [], [], [], [], [], []
-    node_area_labels = {}
-
-    for n in G.nodes:
-        x, y = G.nodes[n]["pos"]
-        node_x.append(x)
-        node_y.append(y)
-
-        # Default color/shape for regular buses
-        color = "gray"
-        shape = "circle"
-        size = 6  # Default node size
-
-        node_type = G.nodes[n]["bus_type"]
-
-        # Assign special colors/shapes for known types
-        if G.nodes[n].get("has_gen", False) and G.nodes[n].get("has_battery", False):
-            # 🔹 Nodes with **both a generator & battery** get a unique symbol
-            shape, color, node_type, size = "hexagram", "white", "Gen + Battery", 10
-        elif G.nodes[n].get("has_gen", False):
-            shape, color, node_type = "square", "red", "PV"
-        elif G.nodes[n].get("has_battery", False):
-            shape, color, node_type = "circle", "blue", "Battery"
-        # elif G.nodes[n].get("is_switch", False):
-        #     shape, color, node_type = "diamond", "orange", "Switch"
-        elif G.nodes[n].get("is_substation", False):
-            shape, color, node_type, size = "star", "silver", "Substation", 14
-        elif n in node_area_map:
-            color = node_area_map[n]["area_color"]
-            node_area_labels[color] = node_area_map[n]["area_name"]
-
-        node_colors.append(color)
-        node_shapes.append(shape)
-        node_sizes.append(size)
-        node_text.append(f"Bus {n} - Type: {node_type}")
-
-    # Build the Plotly Figure
-    fig = go.Figure()
-
-    # --- Edges ---
-    fig.add_trace(go.Scatter(
-        x=edge_x, y=edge_y,
-        line=dict(width=1, color="black"),
-        hoverinfo="none",
-        mode="lines",
-        name="Edges"
-    ))
-
-    # Unique (shape, color) combinations
-    unique_shape_color = sorted(set(zip(node_shapes, node_colors, node_sizes)))
-
-    for (shape, color, size) in unique_shape_color:
-        idxs = [i for i, (s, c, sz) in enumerate(zip(node_shapes, node_colors, node_sizes)) if s == shape and c == color and sz == size]
-        scatter_x = [node_x[i] for i in idxs]
-        scatter_y = [node_y[i] for i in idxs]
-        scatter_text = [node_text[i] for i in idxs]
-
-        # Assign legend names
-        if shape == "square" and color == "red":
-            legend_name = "PV"
-        elif shape == "circle" and color == "blue":
-            legend_name = "Batteries"
-        # elif shape == "diamond" and color == "orange":
-        #     legend_name = "Switches"
-        elif shape == "hexagram" and color == "white":
-            legend_name = "PV + Battery"  # 🔹 New category for combined nodes
-        elif shape == "star" and color == "silver":
-            legend_name = "Substation bus"
-        elif color in node_area_labels:
-            legend_name = f"{node_area_labels[color].upper()}"
-        else:
-            legend_name = "Regular Buses"
-
-        fig.add_trace(go.Scatter(
-            x=scatter_x,
-            y=scatter_y,
-            mode="markers",
-            marker=dict(size=size, symbol=shape, color=color, line=dict(color="black", width=1.5)),
-            text=scatter_text,
-            hoverinfo="text",
-            name=legend_name
-        ))
-
-    fig.update_layout(
-        title="",  # No title to save space
-        showlegend=True,
-        xaxis=dict(title="Longitude"),
-        yaxis=dict(title="Latitude"),
-        margin=dict(l=5, r=5, t=5, b=5),  # 🔹 Minimize extra space
-        autosize=True,
-        template="plotly_white",
-        legend=dict(
-            x=0.5, y=-0.2,  # 🔹 Moves legend up
-            xanchor="center", yanchor="top",
-            orientation="h",# 🔹 Horizontal legend to reduce height
-        ),
-    )
-    fig.update_layout(font=dict(size=16, family="Times New Roman"))
-    fig.write_image("network_plot.pdf",scale=4,width = 700, height = 500)
-    fig.show()

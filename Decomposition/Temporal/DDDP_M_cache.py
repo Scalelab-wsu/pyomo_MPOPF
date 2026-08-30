@@ -58,7 +58,7 @@ def solve_stage(stage_idx, prev_stage_B, cuts_future, data, obj, solver,alpha_sc
     return Q, beta, B_end, S_obj
 
 
-def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def dddp_solve(data, obj, solver='highs',alpha_scd=1e-3,max_iters=50, tol=1e-4, *, non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     global MODEL_CACHE
     MODEL_CACHE.clear()
 
@@ -144,7 +144,7 @@ def dddp_solve(data, obj, solver='gurobi',alpha_scd=1e-3,max_iters=50, tol=1e-4,
 
     return LB_k, cuts, LB_container, UB_container
 
-def collect_converged_solution(data, cuts, obj, *, solver='gurobi',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
+def collect_converged_solution(data, cuts, obj, *, solver='highs',alpha_scd=1e-3,non_linear=False, p_control=False, integer=False,single_battery_variable=False):
     time_periods = sorted([int(x) for x in list(data['Tset'])])
     num_stages = len(time_periods)
     initial_b = data['b0']

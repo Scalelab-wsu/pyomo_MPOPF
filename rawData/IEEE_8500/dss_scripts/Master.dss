@@ -10,21 +10,42 @@ New Circuit.IEEE8500
 ~ pu=1.05  r1=0  x1=0.001  r0=0  x0=0.001  
 
 Redirect  LineCodes2.DSS
-Redirect  Triplex_Linecodes.dss
+//Redirect  Triplex_Linecodes.dss  ! Not needed: service drops removed
 
 Redirect  Lines.dss
 Redirect  Transformers.dss
-//Redirect  LoadXfmrs.dss    ! Load Transformers
-Redirect  LoadXfmrCodes.dss  ! Referencing XfmrCodes
-Redirect  Triplex_Lines.DSS
-Redirect  Loads.dss     ! Balanced Loads
-Redirect  Capacitors.dss
-Redirect  CapControls.DSS
+//Redirect  LoadXfmrs.dss    ! Service transformers excluded (primary network only)
+//Redirect  LoadXfmrCodes.dss  ! Service transformer definitions excluded
+//Redirect  Triplex_Lines.DSS  ! Service drop lines removed
+//Redirect  Loads.dss     ! Replaced by reduced loads below
+Redirect  Loads_8500_reduced.dss  ! Loads aggregated at primary MV buses
+//Redirect  Capacitors.dss    ! Disabled: not modelled in optimization
+//Redirect  CapControls.DSS   ! Disabled: not modelled in optimization
 Redirect  Regulators.dss
+! Disable all regulator tap controls — transformers remain as fixed-ratio branches (not modelled in optimization)
+Disable RegControl.FEEDER_REGA
+Disable RegControl.FEEDER_REGB
+Disable RegControl.FEEDER_REGC
+Disable RegControl.VREG2_A
+Disable RegControl.VREG2_B
+Disable RegControl.VREG2_C
+Disable RegControl.VREG3_A
+Disable RegControl.VREG3_B
+Disable RegControl.VREG3_C
+Disable RegControl.VREG4_A
+Disable RegControl.VREG4_B
+Disable RegControl.VREG4_C
 
 ! Let DSS estimate the voltage bases
-Set voltagebases=[115, 12.47,  0.48, 0.208]
+Set voltagebases=[115, 12.47]  ! LV secondary bases removed
+Redirect  PVSystems_8500.dss      ! PV at primary MV buses
+Redirect  EnergyStorage_8500.dss  ! Batteries at primary MV buses
 Calcvoltagebases     ! This also establishes the bus list
+
+BatchEdit Line..* C1=0 C0=0
+Set ControlMode = OFF
+
+Set Maxiterations=30 MaxControlIter=100  ! allow more control iters for high PV penetration
 
 ! Load in bus coordintes now that bus list is established
 Buscoords  Buscoords.dss

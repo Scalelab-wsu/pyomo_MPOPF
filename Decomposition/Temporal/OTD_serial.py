@@ -231,7 +231,7 @@ if __name__ == '__main__':
     p_control               = False
     integer                 = False
     single_battery_variable = False
-    solver                  = 'ipopt' if non_linear else 'gurobi'
+    solver                  = 'ipopt' if non_linear else 'highs'
     alpha_scd               = 1e-3
     n_total                 = 24
     partitions              = 6

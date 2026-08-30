@@ -1,0 +1,309 @@
+% =====================================================================
+%  Results and Discussion — two case studies (IEEE 123 and IEEE 9500)
+%  Drop-in section for an IEEE Transactions paper.
+%  This file references (does NOT create) the already-inserted floats.
+%
+%  >>> Give each already-inserted float a UNIQUE \label:
+%     IEEE 123 OpenDSS-validation table  ->  \label{tab:val123}
+%     IEEE 9500 OpenDSS-validation table ->  \label{tab:val9500}
+%     IEEE 123 DDDP performance table    ->  \label{tab:dddp123}
+%     IEEE 9500 DDDP performance table   ->  \label{tab:dddp9500}
+%     IEEE 123 gamma-sweep figure        ->  \label{fig:gamma123}
+%     IEEE 9500 gamma-sweep figure       ->  \label{fig:gamma9500}
+%     IEEE 123 DDDP linear LB figure     ->  \label{fig:conv123lin}
+%     IEEE 123 DDDP ISOCP  LB figure     ->  \label{fig:conv123isocp}
+%     IEEE 9500 DDDP linear LB figure    ->  \label{fig:conv9500lin}
+%     IEEE 9500 DDDP ISOCP  LB figure    ->  \label{fig:conv9500isocp}
+%     daily input-profiles figure        ->  \label{fig:profiles}
+%  (your current files reuse \label{table3} and \label{tabledddp} twice,
+%   which must be de-duplicated for the \ref{} calls below to resolve.)
+% =====================================================================
+
+\section{Results and Discussion}
+\label{sec:results}
+
+The framework is evaluated on the IEEE 123-bus and IEEE 9500-node unbalanced
+three-phase distribution feeders. The results show that (i)~the lossless
+LinDistFlow surrogate introduces systematic financial and physical errors that
+only the ISOCP corrects, and (ii)~DDDP recovers the centralized ISOCP schedule
+to within a fraction of a percent at every partition while reducing wall time by
+up to $3.6\times$, making an otherwise $16.3$-minute solve operationally viable.
+
+% ---------------------------------------------------------------
+\subsection{Experimental Setup}
+\label{ssec:setup}
+
+The IEEE 9500-node feeder is reduced to a $2{,}752$-bus equivalent by referring
+all secondary loads to the primary side of their distribution transformers.
+On both feeders the top $50\%$ of load buses by nominal demand receive a
+co-located PV unit and a two-hour battery, each sized at $45\%$ of the host
+node's rated load. The planning horizon is $T\!=\!24$ hourly steps; battery
+SoC continuity couples consecutive hours, requiring a full multi-period joint
+optimization. Fig.~\ref{fig:profiles} shows the exogenous inputs. The
+demand-linked price $c_t = 0.15\,\ell_t + 0.15~\text{\$/kWh}$ peaks in the
+evening while PV peaks at noon, creating a charge/discharge arbitrage
+opportunity that can only be fully exploited by coordinating the entire 24-hour
+SoC trajectory.
+
+Three OPF formulations are compared on a common network model: the lossless
+LinDistFlow relaxation (\emph{Linear}), which drops the quadratic current terms
+from the branch power balance and neglects ohmic losses; the
+iteratively-tightened second-order cone program (\emph{ISOCP}), which adds
+linearized cuts until the conic residual $P_{ij}^2 + Q_{ij}^2 - v_i\ell_{ij}$
+falls below $10^{-4}$~p.u.\ on every branch; and, on the 123-bus feeder only,
+the full \emph{Nonlinear} AC branch-flow model as an exact reference. All
+convex programs use Gurobi~13/Pyomo/APPSI; every schedule is replayed
+hour-by-hour through OpenDSS to verify physical fidelity.
+
+% ---------------------------------------------------------------
+\subsection{ISOCP Cut Parameter Calibration}
+\label{ssec:gamma}
+
+Each ISOCP cut over-satisfies the current cone violation by a factor
+$(1{+}\gamma)$. Figs.~\ref{fig:gamma123} and~\ref{fig:gamma9500} sweep
+$\gamma\!\in\![0.3,0.7]$; both curves are U-shaped with a minimum in
+$[0.4,0.5]$. On the 123-bus feeder the initial cone gap of $1.47$ clears in
+$8$ iterations at $\gamma\!\in\![0.4,0.5]$, against $12$--$14$ at the extremes.
+The 9500-node feeder, with a larger initial gap of $5.9$ driven by the
+heavily-loaded distribution transformer, sharpens the trend: $\gamma\!=\!0.3$
+fails to converge within $31$ iterations while the minimum is at $\gamma\!=\!0.4$.
+We fix $\gamma\!=\!0.5$ throughout---within the fast band on both feeders.
+
+% =====================================================================
+\subsection{IEEE 123-Bus Feeder}
+\label{ssec:case123}
+
+% ...............................................................
+\subsubsection{OPF Formulation Comparison}
+\label{sssec:123_valid}
+
+Because LinDistFlow sets branch current magnitudes to zero in the power balance,
+the substation need not supply any $I^2R$ loss in the model---but must on the
+real feeder. This produces a systematic error in both the energy balance and the
+cost objective that cannot be removed by post-processing.
+
+Table~\ref{tab:val123} quantifies these effects. The per-bus DER dispatch
+(active PV output and battery charge/discharge) is nearly identical between the
+Linear and ISOCP solutions: individual decisions are governed by local prices and
+capacity limits rather than network losses. The difference is systemic. The
+Linear model plans for a 24-hour substation active import of $62{,}275$~kW while
+OpenDSS requires $63{,}510$~kW---a $1{,}235$~kW shortfall equal to the entire
+omitted loss, with a comparable reactive deficit. Worst-case per-phase, per-hour
+deviations reach $1{,}234.9$~kW, $2{,}432.2$~kVAr, and $3.1\times10^{-3}$~p.u.
+The Linear objective under-prices the schedule by \$342 ($2.0\%$): \$$17{,}101$
+versus the AC-accurate \$$17{,}444$, the gap being exactly the cost of the
+omitted loss.
+
+The ISOCP corrects all of these. Its computed loss ($1{,}229.8$~kW) matches
+OpenDSS ($1{,}230.9$~kW) to $0.1\%$; substation active import agrees to
+$1.2$~kW; and worst-case per-phase deviations fall to $1.19$~kW, $42.1$~kVAr,
+and $6\times10^{-4}$~p.u.---two to three orders of magnitude tighter. The ISOCP
+converges in $9$ iterations and $18$~s and matches the Nonlinear AC reference
+to \$0.14 ($17{,}443.55$ vs.\ $17{,}443.69$). Gurobi did not produce a
+solution to the Nonlinear model after hours of runtime; IPOPT is used solely
+as an accuracy check and produces a solution in approximately $40$~s.
+
+% ...............................................................
+\subsubsection{DDDP Performance}
+\label{sssec:123_dddp}
+
+Battery SoC continuity couples all $T\!=\!24$ steps into a single monolithic
+problem; DDDP decomposes the horizon into $P$ disjoint windows and passes
+future-cost information forward as Benders cuts. It maintains a monotone lower
+bound $\underline{Z}^{(k)}\!=\!c_1(\bm{z}_1^{(k)})+\theta_1^{(k)}$ and an upper
+bound $\overline{Z}^{(k)}\!=\!\sum_i c_i(\bm{z}_i^{(k)})$ that converge at
+termination (Table~\ref{tab:dddp123},
+Figs.~\ref{fig:conv123lin}--\ref{fig:conv123isocp}).
+
+For both fidelities, $\underline{Z}^{(k)}$ converges monotonically to the same
+optimum at every partition---\$$17{,}443.56$ (ISOCP) and \$$17{,}101.15$
+(Linear)---with the optimality gap staying within a few thousandths of a percent
+and never exceeding $0.13\%$ even at $P\!=\!12$. Partition count affects solve
+time, not solution quality.
+
+Increasing $P$ shrinks each window subproblem but lengthens the Benders chain,
+since a cut propagates only one window per iteration (outer iterations:
+$3, 6, 8, 11, 13, 16$ for $P\!=\!2$ to $12$, ISOCP). The sweet spot for the
+ISOCP is $P\!=\!8$: three-step windows solve in $0.9$~s and total time falls
+from $23.8$~s (centralized) to $11.4$~s ($2.1\times$). The ISOCP gains more than
+the Linear model because full cone tightening is deferred to a single
+post-convergence pass; only cheap inner cuts accompany each DDDP iteration. The
+AC-accurate schedule of Table~\ref{tab:val123} is thus obtained for essentially
+the cost of the relaxed decomposition. On this small feeder the Linear LP is
+already $1.6$~s and overhead-dominated, limiting the improvement; the mechanism
+pays in full on the 9500-node system.
+
+% =====================================================================
+\subsection{IEEE 9500-Node Feeder}
+\label{ssec:case9500}
+
+% ...............................................................
+\subsubsection{OPF Formulation Comparison}
+\label{sssec:9500_valid}
+
+On the $2{,}752$-bus system neither Gurobi nor IPOPT produces a feasible
+solution to the Nonlinear branch-flow model, making the ISOCP the only route
+to an AC-accurate schedule.
+
+Table~\ref{tab:val9500} shows this. The Linear model under-counts substation
+active import by $1{,}960$~kW ($238{,}045$ vs.\ $240{,}005$~kW) and the
+reactive shortfall exceeds $10{,}000$~kVAr. The Linear objective under-prices the schedule by \$499 (\$$65{,}358$
+versus the ISOCP's \$$65{,}857$), the gap being the energy cost of the
+$1{,}960$~kW of active loss the lossless model omits. This is larger than the \$342 gap on the 123-bus feeder, as network losses
+increase with network size.
+Worst-case per-phase, per-hour
+deviations reach $1{,}959$~kW and $10{,}542$~kVAr, large enough to cause
+systematic capacitor bank mis-operation, incorrect tap commands, and undervoltage
+violations at distal buses. The ISOCP holds its accuracy at scale: substation
+active and reactive power agree with OpenDSS to $3.1$~kW and $16.5$~kVAr;
+losses match to $0.1\%$; and worst-case deviations are $3.08$~kW, $16.45$~kVAr,
+and $1.3\times10^{-4}$~p.u.\ The reactive-power agreement is particularly
+significant---reactive balance is the most sensitive indicator of unbalance
+modelling accuracy---confirming the schedule is physically deliverable on a
+heavily unbalanced feeder with nearly $10{,}000$ nodes.
+
+% ...............................................................
+\subsubsection{DDDP Performance}
+\label{sssec:9500_dddp}
+
+The centralized 24-hour ISOCP requires $977.6$~s ($16.3$~min), exceeding
+day-ahead scheduling budgets. DDDP is therefore an operational necessity on this
+feeder, not an optional refinement.
+
+For both fidelities, $\underline{Z}^{(k)}$ tracks the centralized optimum
+monotonically at every partition: the optimality gap is $0.006\%$ at $P\!=\!6$
+and at most $0.055\%$ at the finest split (Table~\ref{tab:dddp9500},
+Figs.~\ref{fig:conv9500lin}--\ref{fig:conv9500isocp}).
+
+Unlike the 123-bus case, both fidelities benefit at every partition because each
+window subproblem is large enough that shrinking it outweighs the additional
+Benders iterations. The sweet spot is $P\!=\!6$: six four-step windows solve in
+parallel in $23$~s each---one-seventh of the $163$~s for a centralized
+single-window share---cutting ISOCP time from $977.6$~s to $272.3$~s
+($3.6\times$). The Linear model falls from $50.7$~s to $16.6$~s ($3.0\times$)
+over $P\!=\!6$--$8$; at this scale each LinDistFlow window is a large sparse LP
+whose solve, not setup overhead, dominates. Beyond the sweet spot the lengthening
+Benders chain ($4, 6, 8, 12, 16, 20$ iterations for $P\!=\!2$ to $12$) overtakes
+the savings: time rises and the gap loosens to $0.03\%$ at $P\!=\!8$ and $0.05\%$
+at $P\!=\!12$. As on the small feeder the ISOCP gains more, because full
+tightening is deferred to one post-convergence sweep; the AC-accurate schedule is
+obtained for essentially the cost of the relaxed parallel decomposition.
+
+% ---------------------------------------------------------------
+\subsection{Comparison with Temporal ADMM}
+\label{ssec:tadmm}
+
+We benchmark DDDP-OTD against the temporal ADMM (T-ADMM) of
+Pinto~et~al.~\cite{PiBe20}, a representative decomposition for multi-period
+OPF. T-ADMM partitions the horizon into $P$ windows and enforces inter-window
+SoC continuity through an augmented Lagrangian, alternating between local
+window solves and dual updates until the boundary consensus residuals fall
+below tolerance. Table~\ref{tab:tadmm} compares the two methods on both
+formulations and feeders at representative partitions.
+
+\begin{table}[t]
+\centering
+\caption{Temporal ADMM~\cite{PiBe20} vs.\ DDDP-OTD.
+         Obj.\ is the 24-hour schedule cost (\$/day).}
+\label{tab:tadmm}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l l c rrr rrr}
+\toprule
+ & & & \multicolumn{3}{c}{\textbf{Temporal ADMM}} & \multicolumn{3}{c}{\textbf{DDDP-OTD}} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}
+System & Model & $P$ & Obj.\ (\$/day) & Iters & Time (s) & Obj.\ (\$/day) & Iters & Time (s) \\
+\midrule
+\multirow{6}{*}{123-bus}
+ & \multirow{3}{*}{Linear}
+   & 4  & 17{,}101.0 & 35 &  4.1 & 17{,}101.2 &  5 & 1.1 \\
+ & & 8  & 17{,}101.0 & 53 &  3.4 & 17{,}101.2 &  9 & 1.1 \\
+ & & 12 & 17{,}100.8 & 73 &  3.8 & 17{,}102.4 & 13 & 1.2 \\
+\cmidrule{2-9}
+ & \multirow{3}{*}{ISOCP}
+   & 4  & 17{,}442.8 & 33 & 16.0 & 17{,}443.7 &  8 & 12.1 \\
+ & & 8  & 17{,}443.9 & 37 & 14.0 & 17{,}443.4 & 13 & 11.4 \\
+ & & 12 & 17{,}444.1 & 44 & 15.3 & 17{,}465.5 & 16 & 12.1 \\
+\midrule
+\multirow{5}{*}{9500-node}
+ & \multirow{2}{*}{Linear}
+   & 2 & 65{,}356.7 &  59 & 279.9 & 65{,}357.6 &  3 & 29.8 \\
+ & & 3 & 65{,}357.1 & 103 & 306.2 & 65{,}363.8 &  4 & 22.1 \\
+\cmidrule{2-9}
+ & \multirow{3}{*}{ISOCP}
+   & 4  & 65{,}854.9 & 109 &  968.1 & 65{,}858.9 &  8 & 299.8 \\
+ & & 8  & 65{,}852.9 & 114 &  734.8 & 65{,}875.7 & 16 & 288.9 \\
+ & & 12 & 65{,}852.8 & 129 &  950.8 & 65{,}893.5 & 20 & 297.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both methods reproduce the centralized schedule cost to within $0.13\%$ at
+every partition---T-ADMM to within $0.01\%$---so they are equivalent in accuracy
+and differ only in speed. That difference is large, and it originates in
+iteration count. T-ADMM takes $33$--$73$ iterations on the 123-bus feeder and
+$59$--$129$ on the 9500-node feeder, whereas DDDP converges in $5$--$16$ and
+$3$--$20$; both grow with $P$ as each window boundary adds a coupling
+constraint, but T-ADMM stays several-fold higher throughout. The gap is
+inherent to how each method enforces SoC continuity. T-ADMM satisfies the
+boundary-continuity constraints only in the limit: it penalizes the boundary
+mismatches and updates the dual prices once per iteration, and because ADMM
+converges at a first-order (linear) rate, these primal and dual residuals decay
+only geometrically toward the $10^{-4}$ tolerance---so many rounds are needed
+before every boundary agrees. DDDP, by contrast, enforces continuity exactly on
+each pass and instead refines a Benders approximation of the future cost-to-go;
+each cut carries downstream cost information over the whole remaining horizon,
+letting the windows anticipate their coupling directly and converge in far fewer
+passes.
+
+Because the iteration gap is fixed, wall time follows subproblem cost. On the
+123-bus feeder, where each window solves in well under a second, T-ADMM is only
+$3.1$--$3.7\times$ slower than DDDP for the Linear model and $1.2$--$1.3\times$
+for the ISOCP. On the 9500-node feeder, where each window is a large ISOCP or
+LP, the same iteration overhead becomes decisive: the Linear T-ADMM runs
+$5.5$--$6.0\times$ slower than even the centralized solve---and $9$--$14\times$
+slower than DDDP---while the ISOCP T-ADMM is $2.5$--$3.2\times$ slower than DDDP
+at every partition. DDDP's advantage is thus largest precisely where it matters
+most: on the large feeder, where the centralized solve is already too slow for
+day-ahead use.
+
+
+% ---------------------------------------------------------------
+\subsection{Discussion}
+\label{ssec:disc}
+
+A key observation across both feeders is that the per-bus DER dispatch is nearly
+identical between the Linear and ISOCP solutions---individual schedules are
+governed by local prices and capacity limits rather than network losses. The
+entire difference in cost and energy balance arises from whether $I^2R$ losses
+are priced into the optimization, and that error grows with network size.
+
+The ISOCP and DDDP together achieve what neither does alone. Deferring full cone
+tightening to a single post-convergence pass amortizes its cost over the Benders
+loop instead of repeating it at every outer iteration. The resulting schedule
+matches the centralized ISOCP to within $0.006\%$ at $P\!=\!6$ on the 9500-node
+feeder and is computed in $272.3$~s rather than $16.3$~min ($3.6\times$), with
+monotone bounds and optimality gaps below $0.06\%$ at every tested partition on
+both systems.
+
+% ---------------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+
+On unbalanced three-phase distribution feeders, LinDistFlow ignores network
+losses and yields systematically mis-priced multi-period schedules, while
+the full nonlinear branch-flow model is intractable at scale, leaving the
+MPISOCP as the only AC-accurate tractable formulation.
+This work presents a fully parallel temporal decomposition algorithm based on
+DDDP for solving monolithic multi-period OPF problems under both linear and
+MPISOCP formulations by partitioning the optimization horizon into
+non-overlapping windows coordinated through inter-window information exchange.
+A dual convergence criterion combining the relative optimality gap and a
+lower-bound stability check ensured robust termination irrespective of the
+number of partitions. Numerical results on the modified IEEE 123-bus and
+IEEE 9500-node systems confirmed that the algorithm matches the centralized
+global optimum across all partition counts, with an optimal partition size
+balancing per-iteration cost against convergence speed. The parallel DDDP
+strategy further reduced runtime substantially, especially for the non-convex
+problems, by limiting full second-order cone solves to a single terminal
+iteration after convergence.

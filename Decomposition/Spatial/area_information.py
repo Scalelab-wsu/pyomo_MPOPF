@@ -1,5 +1,5 @@
 # # Spatial decomposition of IEEE _123_other
-IEEE_123_other_area_info = {
+IEEE_123_area_info = {
     'area1': {
         # Area connection information
         'is_root': True,

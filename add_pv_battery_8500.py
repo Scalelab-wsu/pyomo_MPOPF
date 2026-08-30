@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+"""
+add_pv_battery_8500.py
+
+Add co-located PV + battery pairs on EVERY load node of the IEEE_8500 reduced
+circuit:
+
+  • PVSystems_8500.dss     – one single-phase PVsystem per load node;
+                             pmpp = 40% of that node's load, so the aggregate
+                             PV rating = 40% of the feeder peak load.
+  • EnergyStorage_8500.dss – co-located single-phase 2-hour batteries;
+                             KWrated = 40% of node load (40% of peak in total),
+                             Kwhrated = 2 * KWrated.
+
+Both files are placed in rawData/IEEE_8500/dss_scripts/.
+Master_8500_reduced.dss is patched with redirects (idempotent),
+then DSSParser is re-run and all CSVs refreshed.
+"""
+
+import re
+import sys
+from pathlib import Path
+
+import opendssdirect as dss
+
+PROJECT_ROOT = Path(__file__).parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from dssconverter.dssparser import DSSParser   # noqa: E402
+from dssconverter.savedss   import savedsscsv  # noqa: E402
+
+DSS_DIR      = PROJECT_ROOT / "rawData" / "IEEE_8500" / "dss_scripts"
+CSV_DIR      = PROJECT_ROOT / "rawData" / "IEEE_8500" / "csvs"
+
+LOADS_REDUCED  = DSS_DIR / "Loads_8500_reduced.dss"
+MASTER_REDUCED = DSS_DIR / "Master.dss"   # reduced master (renamed from Master_8500_reduced.dss)
+PV_FILE        = DSS_DIR / "PVSystems_8500.dss"
+BAT_FILE       = DSS_DIR / "EnergyStorage_8500.dss"
+
+KV_MV          = 7.2    # MV line-to-neutral voltage (12.47 kV feeder)
+PV_PENETRATION = 0.40   # total PV  rated power = 40% of feeder peak load
+BAT_PENETRATION = 0.40  # total battery rated power = 40% of feeder peak load
+BAT_HOURS      = 2.0    # 2-hour batteries: kWhrated = BAT_HOURS * kWrated
+
+# Co-locate a PV + battery on EVERY load node. Each unit is sized to a fixed
+# fraction of that node's load, so the aggregate rated power equals that same
+# fraction of the feeder peak load (peak load = sum of nominal node loads).
+
+# ════════════════════════════════════════════════════════════════════════════
+# Step 1 – parse Loads_8500_reduced.dss to recover (bus, phase, kW, kvar)
+# ════════════════════════════════════════════════════════════════════════════
+print("=" * 68)
+print("IEEE_8500  –  adding PV and battery resources")
+print("=" * 68)
+
+print(f"\n[1/5] Parsing {LOADS_REDUCED.name} ...")
+
+# Line format written by parse_8500_reduced.py:
+# New Load.red_l2804253_a  phases=1  Bus1=L2804253.1  kv=7.1996  kW=3.89  kvar=0.972  ...
+_LINE_RE = re.compile(
+    r"^New Load\.\S+\s+"            # element declaration
+    r"phases=1\s+"
+    r"Bus1=(\w+)\.(\d)\s+"          # (bus_name, node)
+    r"kv=[\d.]+\s+"
+    r"kW=([\d.]+)\s+"               # kW
+    r"kvar=([\d.]+)",               # kvar
+    re.IGNORECASE,
+)
+
+all_entries: list[tuple[str, str, int, float, float]] = []
+# (bus_lower, phase_char, node_int, kW, kvar)
+
+with open(LOADS_REDUCED, "r") as fh:
+    for line in fh:
+        m = _LINE_RE.match(line.strip())
+        if m:
+            bus  = m.group(1).lower()
+            node = int(m.group(2))
+            kw   = float(m.group(3))
+            kvar = float(m.group(4))
+            ph   = "abc"[node - 1]
+            all_entries.append((bus, ph, node, kw, kvar))
+
+print(f"    Total load entries: {len(all_entries)}")
+
+# ── aggregate loads per (bus, node) so we place exactly one PV+battery per
+#    load node, and compute the feeder peak load ─────────────────────────────
+node_load: dict[tuple[str, int], list] = {}   # (bus, node) -> [ph, kW, kvar]
+for bus, ph, node, kw, kvar in all_entries:
+    key = (bus, node)
+    if key in node_load:
+        node_load[key][1] += kw
+        node_load[key][2] += kvar
+    else:
+        node_load[key] = [ph, kw, kvar]
+
+# der_entries: one co-located site per load node, on load nodes only
+der_entries = [
+    (bus, ph, node, kw, kvar)
+    for (bus, node), (ph, kw, kvar) in node_load.items()
+]
+
+peak_load_kw = sum(e[3] for e in der_entries)   # feeder peak load (nominal)
+
+print(f"    Unique load nodes  : {len(der_entries)}")
+print(f"    Feeder peak load   : {peak_load_kw:.2f} kW")
+print(f"    PV  penetration    : {PV_PENETRATION*100:.0f}% of peak")
+print(f"    Bat penetration    : {BAT_PENETRATION*100:.0f}% of peak "
+      f"({BAT_HOURS:.0f}-hour)")
+
+# ════════════════════════════════════════════════════════════════════════════
+# Step 2 – write PVSystems_8500.dss  (selected DER sites only)
+# ════════════════════════════════════════════════════════════════════════════
+print(f"\n[2/5] Writing {PV_FILE.name} ...")
+
+total_pv_kw = sum(e[3] * PV_PENETRATION for e in der_entries)
+
+pv_lines = [
+    "! PV systems for IEEE_8500 reduced circuit (primary MV network).",
+    f"! {len(der_entries)} co-located PVsystems, one per load node.",
+    f"! Each pmpp = {PV_PENETRATION*100:.0f}% of the node load "
+    f"-> total PV = {PV_PENETRATION*100:.0f}% of feeder peak load.",
+    f"! Feeder peak load: {peak_load_kw:.2f} kW   "
+    f"Total installed PV: {total_pv_kw:.2f} kW",
+    "! Generated by add_pv_battery_8500.py",
+    "",
+]
+
+for bus, ph, node, kw, _ in der_entries:
+    pv_kw = kw * PV_PENETRATION
+    pv_name = f"pv_{bus}_{ph}"
+    pv_lines.append(
+        f"New PVsystem.{pv_name:<40s}  bus1={bus.upper()}.{node}"
+        f"  Phases=1  kV={KV_MV}  kVA={pv_kw:.4f}  pmpp={pv_kw:.4f}"
+        f"  %Cutin=0.1  %Cutout=0.1"
+    )
+
+with open(PV_FILE, "w") as fh:
+    fh.write("\n".join(pv_lines) + "\n")
+
+print(f"    {len(der_entries)} PVsystem entries  |  total capacity = "
+      f"{total_pv_kw:.2f} kW ({total_pv_kw/peak_load_kw*100:.1f}% of peak)")
+
+# ════════════════════════════════════════════════════════════════════════════
+# Step 3 – write EnergyStorage_8500.dss  (ONE battery per bus, co-located w/ PV)
+# ════════════════════════════════════════════════════════════════════════════
+print(f"\n[3/5] Writing {BAT_FILE.name} ...")
+
+# The OPF models ONE battery per bus (P_c/P_d keyed by bus) and splits its net
+# power EQUALLY across the bus's phases. To match that exactly in OpenDSS we emit
+# ONE multi-phase Storage per bus (KWrated = sum of the bus's per-phase battery
+# power). A separate single-phase unit per phase would give each phase its own
+# per-phase rating, and the OPF's equal split then over-commands the smallest
+# phase → OpenDSS clamps it → OPF/OpenDSS battery-power mismatch.
+KV_LL = 12.47   # line-to-line kV for multi-phase storage (matches 9500 convention)
+
+bus_bat = {}    # bus_lower -> {'nodes': set(int), 'kw': float}
+for bus, ph, node, kw, kvar in der_entries:
+    rec = bus_bat.setdefault(bus, {'nodes': set(), 'kw': 0.0})
+    rec['nodes'].add(node)
+    rec['kw'] += kw
+
+total_bat_kw  = sum(r['kw'] * BAT_PENETRATION for r in bus_bat.values())
+total_bat_kwh = total_bat_kw * BAT_HOURS
+
+bat_lines = [
+    "! Battery storage for IEEE_8500 reduced circuit (primary MV network).",
+    f"! {len(bus_bat)} {BAT_HOURS:.0f}-hour batteries, ONE (multi-phase) per bus, "
+    f"co-located with PV.",
+    f"! KWrated = {BAT_PENETRATION*100:.0f}% of the bus load (summed over its "
+    f"phases) -> total = {BAT_PENETRATION*100:.0f}% of feeder peak load; "
+    f"Kwhrated = {BAT_HOURS:.0f} * KWrated.",
+    f"! Total battery: {total_bat_kw:.2f} kW / {total_bat_kwh:.2f} kWh",
+    "! Generated by add_pv_battery_8500.py",
+    "",
+]
+
+for bat_idx, (bus, rec) in enumerate(bus_bat.items(), start=1):
+    nodes   = sorted(rec['nodes'])
+    n_ph    = len(nodes)
+    bat_kw  = rec['kw'] * BAT_PENETRATION
+    bat_kwh = bat_kw * BAT_HOURS
+    kv      = KV_LL if n_ph > 1 else KV_MV
+    bus_ref = ".".join([bus.upper()] + [str(n) for n in nodes])
+    bat_name = f"Battery{bat_idx}"
+    bat_lines.append(
+        f"New Storage.{bat_name:<12s}  bus1={bus_ref}"
+        f"  Phases={n_ph}  kV={kv}  kVA={bat_kw:.4f}  KWrated={bat_kw:.4f}"
+        f"  Kwhrated={bat_kwh:.4f}"
+        f"  %stored=62.5  %reserve=30  %EffCharge=95  %EffDischarge=95  %idlingKW=0"
+    )
+
+with open(BAT_FILE, "w") as fh:
+    fh.write("\n".join(bat_lines) + "\n")
+
+print(f"    {len(bus_bat)} batteries written  |  total = "
+      f"{total_bat_kw:.2f} kW / {total_bat_kwh:.2f} kWh "
+      f"({total_bat_kw/peak_load_kw*100:.1f}% of peak)")
+
+# ════════════════════════════════════════════════════════════════════════════
+# Step 4 – patch Master_8500_reduced.dss to redirect the new files
+# ════════════════════════════════════════════════════════════════════════════
+print(f"\n[4/5] Patching {MASTER_REDUCED.name} ...")
+
+with open(MASTER_REDUCED, "r") as fh:
+    master = fh.read()
+
+# Only add redirects once
+if "PVSystems_8500.dss" not in master:
+    # Insert before the voltage-base calculation line
+    insert_block = (
+        "Redirect  PVSystems_8500.dss      ! PV at primary MV buses\n"
+        "Redirect  EnergyStorage_8500.dss  ! Batteries at primary MV buses\n"
+    )
+    # Place right before Calcvoltagebases
+    master = master.replace(
+        "Calcvoltagebases",
+        insert_block + "Calcvoltagebases",
+    )
+    with open(MASTER_REDUCED, "w") as fh:
+        fh.write(master)
+    print("    Redirects injected.")
+else:
+    print("    Redirects already present – skipped.")
+
+# ════════════════════════════════════════════════════════════════════════════
+# Step 5 – re-run DSSParser and save all CSVs
+# ════════════════════════════════════════════════════════════════════════════
+print("\n[5/5] Re-running DSSParser on updated reduced circuit ...")
+
+dss.Basic.ClearAll()
+parser = DSSParser(str(MASTER_REDUCED))
+
+print(f"    Buses    : {len(parser.bus_names)}")
+print(f"    Branches : {len(parser.branch_data)}")
+print(f"    Caps     : {len(parser.cap_data)}")
+print(f"    Regs     : {len(parser.reg_data)}")
+print(f"    Gens/PV  : {len(parser.gen_data)}")
+print(f"    Batteries: {len(parser.bat_data)}")
+
+CSV_DIR.mkdir(parents=True, exist_ok=True)
+savedsscsv(parser, str(CSV_DIR))
+
+print(f"\nAll CSVs updated in: {CSV_DIR}")
+print("  branch_data.csv  bus_data.csv  cap_data.csv")
+print("  gen_data.csv     reg_data.csv  battery_data.csv")
+
+print("\nDone.\n")
+print(f"New DSS files in {DSS_DIR}:")
+print(f"  {PV_FILE.name}")
+print(f"  {BAT_FILE.name}")

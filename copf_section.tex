@@ -1,0 +1,318 @@
+% =====================================================================
+%  Centralized Multi-Period OPF (COPF): non-convex, MPISOCP, linear
+%  Companion to dddp_otd_section.tex.
+%  Requires: amsmath, amssymb, booktabs, float, algorithm, algpseudocode, bm
+% =====================================================================
+
+\section{Centralized Multi-Period Optimal Power Flow}
+\label{sec:copf}
+
+We study the day-ahead operation of an unbalanced radial distribution
+network (DN) that hosts distributed energy resources (DERs) and battery
+energy storage systems (BESS). Over a scheduling horizon
+$\mathcal{T}=\{1,\dots,T\}$, the operator seeks the DER, storage, and
+power-flow schedule that minimizes the cost of energy imported at the
+substation while honoring the network physics and all device limits.
+Because each battery couples consecutive timesteps through its
+state of charge (SOC), the problem is a single, temporally coupled
+\emph{multi-period} OPF rather than a sequence of independent snapshots.
+
+This section develops three models that will later serve as the atomic
+building block inside each temporal window of the decomposition in
+Section~\ref{sec:dddp}. Section~\ref{ssec:notation} fixes the notation
+and network model; Section~\ref{ssec:nonconvex} states the exact
+non-convex formulation; Section~\ref{ssec:mpisocp} presents the
+Multi-Period Iterative SOCP (MPISOCP) scheme that solves it to global
+accuracy; and Section~\ref{ssec:linear} gives the loss-free linear
+counterpart used when speed is favored over exactness.
+
+% ---------------------------------------------------------------
+\subsection{Notation and Network Model}
+\label{ssec:notation}
+
+The DN is modeled as a directed graph $G=(\mathcal{N},\mathcal{E})$,
+where $\mathcal{N}$ and $\mathcal{E}$ denote its nodes and branches. The
+superscript $p$ indexes the phase, $\Phi_j$ and $\Phi_{ij}$ collect the
+phases present at bus $j$ and branch $(i,j)$, and $t$ indexes time.
+For branch $(i,j)$ and phase $p$ at time $t$, $P^{pp}_{ij,t}$ and
+$Q^{pp}_{ij,t}$ are the active and reactive power flows. At node $j$,
+$p^{p}_{L,j,t}$ and $q^{p}_{L,j,t}$ are the load demands, while
+$p^{p}_{D,j,t}$ and $q^{p}_{D,j,t}$ are the DER active and reactive
+injections, bounded by the inverter rating $S^{p}_{\mathrm{DR},j}$.
+The BESS at node $j$ charges and discharges with powers $P^{p}_{c,j,t}$
+and $P^{p}_{d,j,t}$, has stored energy (SOC) $B^{p}_{j,t}$, rated power
+$P_{\mathrm{BR},j}$, charge/discharge efficiencies $\eta_c,\eta_d$, and
+SOC bounds $[\mathrm{soc}_{\min},\mathrm{soc}_{\max}]$. We work with the
+squared voltage magnitude $\upsilon^{p}_{j,t}=|V^{p}_{j,t}|^2$ and, for
+the branch-flow model, with the squared current magnitude
+$l^{pp}_{ij,t}=|I^{pp}_{ij,t}|^2$ and the cross-phase current product
+$l^{pq}_{ij,t}=|I^{pp}_{ij,t}|\,|I^{qq}_{ij,t}|$; $\delta^{pq}_{ij,t}$
+denotes the corresponding current-angle difference. Line impedance and
+resistance are $z^{pq}_{ij}$ and $R^{pq}_{ij}$. Voltage magnitudes are
+constrained to $[V_{\min},V_{\max}]$. The principal symbols are
+collected in Table~\ref{tab:notation}.
+
+\begin{table}[H]
+  \centering
+  \caption{Key Notation}
+  \label{tab:notation}
+  \begin{tabular}{ll}
+    \toprule
+    Symbol & Description \\
+    \midrule
+    \(G=(\mathcal{N},\mathcal{E})\) & Directed graph of nodes and branches \\
+    \(\Phi_j,\,\Phi_{ij}\) & Set of phases at bus \(j\) and branch \((i,j)\) \\
+    \(P^{pp}_{ij,t},\,Q^{pp}_{ij,t}\) & Active/reactive flow on \((i,j)\), phase \(p\), time \(t\) \\
+    \(p^{p}_{L,j,t},\,q^{p}_{L,j,t}\) & Active/reactive demand at node \(j\), phase \(p\) \\
+    \(p^{p}_{D,j,t},\,q^{p}_{D,j,t}\) & DER active/reactive injection at node \(j\) \\
+    \(S^{p}_{\mathrm{DR},j}\) & DER inverter apparent-power rating \\
+    \(P^{p}_{c,j,t},\,P^{p}_{d,j,t}\) & BESS charge/discharge active power \\
+    \(B^{p}_{j,t}\) & BESS state of charge (SOC) \\
+    \(P_{\mathrm{BR},j}\) & BESS rated active-power capacity \\
+    \(\eta_c,\,\eta_d\) & BESS charge/discharge efficiencies \\
+    \(\mathrm{soc}_{\min},\,\mathrm{soc}_{\max}\) & BESS SOC bounds \\
+    \(V^{p}_{j,t}\) & Complex voltage \((|V^{p}_{j,t}|\angle\theta^{p}_{j,t})\) \\[2pt]
+    \(\upsilon^{p}_{j,t}\) & Squared voltage magnitude \((\upsilon^{p}_{j,t}=|V^{p}_{j,t}|^2)\) \\[2pt]
+    \(I^{pp}_{ij,t}\) & Complex current \((|I^{pp}_{ij,t}|\angle\delta^{pp}_{ij,t})\) \\[2pt]
+    \(\delta^{pq}_{ij,t}\) & Current-angle difference \((\delta^{pp}_{ij,t}-\delta^{qq}_{ij,t})\) \\[2pt]
+    \(l^{pp}_{ij,t}\) & Squared current magnitude \((|I^{pp}_{ij,t}|^2)\) \\[2pt]
+    \(l^{pq}_{ij,t}\) & Current-magnitude product \((|I^{pp}_{ij,t}|\,|I^{qq}_{ij,t}|)\) \\[2pt]
+    \(z^{pq}_{ij},\,R^{pq}_{ij}\) & Impedance/resistance of line \((i,j)\), \(pq\in\Phi_{ij}\) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------
+\subsection{Non-Convex Multi-Period Formulation}
+\label{ssec:nonconvex}
+
+The centralized multi-period three-phase OPF minimizes the total
+substation energy cost over the horizon,
+\begin{equation}\label{eq0}
+\small
+    \min_{\mathcal{Y}}\; F(\mathcal{Y}),
+\end{equation}
+where $\mathcal{Y}$ is the set of decision variables and
+\begin{equation}\label{eq1}
+\begin{small}
+\begin{aligned}
+F(\mathcal{Y})=\sum_{t=1}^{T} \Bigg[
+& C_{t}\,P_{subs,t} \\
+& + \alpha \sum_{j \in \mathcal{B}} \left\{ (1 - \eta_c) P_{C_j,t}
++ \left( \tfrac{1}{\eta_d} - 1 \right) P_{D_j,t} \right\}
+\Bigg].
+\end{aligned}
+\end{small}
+\end{equation}
+The first term is the cost of substation power, with $C_t$
+($\$/\mathrm{kWh}$) the price and $P_{subs,t}$ (kW) the total imported
+power at step $t$. The second term penalizes BESS conversion losses
+with weight $\alpha>0$; as shown in~\cite{Nazir}, this penalty
+suppresses simultaneous charging and discharging without introducing
+binary variables, keeping the model continuous.
+
+The schedule must satisfy the branch-flow physics of the unbalanced DN.
+Active and reactive nodal balance at bus $j$, phase $p$, time $t$ are
+\begin{equation}\label{eq2}
+\begin{split}
+P_{ij,t}^{pp}
+= \sum_{(j,k)\in E} P_{jk,t}^{pp} + p_{L_j,t}^p
+- p_{D_j,t}^p - P_{d_j,t}^p + P_{c_j,t}^p \\ + \sum_{q \in \Phi_j} l_{ij,t}^{pq}
+\left( r_{ij}^{pq} \cos(\delta_{ij,t}^{pq}) + x_{ij}^{pq} \sin(\delta_{ij,t}^{pq}) \right),
+\end{split}
+\end{equation}
+\begin{equation}\label{eq3}
+\begin{split}
+Q_{ij,t}^{pp}
+= & \sum_{(j,k)\in E} Q_{jk,t}^{pp} + q_{L_j,t}^p - q_{D_j,t}^p \\
+& + \sum_{q \in \Phi_j} l_{ij,t}^{pq}
+\left( x_{ij}^{pq} \cos(\delta_{ij,t}^{pq}) - r_{ij}^{pq} \sin(\delta_{ij,t}^{pq}) \right),
+\end{split}
+\end{equation}
+in which the last summation accounts for the series line losses. The
+voltage drop along branch $(i,j)$ follows the three-phase Kirchhoff
+voltage law
+\begin{equation}\label{eq4}
+\begin{split}
+v_{j,t}^p =  & v_{i,t}^p
+- \sum_{q \in \Phi_j} 2\,\mathbb{R}\!\left[ S_{ij,t}^{pq} \left( z_{ij}^{pq} \right)^* \right]- \\ & \sum_{\substack{q_1, q_2 \in \Phi_j}}
+2\,\mathbb{R}\!\left[ z_{ij}^{pq_1} l_{ij,t}^{q_1 q_2}
+\left( \angle(\delta_{ij,t}^{q_1 q_2}) \right)
+\left( z_{ij}^{pq_2} \right)^* \right].
+\end{split}
+\end{equation}
+The exactness of the branch-flow representation is enforced by the
+power--voltage--current relation and the cross-phase current coupling,
+\begin{equation}\label{eq5}
+\left( P_{ij,t}^{pp} \right)^2 + \left( Q_{ij,t}^{pp} \right)^2
+= v_{i,t}^p \, l_{ij,t}^{pp},
+\end{equation}
+\begin{equation}\label{eq6}
+\left( l_{ij,t}^{pq} \right)^2 = l_{ij,t}^{pp} \, l_{ij,t}^{qq}.
+\end{equation}
+
+Device and operating limits complete the model. DER reactive capability
+is bounded by the inverter rating,
+\begin{equation}\label{linqder}
+{ - \sqrt {{{\left( {S_{D\,R_j}^p} \right)}^2} - {{\left( {p_{D_j,t}^p} \right)}^2}} \le q_{D_j,t}^p \le \sqrt {{{\left( {S_{D\,R_j}^p} \right)}^2} - {{\left( {p_{D_j,t}^p} \right)}^2}}},
+\end{equation}
+and bus voltages are kept within statutory bounds,
+\begin{equation}\label{linv}
+{\left( {{V_{min}}} \right)^2} \le {\upsilon}_j^p \le {\left( {{V_{max}}} \right)^2}.
+\end{equation}
+The BESS is governed by its SOC dynamics, power limits, energy bounds,
+and a cyclic terminal condition,
+\begin{equation}\label{linsocevol}
+B_{j,t}^{p} = B_{j,t-1}^{p} + \Delta t\, \eta_c P_{c_j,t}^{p} - \Delta t\, (1/\eta_d) P_{d_j,t}^{p},
+\end{equation}
+\begin{equation}\label{linPch}
+P_{cj,t}^{p} \le P_{BR_j},
+\end{equation}
+\begin{equation}\label{linPdis}
+P_{dj,t}^{p} \le P_{BR_j},
+\end{equation}
+\begin{equation} \label{linsoclim}
+soc_{min}B_{R,j} \le B_{j,t}^p \le  soc_{max}B_{R,j},
+\end{equation}
+\begin{equation}\label{lintermsoc}
+B_{j,0}^{p} = B_{j,T}^{p}.
+\end{equation}
+
+The SOC recursion~\eqref{linsocevol} is what couples the timesteps into
+a single multi-period program: every $B^{p}_{j,t}$ with $t\ge 1$ is a
+decision variable, while at the first step $t=1$ the preceding state is
+fixed to the given initial SOC, $B^{p}_{j,t-1}=B^{p}_{j,0}$, which
+anchors the entire horizon. Constraints~\eqref{linPch}--\eqref{linPdis}
+cap the charge/discharge power, \eqref{linsoclim} keeps the stored
+energy within its usable band, and~\eqref{lintermsoc} restores the SOC
+to its initial value at the end of the horizon so that scheduling one
+day does not deplete the batteries for the next.
+
+\paragraph*{Source of non-convexity and the current-angle
+simplification.} Treating the current angles $\delta^{pq}_{ij,t}$ as
+variables renders~\eqref{eq2}--\eqref{eq4} strongly nonlinear and
+non-convex. In distribution networks, however, the current angles
+deviate only marginally from their base-case values~\cite{XX}. We
+therefore fix $\delta^{pq}_{ij,t}$ to the angles obtained from a
+base-case OpenDSS power flow, held constant across all timesteps. With
+this simplification, \eqref{eq2}--\eqref{eq4} become linear in the
+remaining variables. The only residual non-convexities are the equality
+constraints~\eqref{eq5}--\eqref{eq6}, which remain non-convex because of
+their bilinear right-hand sides; these are handled next.
+
+% ---------------------------------------------------------------
+\subsection{MPISOCP: Iterative SOCP Convexification}
+\label{ssec:mpisocp}
+
+We convexify the remaining non-convex equalities with a Multi-Period
+Iterative Second-Order Cone Programming (MPISOCP) scheme. The
+equalities~\eqref{eq5}--\eqref{eq6} are first relaxed into second-order
+cones,
+\begin{equation}\label{eqpvc}
+\left( P_{ij,t}^{pp} \right)^2 + \left( Q_{ij,t}^{pp} \right)^2
+\leq v_{i,t}^p \, l_{ij,t}^{pp},
+\end{equation}
+\begin{equation}\label{eqcmc}
+\left( l_{ij,t}^{pq} \right)^2 \leq l_{ij,t}^{pp} \, l_{ij,t}^{qq}.
+\end{equation}
+The inequalities enlarge the feasible set and make each stage a convex
+conic program. The relaxation is exact only when both cones are tight,
+i.e.\ when the gaps between the two sides of~\eqref{eqpvc}
+and~\eqref{eqcmc} vanish. We quantify these gaps at every branch,
+phase, and time by the residuals
+\begin{equation}\label{erroreqpvc}
+\left( E1_{ij,t}^{pp} \right) = \left( P_{ij,t}^{pp} \right)^2 + \left( Q_{ij,t}^{pp} \right)^2
+- v_{i,t}^p \, l_{ij,t}^{pp},
+\end{equation}
+\begin{equation}\label{erroreqcmc}
+\left( E2_{ij,t}^{pq} \right) = \left( l_{ij,t}^{pq} \right)^2 - l_{ij,t}^{pp} \, l_{ij,t}^{qq},
+\end{equation}
+both of which are non-positive by construction. MPISOCP drives them to
+zero over successive iterations. Because the residuals are non-positive,
+tightening at iteration $m{+}1$ is imposed by requiring
+\begin{equation}\label{erroreqpvcred}
+(E1_{ij,t}^{pp})^{m+1} \geq \tau\, (E1_{ij,t}^{pp})^{m},
+\end{equation}
+\begin{equation}\label{erroreqcmcred}
+(E2_{ij,t}^{pq})^{m+1} \geq \tau\, (E2_{ij,t}^{pq})^{m},
+\end{equation}
+with $\tau\in[0,1]$: each residual is pushed to at least a fraction
+$\tau$ of its previous (negative) value, moving it toward zero. The
+right-hand sides of~\eqref{erroreqpvcred}--\eqref{erroreqcmcred} are
+constants known after iteration $m$, but the left-hand sides are still
+bilinear. Linearizing them by a first-order Taylor expansion about the
+iterate-$m$ operating point yields the tractable directional cuts
+\begin{equation}\label{eqdirpvc}
+\begin{split}
+2P_{ij,t}^{pp(m)} P_{ij,t}^{pp(m+1)}
+&+ 2Q_{ij,t}^{pp(m)} Q_{ij,t}^{pp(m+1)}
+- l_{ij,t}^{pp(m)} v_{i,t}^{p(m+1)} \\&
+- v_{i,t}^{p(m)} l_{ij,t}^{pp(m+1)}
+\geq (\tau + 1)\, E1_{ij,t}^{pp(m)},
+\end{split}
+\end{equation}
+\begin{equation}\label{eqdircmc}
+\begin{split}
+2l_{ij,t}^{pq(m)}  l_{ij,t}^{pq(m+1)}
+- l_{ij,t}^{pp(m)}  l_{ij,t}^{qq(m+1)}
+- l_{ij,t}^{qq(m)}  l_{ij,t}^{pp(m+1)} \\
+\geq (\tau + 1)\, E2_{ij,t}^{pq(m)}.
+\end{split}
+\end{equation}
+These linear constraints steer the conic solution toward the exact
+manifold, shrinking the relaxation gap monotonically. The complete
+procedure is summarized in Algorithm~\ref{alg:isocp}: it repeatedly
+solves the SOCP relaxation augmented with the current directional cuts,
+re-linearizes at the new iterate, and terminates once the maximum
+residual falls below a tolerance $\varepsilon$ or an iteration cap
+$M_{\max}$ is reached.
+
+\begin{algorithm}[t]
+\caption{Multi-Period Iterative SOCP (MPISOCP).}
+\label{alg:isocp}
+\begin{algorithmic}[1]
+\Require $\tau\!\in\![0,1]$, tolerance $\varepsilon$, cap $M_{\max}$.
+\State Solve the SOCP relaxation
+\eqref{eq0}--\eqref{eq4},\,\eqref{eqpvc},\,\eqref{eqcmc}, \eqref{linqder}--\eqref{lintermsoc}; obtain
+$\bm{z}^{(0)}\!=\!(P^{(0)},Q^{(0)},v^{(0)},l^{(0)})$.
+\State Compute $E1^{pp(0)}_{ij,t}$, $E2^{pq(0)}_{ij,t}$
+from~\eqref{erroreqpvc}--\eqref{erroreqcmc} and
+$E^{(0)}\!\leftarrow\!\max\{|E1^{pp(0)}|,|E2^{pq(0)}|\}$.
+\For{$m=0,1,\dots,M_{\max}\!-\!1$}
+    \If{$E^{(m)}\!\le\!\varepsilon$} \Return $\bm{z}^{(m)}$. \EndIf
+        \State Linearize the residuals at $\bm{z}^{(m)}$ to form the
+directional cuts~\eqref{eqdirpvc}--\eqref{eqdircmc}.
+\State Solve \eqref{eq0}--\eqref{eq4},\,\eqref{eqpvc},\,\eqref{eqcmc},\eqref{linqder}--\eqref{lintermsoc}, augmented with the cuts~\eqref{eqdirpvc}--\eqref{eqdircmc}; obtain
+$\bm{z}^{(m+1)}$ and update $E^{(m+1)}$.
+\EndFor
+\State \Return $\bm{z}^{(M_{\max})}$.
+\end{algorithmic}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+\subsection{Linear Multi-Period Formulation}
+\label{ssec:linear}
+
+When solution speed is prioritized over loss accuracy, the quadratic
+loss terms in the balance and voltage equations are dropped, yielding a
+fully linear multi-period OPF. It retains the objective~\eqref{eq1} and
+all device constraints, but replaces~\eqref{eq2}--\eqref{eq4} with their
+loss-free counterparts:
+\begin{equation}\label{linPij}
+\min_{\mathcal{Y}} F(\mathcal{Y}) \;\text{ s.t. }\; P_{ij,t}^{pp} = \sum_{(j,k)\in E} {P_{jk,t}^{pp}} + p_{{L_j,t}}^p - p_{D_j,t}^p - P_{d_j,t}^p + P_{c_j,t}^p,
+\end{equation}
+\begin{equation}\label{linQij}
+Q_{ij,t}^{pp} = \sum_{(j,k)\in E} {Q_{jk,t}^{pp}} + q_{{L_j,t}}^p - q_{Dj,t}^p,
+\end{equation}
+\begin{equation}\label{linkvl}
+{\upsilon }_{j,t}^p = {\upsilon}_{i,t}^p - \sum\limits_{q \in {\phi _j}} {2\left[ {S_{ij,t}^{pq}\left( {z_{ij}^{pq}} \right)^*} \right]},
+\end{equation}
+together with the DER and BESS
+constraints~\eqref{linqder}--\eqref{lintermsoc}. This linear model has
+no bilinear terms and hence needs no convexification; it is solved
+directly as a single linear program and serves as the fast alternative
+to MPISOCP inside the temporal decomposition of Section~\ref{sec:dddp}.
+
+% =====================================================================
+%  End of section
+% =====================================================================

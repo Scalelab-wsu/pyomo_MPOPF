@@ -103,7 +103,7 @@ def pyomo_solve_delta(model, obj_func,**kwargs):
         model.del_component('obj')  # Remove old objective
 
     model.obj = Objective(rule=obj_func, sense=minimize)
-    solver = getattr(model, "solver", 'gurobi')
+    solver = getattr(model, "solver", 'highs')
     opt = SolverFactory(solver)
     results = opt.solve(model, tee=False)
     if results.solver.status == "ok" and results.solver.termination_condition == "optimal":

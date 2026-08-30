@@ -1,109 +1,75 @@
-// Master file for 9500-Node IEEE Test Feeder Case
-// Unbalanced Load Case
-// Line definitions can use either geometry or lineconstants matrices.
+// Master file for 9500-Node IEEE Test Feeder — MV Primary Reduced Circuit
+// Based on: Master-unbal-initial-config.dss (canonical unbalanced case)
+// Reduction: no secondary loads/xfmrs, no LoadXfmrCodes, no TriplexLines,
+//            no capacitors/capcontrols, no LV DER step-up transformers,
+//            RegControls already commented out in Regulators.dss and Transformers.dss.
 
 Clear
 
-New Circuit.final9500node
+New Circuit.final9500node_reduced
 
 ! Make the source stiff with small impedance
-~ pu=1.05  r1=0  x1=0.001  r0=0  x0=0.001  
+~ pu=1.05  r1=0  x1=0.001  r0=0  x0=0.001
 
 Redirect  WireData.dss
 Redirect  CableData.dss
-! Use either LineGeometry or LineConstantsCodes
-!Redirect  LineGeometry.dss
+! LineCodes-based line definitions (all tie switches active)
+! Note: LinesSwitchesGeometry.dss has most tie switches commented out;
+!       LinesSwitchesLineCodes.dss is the complete topology file.
 Redirect  LineCodes.dss
+!Redirect  LineGeometry.dss
+! Triplex excluded (secondary network removed)
 !Redirect  TriplexLineCodes.dss
 
-! Use either LineGeometry or LineConstantsCodes
-!Redirect  LinesSwitchesGeometry.dss
-Redirect  LinesSwitchesLineCodes.dss
+! MV primary lines only — DER 480V LV lines/switches removed
+Redirect  LinesSwitches_9500_noder.dss
+!Redirect  LinesSwitchesLineCodes.dss
+
 Redirect  Transformers.dss
+! Note: RegControls are already commented out in Transformers.dss and Regulators.dss
+!       No Disable commands needed for 9500.
+
+! Service transformer codes excluded (secondary network removed)
 !Redirect  LoadXfmrCodes.dss
-!Redirect BalancedLoads.dss
+! Triplex lines excluded (secondary network removed)
 !Redirect  TriplexLines.dss
+
+! Primary MV loads only (aggregated at primary buses; UnbalancedLoads.dss excluded)
 Redirect  Loads_primary.dss
+!Redirect  UnbalancedLoads.dss
+
+! No capacitors
 !Redirect  Capacitors.dss
 !Redirect  CapControls.dss
+
+! Regulators as fixed-ratio transformers (RegControls already commented in source)
 Redirect  Regulators.dss
 
-Redirect  Generators.dss
-Redirect  EnergyStorage.dss
-Redirect PVSystems_primary.dss
-!Redirect  PV_10pen_DSSPV.dss
-!Redirect  PV_NN_100_DSSPV.dss
+! Exclude Generators.dss — diesel/LNG/MT not modelled; LV step-up transformers removed
+!Redirect  Generators.dss
 
-! Let DSS estimate the voltage bases
-Set voltagebases=[115, 69, 12.47,  0.480, 0.208]
-Calcvoltagebases     ! This also establishes the bus list
-! Ensure that DERs use correct voltage base
-!setkvbase M1209DER480-1 kVll=0.480
-!setkvbase M1209-DIES1   kVll=0.480
-!setkvbase m2001DER480-1 kVll=0.480
-!setkvbase m2001-MT1     kVll=0.480
-!setkvbase m2001-MT2     kVll=0.480
-!setkvbase m2001-MT3     kVll=0.480
-!setkvbase m2001der-1    kVll=0.480
-!setkvbase m2001der-2    kVll=0.480
-!setkvbase m2001der-3    kVll=0.480
-!setkvbase m1142DER480-1 kVll=0.480
-!setkvbase m1142-LNG1    kVll=0.480
-!setkvbase m1089DER480-1 kVll=0.480
-!setkvbase m1089-LNG1    kVll=0.480
-!setkvbase m1089DER480-1 kVll=0.480
-!setkvbase m1089-DIES1   kVll=0.480
-!setkvbase m1069DER480-1 kVll=0.480
-!setkvbase m1069-MT1     kVll=0.480
+! MV batteries (Battery1/2 at 0.48kV already commented; ESS step-up transformer removed)
+Redirect  EnergyStorage_9500_noder.dss
 
-! Load in bus coordintes now that bus list is established
-!Buscoords  BusCoords.dss
-LatLongCoords LatLongCoords.dss
+! Primary MV PV systems
+Redirect  PVSystems_primary.dss
 
-New Energymeter.m1 Element=Line.LN5710794-3 Terminal=1
+! MV-only voltage bases (0.48 kV base excluded — no LV sub-networks)
+Set voltagebases=[115, 69, 12.47]
+Calcvoltagebases
 
-
-Set Maxiterations=30     ! Sometimes the solution takes more than the default 15 iterations
-Set MaxControlIter=100
-
-Set loadmult=1.0
-
-! Generator Configuration
-! CHP at 30% capacity, MT-1 at 25%, MT-2 at 50%, all other DG off.
-!Generator.SteamGen1.kw=1000
-!Generator.SteamGen1.vpu=1.00
-!Generator.MicroTurb-1.kw=50
-!Generator.MicroTurb-2.kw=0
-!Generator.MicroTurb-3.kw=0
-!Generator.WindTurb-1.kw=20
-!Generator.WindTurb-2.kw=20
-!Generator.WindTurb-3.kw=20
-!Generator.MicroTurb-4.kw=100
-!Generator.Diesel620.kw=0
-!Generator.Diesel590.kw=0
-!Generator.LNGEngine100.kw=0
-!Generator.LNGEngine1800.kw=0
-
-!solve
-
-! Set normal feeder configuration
+! Normal feeder open switches (same as Master-unbal-initial-config.dss)
 open Line.WF856_48332_sw
 open Line.WG127_48332_sw
 open LINE.LN0653457_SW
 open LINE.V7173_48332_SW
-open LINE.TSW803273_SW 
-open LINE.A333_48332_SW 
-!solve
-open LINE.TSW320328_SW  
+open LINE.TSW803273_SW
+open LINE.A333_48332_SW
+open LINE.TSW320328_SW
 open LINE.A8645_48332_SW
 open LINE.TSW568613_SW
 
-Set mode = Daily
-Set stepsize = 1h
-Set number = 1
-solve
+BatchEdit Line..* C1=0 C0=0
+Set ControlMode = OFF
 
-!ClearBusMarkers    !...Clears any previous bus markers
-!AddBusMarker Bus=X2674027B code=15 color=Red size=4
-
-Plot daisy Power Max=1000 dots=n labels=n 1ph=3
+Set Maxiterations=30 MaxControlIter=100

@@ -1,0 +1,31 @@
+% =============================================================================
+%  Iterative SOCP (ISOCP) — transactions-paper style
+%  Preamble: \usepackage{algorithm,algpseudocode,amsmath,amssymb,bm}
+% =============================================================================
+
+\begin{algorithm}[t]
+\caption{Iterative SOCP (ISOCP).}
+\label{alg:isocp}
+\begin{algorithmic}[1]
+\Require $\tau\!\in\![0,1]$, tolerance $\varepsilon$, cap $M_{\max}$.
+\State Solve the SOCP relaxation
+       \eqref{eq1}--\eqref{eq4},\,\eqref{eqpvc},\,\eqref{eqcmc},
+       \eqref{eq7}--\eqref{eq13}; obtain
+       $\bm{z}^{(0)}\!=\!(P^{(0)},Q^{(0)},v^{(0)},l^{(0)})$.
+\State Compute $e^{pp(0)}_{ij,t}$, $e^{pq(0)}_{ij,t}$
+       from~\eqref{erroreqpvc}--\eqref{erroreqcmc} and
+       $E^{(0)}\!\leftarrow\!\max\{|e^{pp(0)}|,|e^{pq(0)}|\}$.
+\If{$E^{(0)}\!\le\!\varepsilon$} \Return $\bm{z}^{(0)}$. \EndIf
+\For{$m=0,1,\dots,M_{\max}\!-\!1$}
+   \State \emph{Replace} the directional cuts of the previous iterate
+          by~\eqref{eqdirpvc}--\eqref{eqdircmc} linearised at
+          $\bm{z}^{(m)}$ with right-hand side $(\tau\!+\!1)\,e^{(m)}$
+          (one cut per branch--phase--time index).
+   \State Solve \eqref{eq1}--\eqref{eq4},\,\eqref{eqpvc},\,\eqref{eqcmc},
+          \eqref{eq7}--\eqref{eq13} augmented with these cuts; obtain
+          $\bm{z}^{(m+1)}$ and update $E^{(m+1)}$.
+   \If{$E^{(m+1)}\!\le\!\varepsilon$} \Return $\bm{z}^{(m+1)}$. \EndIf
+\EndFor
+\State \Return $\bm{z}^{(M_{\max})}$.
+\end{algorithmic}
+\end{algorithm}
